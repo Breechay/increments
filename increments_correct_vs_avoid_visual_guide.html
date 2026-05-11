@@ -1,0 +1,581 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Sora:wght@300;400;500;600&display=swap');
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  .guide {
+    background: #0D0C0B;
+    color: #F0ECFF;
+    font-family: 'Sora', sans-serif;
+    padding: 28px 24px 36px;
+    border-radius: 16px;
+    min-height: 600px;
+  }
+  
+  .guide-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 0.5px solid #4A4468;
+  }
+  
+  .wordmark {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 3px;
+    color: #B09AFF;
+  }
+  
+  .subtitle-mono {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: #6A6285;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+  
+  .consensus-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: #5ACEA8;
+    letter-spacing: 1.5px;
+    background: rgba(90, 206, 168, 0.1);
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 0.5px solid rgba(90, 206, 168, 0.3);
+  }
+  
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: #6A6285;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  
+  .panel {
+    background: #161422;
+    border-radius: 12px;
+    padding: 16px;
+  }
+  
+  .panel-avoid { border: 0.5px solid rgba(208, 107, 107, 0.4); }
+  .panel-build { border: 0.5px solid rgba(90, 206, 168, 0.3); }
+  
+  .panel-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+  .avoid-title { color: #D06B6B; }
+  .build-title { color: #5ACEA8; }
+  
+  .color-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  
+  .swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  
+  .swatch-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: #A8A0C8;
+  }
+  
+  .swatch-sub {
+    font-size: 9px;
+    color: #6A6285;
+    margin-top: 1px;
+  }
+  
+  .strike { text-decoration: line-through; color: #6A6285; }
+  
+  .rule-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: #A8A0C8;
+    line-height: 1.5;
+  }
+  
+  .rule-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+  
+  .dot-avoid { background: #D06B6B; }
+  .dot-build { background: #5ACEA8; }
+  
+  .divider {
+    height: 0.5px;
+    background: #4A4468;
+    margin: 20px 0;
+    opacity: 0.5;
+  }
+  
+  .mockup-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  
+  .mock-screen {
+    background: #0D0C0B;
+    border-radius: 12px;
+    padding: 14px;
+    border: 0.5px solid #4A4468;
+    position: relative;
+  }
+  
+  .mock-screen-bad { border-color: rgba(208, 107, 107, 0.4); }
+  .mock-screen-good { border-color: rgba(90, 206, 168, 0.3); }
+  
+  .mock-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1.5px;
+    position: absolute;
+    top: -9px;
+    left: 12px;
+    padding: 1px 8px;
+    border-radius: 4px;
+  }
+  .mock-tag-bad { background: rgba(208,107,107,0.15); color: #D06B6B; border: 0.5px solid rgba(208,107,107,0.3); }
+  .mock-tag-good { background: rgba(90,206,168,0.1); color: #5ACEA8; border: 0.5px solid rgba(90,206,168,0.3); }
+  
+  .fake-title { font-size: 11px; font-weight: 500; color: #F0ECFF; margin-bottom: 4px; }
+  .fake-sub { font-family: 'DM Mono', monospace; font-size: 9px; color: #6A6285; letter-spacing: 1px; margin-bottom: 10px; }
+  
+  .score-circle-bad {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: radial-gradient(circle, #D4933A 0%, rgba(212,147,58,0.2) 60%, transparent 100%);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px; font-weight: 500;
+    color: #D4933A;
+  }
+  
+  .score-circle-bad-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px; color: #D4933A;
+    text-align: center; margin-bottom: 10px;
+  }
+  
+  .fake-action-row {
+    display: flex; align-items: center; gap: 8px;
+    background: #1C1A2A; border-radius: 8px; padding: 8px 10px;
+    margin-bottom: 6px;
+  }
+  
+  .fake-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  
+  .fake-action-title { font-size: 11px; color: #F0ECFF; flex: 1; }
+  
+  .fake-mono-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px; letter-spacing: 1px; padding: 2px 6px;
+    border-radius: 3px;
+  }
+  
+  .fake-streak {
+    background: #1C1A2A; border-radius: 8px; padding: 8px 10px;
+    display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
+    border: 0.5px solid rgba(212,147,58,0.3);
+  }
+  
+  .streak-fire { font-size: 14px; }
+  .streak-text { font-size: 11px; color: #D4933A; }
+  
+  .good-dots {
+    display: flex; gap: 8px; align-items: center;
+    padding: 10px; margin-bottom: 8px;
+    background: #1C1A2A; border-radius: 8px;
+  }
+  
+  .sys-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .sys-dot-hollow {
+    width: 10px; height: 10px; border-radius: 50%;
+    border: 1.5px solid;
+    background: transparent;
+  }
+  
+  .one-door-card {
+    background: #1C1A2A; border-radius: 10px;
+    padding: 14px 12px;
+    border: 0.5px solid rgba(138, 110, 255, 0.25);
+    margin-bottom: 8px;
+  }
+  
+  .one-door-line1 {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px; letter-spacing: 2px; color: #6A6285;
+    margin-bottom: 6px;
+  }
+  
+  .one-door-action {
+    font-size: 13px; font-weight: 500; color: #F0ECFF;
+    margin-bottom: 4px;
+  }
+  
+  .one-door-cue {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px; color: #6A6285;
+    margin-bottom: 10px;
+  }
+  
+  .one-door-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px; letter-spacing: 1.5px;
+    color: #8A6EFF; cursor: pointer;
+  }
+  
+  .noted-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px; color: #4A4468; float: right;
+  }
+  
+  .evidence-card {
+    background: #1D1B18;
+    border-radius: 10px;
+    padding: 12px;
+    border: 0.5px solid rgba(200, 169, 110, 0.2);
+    margin-bottom: 8px;
+  }
+  
+  .evidence-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; color: #A8A0C8; line-height: 1.6;
+  }
+  
+  .evidence-accent { color: #C8A96E; }
+  
+  .summary-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 16px;
+  }
+  
+  .summary-card {
+    background: #161422;
+    border-radius: 8px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+  
+  .summary-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 16px; font-weight: 500;
+    margin-bottom: 3px;
+  }
+  
+  .summary-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px; letter-spacing: 1.5px;
+    color: #6A6285;
+  }
+  
+  .agent-consensus {
+    background: #161422;
+    border-radius: 10px;
+    padding: 14px;
+    border: 0.5px solid #4A4468;
+    margin-bottom: 12px;
+  }
+  
+  .consensus-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    margin-bottom: 10px; font-size: 12px;
+  }
+  
+  .agent-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; font-weight: 500;
+    min-width: 24px; color: #B09AFF;
+  }
+  
+  .consensus-text { color: #A8A0C8; line-height: 1.5; }
+  .consensus-strong { color: #F0ECFF; }
+</style>
+
+<div class="guide">
+  <div class="guide-header">
+    <div>
+      <div class="wordmark">INCREMENTS</div>
+      <div class="subtitle-mono">v1.2 · VISUAL DESIGN REFERENCE</div>
+    </div>
+    <div class="consensus-badge">5-AGENT SYNTHESIS</div>
+  </div>
+
+  <div class="section-label">AGENT CONSENSUS — HIGH CONFIDENCE FINDINGS</div>
+  
+  <div class="agent-consensus">
+    <div class="consensus-row">
+      <div class="agent-count">5/5</div>
+      <div class="consensus-text"><span class="consensus-strong">Health = red (#D06B6B) is the most dangerous semantic assignment.</span> Pre-attentive threat response fires before analytical override. Must change.</div>
+    </div>
+    <div class="consensus-row">
+      <div class="agent-count">5/5</div>
+      <div class="consensus-text"><span class="consensus-strong">Amber dual-use (Participation + decay) creates disambiguation tax.</span> Forces context-resolve on every amber encounter. Separate immediately.</div>
+    </div>
+    <div class="consensus-row">
+      <div class="agent-count">4/5</div>
+      <div class="consensus-text"><span class="consensus-strong">DM Mono 9pt is below Reserve-state legibility threshold.</span> Becomes ambient texture under fatigue. Raise to 11pt minimum.</div>
+    </div>
+    <div class="consensus-row">
+      <div class="agent-count">5/5</div>
+      <div class="consensus-text"><span class="consensus-strong">Uniform card architecture collapses orientation speed.</span> Three-tier hierarchy (Primary / Secondary / Ambient) needed.</div>
+    </div>
+    <div class="consensus-row" style="margin-bottom:0">
+      <div class="agent-count">5/5</div>
+      <div class="consensus-text"><span class="consensus-strong">Sora + DM Mono, operational copy, no-aggregate-score, and milestone silence</span> are working correctly. Protect absolutely.</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="section-label">COLOR FIXES — BEFORE / AFTER</div>
+  
+  <div class="two-col">
+    <div class="panel panel-avoid">
+      <div class="panel-title avoid-title">❌ CURRENT — PROBLEMS</div>
+      
+      <div class="color-row">
+        <div class="swatch" style="background:#D06B6B;"></div>
+        <div>
+          <div class="swatch-label strike">HEALTH — InkRed #D06B6B</div>
+          <div class="swatch-sub">Threat signal. Avoidance priming on recovery days.</div>
+        </div>
+      </div>
+      
+      <div class="color-row">
+        <div class="swatch" style="background:#D4933A;"></div>
+        <div>
+          <div class="swatch-label strike">PARTICIPATION + DECAY — same amber</div>
+          <div class="swatch-sub">Semantic overload. Disambiguation on every glance.</div>
+        </div>
+      </div>
+      
+      <div class="color-row">
+        <div class="swatch" style="background:#0C0B12; border: 0.5px solid #4A4468;"></div>
+        <div>
+          <div class="swatch-label strike">BACKGROUND — #0C0B12 (blue undertone)</div>
+          <div class="swatch-sub">Melanopsin activation at evening use window.</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="panel panel-build">
+      <div class="panel-title build-title">✓ FIXED — CORRECT</div>
+      
+      <div class="color-row">
+        <div class="swatch" style="background:#5AB8D6;"></div>
+        <div>
+          <div class="swatch-label">HEALTH — sky teal #5AB8D6</div>
+          <div class="swatch-sub">Clinical neutrality. Regulation/restoration associations.</div>
+        </div>
+      </div>
+      
+      <div class="color-row">
+        <div class="swatch" style="background:#D4933A; opacity: 0.4; border: 1px solid #D4933A;"></div>
+        <div>
+          <div class="swatch-label">DECAY — domain color @ 40% opacity</div>
+          <div class="swatch-sub">No new color. "Quieter version of domain" semantic.</div>
+        </div>
+      </div>
+      
+      <div class="color-row">
+        <div class="swatch" style="background:#0D0C0B; border: 0.5px solid #4A4468;"></div>
+        <div>
+          <div class="swatch-label">BACKGROUND — #0D0C0B (warm-neutral)</div>
+          <div class="swatch-sub">Perceptually identical. Physiologically different.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="section-label">MOCKUP REFERENCE — WHAT TO BUILD vs. WHAT TO AVOID</div>
+  
+  <div class="mockup-row">
+    <div class="mock-screen mock-screen-bad">
+      <div class="mock-tag mock-tag-bad">AVOID — MOCKUP PATTERNS</div>
+      
+      <div class="fake-title">OVERVIEW</div>
+      <div class="fake-sub">OPERATOR SCORE</div>
+      
+      <div class="score-circle-bad">782</div>
+      <div class="score-circle-bad-label">↑ 24 FROM YESTERDAY</div>
+      
+      <div class="fake-streak">
+        <span class="streak-fire">🔥</span>
+        <span class="streak-text">Best streak: 14 days</span>
+      </div>
+      
+      <div style="background:#1C1A2A; border-radius:8px; padding:8px 10px; margin-bottom:6px; font-size:10px; color:#D4933A; border: 0.5px solid rgba(212,147,58,0.3);">
+        "Well executed. You participated today." ✨
+      </div>
+      
+      <div style="width:100%; height:60px; background:#1C1A2A; border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:'DM Mono',monospace; font-size:9px; color:#6A6285; border: 0.5px solid rgba(208,107,107,0.3);">
+        ⬡ spider chart here ⬡
+      </div>
+    </div>
+    
+    <div class="mock-screen mock-screen-good">
+      <div class="mock-tag mock-tag-good">BUILD — CORRECT PATTERNS</div>
+      
+      <div class="evidence-card">
+        <div class="evidence-text">
+          Yesterday: <span class="evidence-accent">6 actions.</span> Environment moved.<br>
+          One work thread opened.
+        </div>
+      </div>
+      
+      <div class="good-dots">
+        <div class="sys-dot" style="background:#5ACEA8;"></div>
+        <div class="sys-dot" style="background:#B09AFF;"></div>
+        <div class="sys-dot" style="background:#5AB8D6; opacity:0.4; border: 1px solid #5AB8D6;"></div>
+        <div class="sys-dot" style="background:#C8A96E;"></div>
+        <div class="sys-dot" style="background:#D4933A;"></div>
+        <div style="font-family:'DM Mono',monospace; font-size:9px; color:#6A6285; flex:1; text-align:right;">4 of 5 active</div>
+      </div>
+      
+      <div class="fake-action-row">
+        <div class="fake-dot" style="background:#5ACEA8;"></div>
+        <div>
+          <div class="fake-action-title">Morning light exposure</div>
+          <div style="font-family:'DM Mono',monospace; font-size:9px; color:#6A6285;">After first standing transition</div>
+        </div>
+      </div>
+      
+      <div class="fake-action-row">
+        <div class="fake-dot" style="background:#5AB8D6;"></div>
+        <div>
+          <div class="fake-action-title">Move your body</div>
+          <div style="font-family:'DM Mono',monospace; font-size:9px; color:#6A6285;">After clearing desk surface</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup-row">
+    <div class="mock-screen mock-screen-bad" style="margin-top:8px;">
+      <div class="mock-tag mock-tag-bad">AVOID — ONE DOOR WRONG</div>
+      <div style="background:#D06B6B22; border: 1px solid #D06B6B; border-radius:8px; padding:10px; margin-bottom:8px;">
+        <div style="font-size:11px; color:#D06B6B; font-weight:500; margin-bottom:4px;">⚠ Nothing completed yet</div>
+        <div style="font-size:10px; color:#A8A0C8;">You haven't made progress today. Get back on track!</div>
+      </div>
+      <div style="font-size:10px; color:#6A6285; font-family:'DM Mono',monospace; text-align:center;">[ too alarming — shame trigger ]</div>
+    </div>
+    
+    <div class="mock-screen mock-screen-good" style="margin-top:8px;">
+      <div class="mock-tag mock-tag-good">BUILD — ONE DOOR CORRECT</div>
+      <div class="one-door-card">
+        <div class="one-door-line1">ONE DOOR</div>
+        <div class="one-door-action">Open the blinds</div>
+        <div class="one-door-cue">When walking to bathroom</div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="one-door-btn">open it →</div>
+          <div class="noted-btn">noted</div>
+        </div>
+      </div>
+      <div style="font-size:10px; color:#6A6285; font-family:'DM Mono',monospace; text-align:center;">[ calm · agency preserved · no shame ]</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="section-label">LAUNCH ANIMATION — WHAT THE BRAIN ICON SEQUENCE SHOULD BE</div>
+  
+  <div class="panel" style="border: 0.5px solid rgba(138,110,255,0.3); margin-bottom:16px;">
+    <div class="panel-title" style="color:#B09AFF; margin-bottom:12px;">APPROVED ATMOSPHERIC MOMENTS</div>
+    <div class="rule-row">
+      <div class="rule-dot dot-build"></div>
+      <span><strong style="color:#F0ECFF;">Launch sequence (2.2s):</strong> Neural nodes pulse in one by one (1.2s) → warm corona ignites (0.3s) → wordmark fades up (0.4s) → app loads. One time. Then instrument mode.</span>
+    </div>
+    <div class="rule-row">
+      <div class="rule-dot dot-build"></div>
+      <span><strong style="color:#F0ECFF;">Home hero depth:</strong> Static low-opacity radial gradient behind the system dots area. Not animated. One atmospheric layer.</span>
+    </div>
+    <div class="rule-row">
+      <div class="rule-dot dot-build"></div>
+      <span><strong style="color:#F0ECFF;">Completion glow:</strong> 400–600ms, InkGreen, fast onset / slow fade. Linear decay, not elastic. + single light haptic.</span>
+    </div>
+    <div class="rule-row" style="margin-bottom:0">
+      <div class="rule-dot dot-avoid"></div>
+      <span style="color:#A8A0C8;"><strong style="color:#D06B6B;">Do not build:</strong> Continuously animated backgrounds, TimelineView drifting gradients, per-session ambient motion, "atmospheric" effects on every screen. Animation budget is ~12–15 events/session max.</span>
+    </div>
+  </div>
+
+  <div class="section-label">WHAT THE MOCKUP IMAGES (IMAGE 3) GOT WRONG</div>
+  <div class="two-col">
+    <div class="panel panel-avoid">
+      <div class="panel-title avoid-title">IN THE MOCKUPS — DO NOT BUILD</div>
+      <div class="rule-row"><div class="rule-dot dot-avoid"></div><span>Spider chart (pentagon) — held in v1.1, highest Goodhart risk</span></div>
+      <div class="rule-row"><div class="rule-dot dot-avoid"></div><span>"Best streak: 14 days" — streak psychology via visual back door</span></div>
+      <div class="rule-row"><div class="rule-dot dot-avoid"></div><span>"Well executed." — praise language, violates operational register</span></div>
+      <div class="rule-row"><div class="rule-dot dot-avoid"></div><span>782/1000 aggregate score as hero — held in v1.1</span></div>
+      <div class="rule-row"><div class="rule-dot dot-avoid"></div><span>Level rewards ladder with locked features — gamification</span></div>
+      <div class="rule-row" style="margin-bottom:0"><div class="rule-dot dot-avoid"></div><span>"12% momentum" percentage arrows — Competition trap</span></div>
+    </div>
+    <div class="panel panel-build">
+      <div class="panel-title build-title">WHAT THE MOCKUPS GOT RIGHT</div>
+      <div class="rule-row"><div class="rule-dot dot-build"></div><span>Dark palette, deep background, instrument density — correct</span></div>
+      <div class="rule-row"><div class="rule-dot dot-build"></div><span>Brain icon with warm corona + violet rim — use this exactly</span></div>
+      <div class="rule-row"><div class="rule-dot dot-build"></div><span>Tracked letterform "INCREMENTS" in gold — right register</span></div>
+      <div class="rule-row"><div class="rule-dot dot-build"></div><span>System-labeled tabs with icons — navigational clarity good</span></div>
+      <div class="rule-row"><div class="rule-dot dot-build"></div><span>Layout density and card rhythm — spatially well-calibrated</span></div>
+      <div class="rule-row" style="margin-bottom:0"><div class="rule-dot dot-build"></div><span>The five system icons (leaf, brain, heart, briefcase, walk) — keep</span></div>
+    </div>
+  </div>
+
+  <div class="summary-row">
+    <div class="summary-card">
+      <div class="summary-num" style="color:#5ACEA8;">6</div>
+      <div class="summary-label">CONFIRMED FIXES</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-num" style="color:#B09AFF;">3</div>
+      <div class="summary-label">IMPLEMENT WITH CARE</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-num" style="color:#6A6285;">8</div>
+      <div class="summary-label">PROTECT UNCHANGED</div>
+    </div>
+  </div>
+  
+  <div style="text-align:center; margin-top:20px; padding-top:16px; border-top: 0.5px solid #4A4468;">
+    <div style="font-family:'DM Mono',monospace; font-size:9px; color:#6A6285; letter-spacing:1.5px;">"participation in reality"</div>
+  </div>
+</div>
