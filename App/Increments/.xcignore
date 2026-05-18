@@ -1,0 +1,4 @@
+# Keep provisioning exports out of the synchronized target (avoids "build input file" errors).
+*.mobileprovision
+
+.DS_Store
