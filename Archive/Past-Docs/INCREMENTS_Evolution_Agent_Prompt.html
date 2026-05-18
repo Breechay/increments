@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INCREMENTS — Evolution Agent Prompt</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Sora:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg: #0D0C0B;
+  --surface: #171512;
+  --surface2: #1D1B18;
+  --violet: #8A6EFF;
+  --violetLight: #B09AFF;
+  --violetDim: #4A3D88;
+  --warm: #C8A96E;
+  --warmLight: #E8C98E;
+  --inkGreen: #5ACEA8;
+  --inkTeal: #5AB8D6;
+  --inkAmber: #D4933A;
+  --inkRed: #D06B6B;
+  --textPrimary: #F0ECFF;
+  --textSecond: #A8A0C8;
+  --textMuted: #6A6285;
+  --muted: #4A4468;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--textPrimary);
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  padding: 48px 32px 80px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.mono { font-family: 'DM Mono', monospace; }
+
+/* ── Header ── */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 24px;
+  border-bottom: 0.5px solid var(--muted);
+  margin-bottom: 40px;
+}
+.wordmark {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  letter-spacing: 4px;
+  color: var(--violetLight);
+}
+.doc-meta {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--textMuted);
+  letter-spacing: 1.5px;
+  text-align: right;
+  line-height: 1.8;
+}
+.badge {
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: var(--inkGreen);
+  background: rgba(90,206,168,0.08);
+  border: 0.5px solid rgba(90,206,168,0.3);
+  border-radius: 4px;
+  padding: 3px 10px;
+  margin-top: 6px;
+}
+
+/* ── Section labels ── */
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  color: var(--textMuted);
+  margin-bottom: 12px;
+  margin-top: 40px;
+}
+
+/* ── Copy block (the actual prompt) ── */
+.prompt-block {
+  background: var(--surface);
+  border-radius: 12px;
+  border: 0.5px solid var(--violetDim);
+  padding: 28px 28px 32px;
+  position: relative;
+  margin-bottom: 32px;
+  box-shadow: 0 0 40px rgba(138,110,255,0.06), 0 8px 24px rgba(0,0,0,0.4);
+}
+.prompt-block::before {
+  content: 'COPY THIS ENTIRE BLOCK INTO EACH AGENT';
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: var(--violet);
+  position: absolute;
+  top: -1px;
+  left: 20px;
+  background: var(--bg);
+  padding: 0 8px;
+  transform: translateY(-50%);
+}
+
+.prompt-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  line-height: 1.9;
+  color: var(--textPrimary);
+  white-space: pre-wrap;
+}
+.prompt-text .dim { color: var(--textMuted); }
+.prompt-text .hi-violet { color: var(--violetLight); }
+.prompt-text .hi-warm { color: var(--warmLight); }
+.prompt-text .hi-green { color: var(--inkGreen); }
+.prompt-text .hi-amber { color: var(--inkAmber); }
+.prompt-text .hi-teal { color: var(--inkTeal); }
+
+/* ── Info cards ── */
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.card {
+  background: var(--surface2);
+  border-radius: 10px;
+  padding: 18px 20px;
+  border: 0.5px solid var(--muted);
+}
+.card-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+}
+.card-body {
+  font-size: 12px;
+  color: var(--textSecond);
+  line-height: 1.7;
+}
+.card-body li {
+  list-style: none;
+  padding-left: 14px;
+  position: relative;
+  margin-bottom: 5px;
+}
+.card-body li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--textMuted);
+  font-size: 11px;
+}
+
+/* ── Domain pills ── */
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+.pill {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 0.5px solid;
+}
+.pill-violet { color: var(--violetLight); border-color: rgba(176,154,255,0.3); background: rgba(138,110,255,0.08); }
+.pill-green  { color: var(--inkGreen);   border-color: rgba(90,206,168,0.3);  background: rgba(90,206,168,0.06); }
+.pill-warm   { color: var(--warmLight);  border-color: rgba(200,169,110,0.3); background: rgba(200,169,110,0.06); }
+.pill-teal   { color: var(--inkTeal);    border-color: rgba(90,184,214,0.3);  background: rgba(90,184,214,0.06); }
+.pill-amber  { color: var(--inkAmber);   border-color: rgba(212,147,58,0.3);  background: rgba(212,147,58,0.06); }
+
+/* ── Divider ── */
+.div { height: 0.5px; background: var(--muted); opacity: 0.3; margin: 36px 0; }
+
+/* ── Agent question rows ── */
+.question-block {
+  background: var(--surface);
+  border-radius: 10px;
+  border-left: 2px solid var(--violet);
+  padding: 14px 18px;
+  margin-bottom: 10px;
+}
+.q-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--violet);
+  letter-spacing: 1.5px;
+  margin-bottom: 5px;
+}
+.q-text {
+  font-size: 13px;
+  color: var(--textPrimary);
+  line-height: 1.6;
+}
+
+/* ── Footer ── */
+.footer {
+  text-align: center;
+  margin-top: 60px;
+  padding-top: 20px;
+  border-top: 0.5px solid var(--muted);
+}
+.footer-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--textMuted);
+  letter-spacing: 1.5px;
+}
+
+/* ── Constraint block ── */
+.constraint-block {
+  background: rgba(208,107,107,0.05);
+  border: 0.5px solid rgba(208,107,107,0.2);
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-top: 12px;
+}
+.constraint-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--inkRed);
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <div>
+    <div class="wordmark">INCREMENTS</div>
+    <div class="mono" style="font-size:9px; color:var(--textMuted); letter-spacing:1.5px; margin-top:4px;">EVOLUTION BRIEFING · MULTI-AGENT PROMPT DOCUMENT</div>
+    <div class="badge">v2.0 SCIENCE REVIEW</div>
+  </div>
+  <div class="doc-meta">
+    PREPARED FOR BRICE<br>
+    PHASE 2 EXPANSION<br>
+    MAY 2026
+  </div>
+</div>
+
+<!-- ── WHAT THIS DOCUMENT IS ── -->
+<div class="section-label">PURPOSE OF THIS DOCUMENT</div>
+<p style="color:var(--textSecond); font-size:13px; line-height:1.8; margin-bottom:20px;">
+  This is a self-contained briefing for multiple independent AI agents to review and evaluate the next evolutionary phase of INCREMENTS. Each agent receives this full document as their only context. The goal is to get science-grounded, temperament-calibrated recommendations for what the app should add — and what it should refuse to add — based on real usage feedback and the user profile documented here.
+</p>
+<p style="color:var(--textSecond); font-size:13px; line-height:1.8;">
+  This is not a feature wishlist session. It is a behavioral science consultation. Each agent should reason from the evidence, not from convention.
+</p>
+
+<div class="div"></div>
+
+<!-- ── THE PROMPT BLOCK ── -->
+<div class="section-label">THE AGENT PROMPT — COPY IN FULL</div>
+
+<div class="prompt-block">
+<div class="prompt-text">
+<span class="hi-violet">═══════════════════════════════════════════════════════════════
+INCREMENTS — BEHAVIORAL SCIENCE EVOLUTION REVIEW
+Multi-Agent Consultation · Self-Contained Briefing
+═══════════════════════════════════════════════════════════════</span>
+
+<span class="dim">Read this entire document before forming any opinion. Then answer the
+consultation questions at the end. Do not add features. Evaluate whether
+the ideas described belong in this system at all.</span>
+
+───────────────────────────────────────────────────────────────
+<span class="hi-warm">SECTION 1 — WHAT INCREMENTS IS</span>
+───────────────────────────────────────────────────────────────
+
+INCREMENTS is a private iOS environmental cognition support system
+built for one user. It is not a habit tracker. It is not a wellness app.
+It is not a productivity tool with streaks.
+
+<span class="hi-violet">Core operating question the app answers:</span>
+"What actions will make my life more inhabitable today?"
+
+<span class="hi-violet">Emotional register:</span>
+Cinematic recovery cockpit. Calm. Operational. Atmospheric. Intelligent.
+Ex Machina energy — quiet intensity, restrained futurism, beautiful
+interfaces that earn their complexity.
+
+<span class="hi-violet">App philosophy:</span>
+The system reports state without judging it.
+Not a coach talking to a student.
+Not a gamification platform.
+A system reporting on itself — like a cockpit, not a scoreboard.
+
+───────────────────────────────────────────────────────────────
+<span class="hi-warm">SECTION 2 — THE USER PROFILE (BRICE)</span>
+───────────────────────────────────────────────────────────────
+
+<span class="hi-teal">Cognitive profile:</span>
+· MBTI: INTJ (Introvert 67%, Intuition 50%, Thinking 50%, Judging 44%)
+· Gallup StrengthsFinder Top 5: Analytical, Achiever, Restorative,
+  Individualization, Competition
+· ESF Entrepreneurial: Dominant in Confidence, Risk-Taker, Delegator
+· SLOAN type: SCOAI — decisive, self-motivated, systems-oriented,
+  high orderliness (80%), high inquisitiveness (80%)
+
+<span class="hi-teal">Behavioral tendencies relevant to app design:</span>
+· Thinks in operational sequences, not isolated tasks ("sessions" not checkboxes)
+· Responds strongly to structure, visible progression, bounded missions
+· Analytical profile auto-evaluates every feature: "what job does this do?"
+  — features that can't answer this fail trust test and get ignored
+· Competition strength: measurement motivates but can Goodhart-trap if
+  metrics become proxies for the behavior (watch XP, watch score labels)
+· Achiever: internal fire, needs tangible daily closure, moves on fast
+· Restorative: energized by fixing problems, can over-apply to self (self-critical)
+· Atmosphere-sensitive: environment quality directly affects cognition and output
+
+<span class="hi-teal">Physical context:</span>
+· Tibial fracture post-op, crutches, in recovery
+· Running currently adapted (elliptical Z2, limited load)
+· Reduced cognitive filtering capacity under recovery state — this
+  matters for every design decision involving friction or complexity
+
+<span class="hi-teal">What's already working (user-reported):</span>
+· Blinds open in morning — locked in
+· Fresh air — locked in
+· No phone first hour — locked in
+· Movement — locked in
+· "I'm not staying on the app. I'm glancing and tackling."
+  (This is the correct success condition — app is launch surface, not destination)
+· App is creating behavioral momentum without requiring motivation
+
+───────────────────────────────────────────────────────────────
+<span class="hi-warm">SECTION 3 — CURRENT BUILD STATE (v1.2)</span>
+───────────────────────────────────────────────────────────────
+
+Built and working:
+· Home (Operator Dashboard): System Synergy 5-dot row, Next Sane
+  Participation, System Status rows
+· Today (Daily Execution): Energy State input, Morning Evidence card,
+  One Door postponement interrupt, action stack (capped at 8),
+  progress ring, Daily Review CTA
+· Increments (System View): 5 system cards with 3-day quiet signal
+· Habits: HabitCard with cue + minimum scope, system-color completion
+  button, last-completed indicator (NO streak dots)
+· You: Profile, Work Tracks, Recovery Phase, Settings
+· Timeline: Gated at day 14, shows receipts not grades
+
+<span class="hi-teal">The 5 system domains:</span>
+· Environment (inkGreen #5ACEA8)
+· Cognition (violetLight #B09AFF)
+· Health (inkTeal #5AB8D6 — NOT red)
+· Operations (warm #C8A96E)
+· Participation (inkAmber #D4933A)
+
+Phase 2 items not yet built:
+· Focus Mode (deep work timer, tab bar disappears)
+· Notification personalization
+· Insights tab (blocked until 30 days of data)
+
+───────────────────────────────────────────────────────────────
+<span class="hi-warm">SECTION 4 — BEHAVIORAL ARCHITECTURE GUARDRAILS</span>
+(These are non-negotiable. Do not recommend violations.)
+───────────────────────────────────────────────────────────────
+
+<span class="hi-amber">HELD — never build:</span>
+· No streak counters in any form
+· No aggregate operator score as displayed metric
+· No praise language ("Well done", "Great job", "You showed up")
+· No shame language ("Neglected", "You failed", "Streak broken")
+· No motivational-speaker cadence ("Crush your goals")
+· No urgency notifications ("You haven't opened the app")
+· No spider charts / overview dashboards
+· No percentage trend comparisons (Competition strength Goodhart trap)
+· No continuous ambient animation
+· No journal as open canvas (blank-field anxiety for Analytical)
+· No gamification ladder / level rewards screen
+· No "Best streak" display anywhere
+· No XP total displayed — only "XP to next" is acceptable
+
+<span class="hi-amber">Voice register — write like this:</span>
+"Open the blinds." / "One action now." / "Loop closed." / "Quiet."
+"Participate before postponement." / "Close the loop before sleep."
+
+<span class="hi-amber">Never write:</span>
+"Well executed." / "You showed up." / "Great job." / "Crush it."
+
+───────────────────────────────────────────────────────────────
+<span class="hi-warm">SECTION 5 — WHAT THE USER ASKED FOR (RAW NOTES)</span>
+───────────────────────────────────────────────────────────────
+
+Direct from user:
+
+"I need depth for my type — laundry steps and plan like sessions.
+Same with grooming — day and night.
+Filters changing — water filters.
+Weekly cleans.
+Financial and money habits.
+I will eventually need it to be a budget and financial side tool.
+
+Multi-task tasks — v1 is incredible, like actual missions and objectives,
+like a game. When you're in there your character has things to do.
+
+Hydrate needs more frequency — I need to relearn things and actually
+build the habits. I already got the blinds, fresh air, movement and
+no phone 1st hour down so the app is working and I'm not staying
+on it — I'm just glancing and tackling.
+
+Like the science of optimal health and habits — Tim Ferriss Tools of
+Titans — but applicable to my temperament."
+
+<span class="hi-green">Key insight from this feedback:</span>
+The user thinks in SESSIONS not tasks.
+Not "do laundry" — "run the laundry session" (sort → load → transfer → fold → put away).
+Not "groom" — "run the grooming protocol" (morning stack / evening stack).
+This is how athletic training works for him, and it's the correct analogy.
+
+───────────────────────────────────────────────────────────────
+<span class="hi-warm">SECTION 6 — THE EVOLUTION IDEAS UNDER REVIEW</span>
+───────────────────────────────────────────────────────────────
+
+The following categories of expansion are being evaluated.
+Each agent should assess EACH category against: (a) behavioral science,
+(b) this user's cognitive profile, (c) the app's guardrails.
+
+<span class="hi-teal">6A. SESSION PROTOCOLS (Operational Sequences)</span>
+The idea: Habits that are multi-step sequences get a "session" format
+instead of a single checkbox. A laundry session has ordered steps.
+A grooming protocol has a morning stack and an evening stack. The user
+completes steps in sequence; the system tracks session completion,
+not individual step streaks.
+
+Questions: Does session-format add cognitive load or reduce it for this
+profile? What's the science on chunked behavioral sequences vs discrete
+tasks for INTJ/Analytical types? What's the risk model?
+
+<span class="hi-teal">6B. MAINTENANCE CADENCE (Non-Binary Rhythms)</span>
+The idea: Some behaviors aren't once-per-day — they're interval-based.
+Water filter replacement (monthly). HVAC filter (quarterly). Weekly
+deep clean. These don't fit the daily action stack. They need a
+different temporal logic: "due", "upcoming", "overdue" — with no
+shame framing, just state reporting.
+
+Questions: How should interval-based maintenance behaviors be surfaced
+without creating a to-do list aesthetic? What's the science on
+maintenance behavior adherence for this profile type?
+
+<span class="hi-teal">6C. HYDRATION / RHYTHMIC BEHAVIORS</span>
+The idea: Hydration isn't a checkbox — it's a frequency target. The
+user needs to re-establish hydration as a rhythm, not an event. This
+may require time-distributed gentle prompting, not a daily completion
+toggle. Same applies to: movement breaks, sunlight, posture checks,
+breathing, short mental resets.
+
+Questions: What's the science on interval-based health prompting vs
+daily completion for hydration specifically? What cadence logic works
+for Analytical/Competition profiles without triggering score-proxy
+behavior? How do we surface frequency without creating a counter?
+
+<span class="hi-teal">6D. FINANCIAL VISIBILITY (Operational Clarity Layer)</span>
+The idea: The user needs financial habits integrated — not as a
+spreadsheet, but as operational clarity. Runway visibility. Recurring
+obligations. Spending awareness. Restoration vs depletion framing.
+Eventually: a lightweight financial operating layer inside the app.
+
+Questions: What is the minimum viable financial visibility feature
+that provides operational clarity without becoming a budgeting app?
+What does behavioral science say about financial habit formation for
+high-Achiever, high-Analytical profiles? What are the psychological
+risks of financial metrics inside an achievement-oriented system?
+
+<span class="hi-teal">6E. TOOLS OF TITANS / FERRISS-ADJACENT SCIENCE — FILTER TEST</span>
+The idea: The user references Tim Ferriss and optimal health science.
+Evaluate which practices from that canon are: (a) evidence-based,
+(b) appropriate for this temperament, (c) compatible with the app's
+anti-optimization-maximalism philosophy, (d) relevant during physical
+recovery.
+
+Candidates to evaluate (agent should add/remove/modify):
+· Morning light exposure (first 30 min after waking)
+· Cold exposure (currently contra-indicated — tibial fracture/post-op)
+· Zone 2 cardio (already built into training)
+· Time-restricted eating / meal timing
+· Magnesium glycinate before sleep
+· Creatine for cognitive function
+· Sauna protocol (frequency, timing relative to training)
+· HRV monitoring for recovery state awareness
+· Deliberate heat/cold contrast (contraindicated currently)
+· Journaling (already held — blank canvas creates anxiety)
+· Weekly review ritual
+· 5-minute mobility / decompression post-session
+
+For each: state whether it belongs in the app, as what (habit, session,
+maintenance cadence, or environmental prompt), and why.
+
+<span class="hi-teal">6F. GROOMING / APPEARANCE AS OPERATIONS PROTOCOL</span>
+The idea: The user already has a weekly rhythm document (Training,
+Hair, Skin). This needs to become structured inside the app as
+operational protocols under the Health system, not under a vanity
+frame. Nizoral cadence, hair oil nights, skin actives schedule.
+
+Questions: How should grooming protocols be framed in the app's voice
+to avoid identity-load language ("self-care", "routine", "regime")
+and stay operational? What's the correct system domain for these?
+
+───────────────────────────────────────────────────────────────
+<span class="hi-warm">SECTION 7 — CONSULTATION QUESTIONS FOR EACH AGENT</span>
+───────────────────────────────────────────────────────────────
+
+Answer these in order. Be specific. Cite mechanisms, not vibes.
+
+<span class="hi-violet">Q1 — SESSION FORMAT</span>
+Should this app support multi-step operational sequences ("sessions")
+as a distinct action format? What's the behavioral science rationale?
+What is the correct UX logic for session completion vs step completion?
+What would the minimum viable version look like in this app's voice?
+
+<span class="hi-violet">Q2 — MAINTENANCE CADENCE</span>
+How should interval-based maintenance (filters, weekly cleans, monthly
+tasks) appear in this app? What temporal framing is most compatible
+with the app's "state reporting" philosophy? What's the risk of
+maintenance tracking becoming a guilt-producing to-do list?
+
+<span class="hi-violet">Q3 — HYDRATION + RHYTHMIC PROMPTING</span>
+Propose a hydration habit architecture that provides frequency
+prompting without a counter, without streaks, and without creating
+score-proxy behavior. How does the science of behavior change support
+or challenge the idea of time-distributed gentle prompting in a
+low-notification app?
+
+<span class="hi-violet">Q4 — FINANCIAL LAYER</span>
+What is the minimum viable financial visibility design that provides
+operational clarity for an Achiever/Analytical type without: creating
+a budgeting pressure environment, introducing competitive framing
+around money, or generating guilt-producing deficit reporting?
+
+<span class="hi-violet">Q5 — FERRISS SCIENCE FILTER</span>
+From the candidate list in Section 6E, which practices make the cut
+for this system? For each that passes: what domain does it belong in,
+what is the app's framing for it, and is there any risk specific to
+this user's profile or current recovery state?
+
+<span class="hi-violet">Q6 — WHAT TO REFUSE</span>
+Given everything above, what evolution ideas should this app
+explicitly not build — even if the user requests them? Name the
+mechanism by which each would fail for this specific profile.
+
+<span class="hi-violet">Q7 — THE HONEST STRUCTURAL QUESTION</span>
+The app is a "calm external nervous system." The user is now asking
+for more depth. At what point does adding depth compromise the
+simplicity that makes the app work? Where is the line, and how should
+the build process manage it?
+
+───────────────────────────────────────────────────────────────
+<span class="hi-warm">SECTION 8 — FORMAT GUIDANCE FOR AGENT RESPONSE</span>
+───────────────────────────────────────────────────────────────
+
+· Answer Q1–Q7 in order
+· Each answer: mechanism first, then recommendation, then risk flags
+· Do not recommend anything that violates Section 4 guardrails
+· Do not use praise language or motivational framing in your response
+· Cite behavioral science where possible (name the model or researcher)
+· If something belongs in the app, say what type: habit, session,
+  maintenance cadence, environmental prompt, or financial signal
+· End with a section titled "WHAT TO BUILD FIRST" — the single highest-
+  leverage addition that is science-grounded, low-risk, and fits this
+  user's current recovery state
+
+<span class="hi-violet">═══════════════════════════════════════════════════════════════
+END OF AGENT BRIEFING
+═══════════════════════════════════════════════════════════════</span>
+</div>
+</div>
+
+<!-- ── HOW TO USE THIS ── -->
+<div class="section-label">HOW TO USE THIS DOCUMENT</div>
+<div class="card-grid">
+  <div class="card">
+    <div class="card-title" style="color:var(--violetLight);">MULTI-AGENT PROCESS</div>
+    <div class="card-body">
+      <ul>
+        <li>Open 4–6 separate AI agent sessions</li>
+        <li>Paste the full prompt block into each, one at a time</li>
+        <li>Do not share outputs between agents before all respond</li>
+        <li>Compare answers — look for consensus and conflict</li>
+        <li>Synthesis happens after all agents have spoken</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title" style="color:var(--inkGreen);">WHAT YOU'RE LOOKING FOR</div>
+    <div class="card-body">
+      <ul>
+        <li>5/5 agreement = high confidence, build it</li>
+        <li>3–4/5 agreement = conditional, need constraints defined</li>
+        <li>Split = hold, re-examine the assumption</li>
+        <li>1–2/5 = likely not right for this system now</li>
+        <li>Any agent flags a guardrail violation = automatic hold</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title" style="color:var(--inkAmber);">BEST AGENT TYPES TO USE</div>
+    <div class="card-body">
+      <ul>
+        <li>Behavioral science specialist prompt</li>
+        <li>UX/product design specialist prompt</li>
+        <li>Habit formation / behavior change specialist</li>
+        <li>Health science / physiology specialist</li>
+        <li>Financial behavior / psychology specialist</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title" style="color:var(--inkTeal);">AFTER THE REVIEW</div>
+    <div class="card-body">
+      <ul>
+        <li>Synthesize into a Design Decisions v2.0 doc</li>
+        <li>Update the Agent Handoff document</li>
+        <li>Build only what 3+ agents endorsed</li>
+        <li>Queue the rest for after 14-day gate review</li>
+        <li>Do not build and then evaluate — evaluate first</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ── DOMAIN MAP ── -->
+<div class="section-label">WHERE NEW FEATURES LIKELY LAND BY DOMAIN</div>
+<div class="pill-row">
+  <span class="pill pill-green">ENVIRONMENT — weekly cleans, filter cadence</span>
+  <span class="pill pill-teal">HEALTH — grooming protocols, hydration, sleep hygiene, sauna, HRV</span>
+  <span class="pill pill-amber">OPERATIONS — financial visibility, maintenance, laundry sessions</span>
+  <span class="pill pill-violet">COGNITION — weekly review ritual, focus anchors, decision reduction</span>
+  <span class="pill pill-warm">PARTICIPATION — social and external commitments, financial obligations</span>
+</div>
+
+<!-- ── CONSTRAINT REMINDER ── -->
+<div class="constraint-block">
+  <div class="constraint-title">NON-NEGOTIABLE DESIGN CONSTRAINTS — REMIND EVERY AGENT</div>
+  <div style="font-family:'DM Mono',monospace; font-size:11px; color:var(--textSecond); line-height:2;">
+    No streaks · No praise · No shame · No aggregate score · No open canvas journals<br>
+    No percentage comparisons · No spider charts · No ambient animation · No urgency language<br>
+    Health system = inkTeal (not red) · Decay = opacity not amber · Voice = operational not motivational<br>
+    "Quiet" not "Neglected" · "Loop closed" not "Well done" · The system reports, it does not judge
+  </div>
+</div>
+
+<div class="div"></div>
+
+<!-- ── AGENT QUESTIONS SUMMARY ── -->
+<div class="section-label">7 QUESTIONS THE AGENTS WILL ANSWER</div>
+
+<div class="question-block">
+  <div class="q-label">Q1 · SESSION FORMAT</div>
+  <div class="q-text">Should multi-step operational sequences ("sessions") be a distinct action format? What's the behavioral science rationale and minimum viable implementation?</div>
+</div>
+<div class="question-block">
+  <div class="q-label">Q2 · MAINTENANCE CADENCE</div>
+  <div class="q-text">How should interval-based maintenance (filters, weekly cleans, monthly tasks) appear without becoming a guilt-producing to-do list?</div>
+</div>
+<div class="question-block">
+  <div class="q-label">Q3 · HYDRATION + RHYTHMIC PROMPTING</div>
+  <div class="q-text">Propose a hydration habit architecture: frequency prompting, no counter, no streaks, no score-proxy behavior.</div>
+</div>
+<div class="question-block">
+  <div class="q-label">Q4 · FINANCIAL LAYER</div>
+  <div class="q-text">Minimum viable financial visibility that provides operational clarity — without budget pressure, competitive framing, or deficit guilt.</div>
+</div>
+<div class="question-block">
+  <div class="q-label">Q5 · FERRISS SCIENCE FILTER</div>
+  <div class="q-text">Which Ferriss/optimal health practices pass the evidence test for this temperament and current recovery state?</div>
+</div>
+<div class="question-block">
+  <div class="q-label">Q6 · WHAT TO REFUSE</div>
+  <div class="q-text">What evolution ideas should explicitly not be built, even if requested? Name the failure mechanism for each.</div>
+</div>
+<div class="question-block">
+  <div class="q-label">Q7 · THE STRUCTURAL LINE</div>
+  <div class="q-text">At what point does adding depth compromise the simplicity that makes the app work? Where is the line?</div>
+</div>
+
+<!-- ── FOOTER ── -->
+<div class="footer">
+  <div class="footer-text">"the system reports. it does not judge." — INCREMENTS v2.0 EVOLUTION REVIEW</div>
+</div>
+
+</body>
+</html>

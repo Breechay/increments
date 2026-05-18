@@ -1,0 +1,66 @@
+---
+description: INCREMENTS — personal OS; routing not motivation; domain boundaries; doctrine discipline
+alwaysApply: true
+---
+
+# INCREMENTS — Agent context
+
+## What this is
+
+**Cognitive orchestration** for a high-output operator — not a productivity app, habit tracker, or motivation product.
+
+Core job: remove **execution drag** (ambiguity, fragmentation, bad sequencing, state mismatch). Assume capacity often exists; fix **routing**, not activation.
+
+## Canonical paths (only)
+
+| What | Path |
+|------|------|
+| Xcode project | `App/Increments.xcodeproj` |
+| Swift sources (8-file architecture) | `App/Increments/*.swift` |
+| Master brief | `Docs/INCREMENTS_Master.md` |
+| Voice / design doctrine | `Docs/INCREMENTS_Voice_Doctrine.md`, `Docs/INCREMENTS_Design_Decisions_v1.2.md` |
+| Psych / profile references | `Psych/` (PDFs — not app code) |
+| Historical docs | `Archive/Past-Docs/` |
+
+Do **not** open `INCREMENTS New Top Folder`, duplicate Xcode projects, or `Archive/Past-Docs/Increments/` snapshots unless explicitly doing archaeology.
+
+## Read first (doctrine before code)
+
+1. `Docs/INCREMENTS_Master.md` — architecture, behavioral model, tab/system ownership
+2. `Docs/INCREMENTS_Voice_Doctrine.md` — presence layer (Jarvis/Alfred register; observed evidence only)
+3. `Docs/INCREMENTS_Design_Decisions_v1.2.md` — visual/type constraints when touching UI
+
+When **FORM-iOS** is in the same workspace: borrow **layout restraint and hierarchy** from `FORM-iOS/docs/form_system_doctrine.md` only — never FORM athlete voice, Forge copy, or training-session patterns.
+
+For **workspace-wide strategy**: targeted sections of `FORM-iOS/docs/BRICE_OS/BRICE_OPERATOR_PRODUCT_BRIEF.md` only when cross-product — not for local INCREMENTS UI tasks.
+
+## Domain boundaries (do not collapse)
+
+| Domain | Owns | Do not merge into |
+|--------|------|-------------------|
+| **Today** | Execute — sequence, doors, maintenance, daily review | Operator theory dumps on Home |
+| **Operator** | Improve routing — cognition lab, brief, dossier, consult | Motivational copy or generic task apps |
+| **Capital** | Runway, reserves, financial state | Hideout shift logistics |
+| **Hideout** | Venue/business system (shifts, building context) | `hideout-ops-console` analytics theater |
+| **Physique** | Body composition / training-adjacent personal signal | FORM Forge programming or athlete Today |
+
+**hideout-ops-console** is a separate repo (venue operator instrument). INCREMENTS Hideout tab is Brice’s embedded business context — do not port console dashboards or fake intelligence here.
+
+## Hard guardrails
+
+- **Not motivation, routing.** No hype, streaks, guilt, “you’ve got this,” or participation-gap framing unless Master/Voice explicitly reopens it.
+- **Evidence before speech.** Wendy/presence lines only from observable inputs — same discipline as FORM voice doctrine, different character.
+- **No slot-filling intelligence.** Empty is correct when no signal exists.
+- **Do not hardcode temporary hypotheses as doctrine.** Observed model corrections belong in Master + Voice docs first, then `IntelligenceLayer.swift` — not one-off strings in views.
+- **No generic productivity drift.** No Notion-style feature creep, gamification, social, or “AI summary of your week” unless specced in Master.
+- **iPad / readability.** Primary device is iPad-class canvas: preserve generous spacing, readable type under low capacity (Reserve days), mono for metadata only per design decisions — do not crush density to look “premium.”
+
+## Out of scope unless explicitly requested
+
+- RunCards, FORM Forge catalogs, Mason/Jose program libraries
+- Hideout ops console feature parity
+- Cross-app refactors that touch more than one BRICE-OS root in a single drive-by
+
+## Workspace
+
+**BRICE-OS** — open `FORM-iOS/BRICE-OS.code-workspace`. Canonical; `FORM-Speed-Hideout.code-workspace` is legacy alias only.
