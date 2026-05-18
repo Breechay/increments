@@ -1431,6 +1431,7 @@ struct OnboardingView: View {
 // MARK: - ROOT VIEW
 
 struct RootView: View {
+    @EnvironmentObject private var cloudSync: CloudSyncPreferences
     @State private var state = AppState()
     @Query private var profiles: [OperatorProfile]
     @Query private var actions: [Action]
@@ -1463,7 +1464,8 @@ struct RootView: View {
     @Query private var financialStates: [FinancialState]
 
     var body: some View {
-        AppMetricsProvider {
+        let _ = cloudSync.revision
+        return AppMetricsProvider {
         ZStack(alignment: .bottom) {
             tabView(for: state.selectedTab)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -1521,6 +1523,8 @@ struct RootView: View {
                     resetDailyActionsIfNeeded(context: context, profile: p, actions: actions, sessions: sessions)
                     restoreSystemLastActivity(state: state, actions: actions)
                 }
+            } else if newPhase == .background {
+                cloudSync.pushLocalDefaultsToCloud()
             }
         }
         } // end AppMetricsProvider
@@ -1630,6 +1634,7 @@ enum INCREMENTSMigrationPlan: SchemaMigrationPlan {
 
 @main
 struct INCREMENTSApp: App {
+    @StateObject private var cloudSync = CloudSyncPreferences.shared
     @State private var launchComplete = false
     // Prevents tappable elements rendering before SwiftData @Query results settle.
     // RootView stays invisible until both the launch animation finishes AND the store
@@ -1646,7 +1651,10 @@ struct INCREMENTSApp: App {
             Session.self, MaintenanceItem.self, HydrationLog.self, FinancialState.self,
             ConsultReceipt.self, HideoutShiftLog.self
         ])
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        let config = ModelConfiguration(
+            schema: schema,
+            cloudKitDatabase: .private("iCloud.com.brice.Increments")
+        )
         do {
             return try ModelContainer(
                 for: schema,
@@ -1654,22 +1662,8 @@ struct INCREMENTSApp: App {
                 configurations: [config]
             )
         } catch {
-            // Migration failed — store is from an unrecognised version or is corrupt.
-            // Wipe all three SQLite files and rebuild from scratch (no migration plan needed
-            // on a fresh store — SwiftData will create it at the current schema directly).
-            print("INCREMENTS: Migration failed (\(error.localizedDescription)). Wiping and rebuilding store.")
-            let storeURL = config.url
-            let base = storeURL.deletingPathExtension()
-            try? FileManager.default.removeItem(at: storeURL)
-            try? FileManager.default.removeItem(at: base.appendingPathExtension("sqlite-shm"))
-            try? FileManager.default.removeItem(at: base.appendingPathExtension("sqlite-wal"))
-            // Rebuild WITHOUT migration plan — fresh store needs no migration.
-            let freshConfig = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-            do {
-                return try ModelContainer(for: schema, configurations: [freshConfig])
-            } catch {
-                fatalError("INCREMENTS: Could not create ModelContainer even after store deletion: \(error)")
-            }
+            // With iCloud enabled, do not wipe the store — data may exist in CloudKit.
+            fatalError("INCREMENTS: Could not open SwiftData store (\(error.localizedDescription)). Check iCloud sign-in and schema migration.")
         }
     }()
 
@@ -1677,12 +1671,14 @@ struct INCREMENTSApp: App {
         WindowGroup {
             ZStack {
                 RootView()
+                    .environmentObject(cloudSync)
                     .preferredColorScheme(.dark)
                     // Only become visible once both the launch animation is done AND the
                     // SwiftData store has settled. Eliminates the window where tappable rows
                     // appear but their backing data isn't ready yet.
                     .opacity(launchComplete && dataReady ? 1 : 0)
                     .onAppear {
+                        cloudSync.bootstrap()
                         // Poll briefly for store readiness. On a real device the container is
                         // open well before the 2.25s animation ends, so this loop typically
                         // fires on the first or second tick and adds no perceptible delay.
