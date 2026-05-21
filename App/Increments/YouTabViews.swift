@@ -231,20 +231,35 @@ struct VenturesTabView: View {
     @ViewBuilder
     private var hideoutDistribution: some View {
         VStack(alignment: .leading, spacing: metrics.blockSpacing) {
-            MonoLabel(text: "DISTRIBUTION", color: .warm, size: 9)
+            MonoLabel(text: "NIGHT READ · DISTRIBUTION", color: .warm, size: 9)
 
             ventureProseBlock(
-                "The Monday content block runs before Hideout opens — a fixed 7-shot sequence, assembled in under 30 seconds of edit, posted to GBP, Reels, and TikTok in the same pass. Same file, three surfaces, no creative decisions at execution time.",
+                "Hideout operates as four businesses depending on the day and season. Neighborhood café: daily anchor, regulars, six-year reputation. Distribution vehicle: every Monday block, every card in a lobby. Recovery asset: the solo experiment tests the floor without staff. Brand: the name that makes the other ventures legible. Which mode is running changes what decisions are correct.",
                 color: .warm
             )
 
             ventureProseBlock(
-                "Physical seeds: column boards on the corridor-facing column (FIRST TIME? START HERE / MADE WITH REAL THINGS), Watermarc leave-behind cards at the Watermarc luxury high-rise across the street, desk card and staff script at A Better You salon next door. Pending: SkyView 22 lobby card stand (258 units), Expansive Biscayne cold brew outreach.",
+                "Nervous system economics: every interaction costs something from your nervous system and produces something. High-volume throughput days generate revenue but draw from the same pool as coaching, building, and thinking. Without staff, every transaction is a direct exchange. The question is not only whether you hit the revenue target but what that cost, and whether it was worth it.",
                 color: .warm
             )
 
             ventureProseBlock(
-                "Signal reading: board attributions, Watermarc redemptions, source mentions, GBP attributions. Logged Friday after close. The question being asked: are the seeds producing memory? A third-exposure café wins, not a first-exposure one.",
+                "Two true levers: threshold conversion — the gap between walk-past and walk-in. First clean recurring pickup — a first-timer returns without being prompted. Both compound. Neither is fast. Seeds planted now build the memory that produces the second visit in three weeks.",
+                color: .warm
+            )
+
+            ventureProseBlock(
+                "Column boards are a threshold decision surface, not signage. The person at the corridor has already noticed the café. FIRST TIME? START HERE removes the barrier — it does not sell. Most effort belongs on aware-and-hesitant states, not unaware.",
+                color: .warm
+            )
+
+            ventureProseBlock(
+                "Partnership sequence: Expansive Biscayne first — professional audience, one warm introduction. Salon next door second — warm relationship, script running. Watermarc pacing — slow seed over months. Different time horizons, not interchangeable.",
+                color: .warm
+            )
+
+            ventureProseBlock(
+                "Monday block before open — 7-shot sequence, assembly edit, GBP, Reels, TikTok, no decisions at execution time. Friday log after close. Full economics and signal doctrine: You → Doctrine → Hideout. Crash course: Manual.",
                 color: .warm
             )
         }
@@ -274,30 +289,30 @@ struct VenturesTabView: View {
     @ViewBuilder
     private var formDistribution: some View {
         VStack(alignment: .leading, spacing: metrics.blockSpacing) {
-            MonoLabel(text: "DISTRIBUTION", color: .inkGreen, size: 9)
+            MonoLabel(text: "NIGHT READ · DISTRIBUTION", color: .inkGreen, size: 9)
 
             ventureProseBlock(
-                "Content approach: product truth only. One real decision or system observation. One outcome or fact. One sentence of context. Outsider-legible — a stranger understands the signal without knowing FORM. No tutorials, no demos, no performance.",
+                "Ghost Protocol is a 6-week run-form curriculum — mechanics, metronome, S01 through S36. Not a live pace adjuster. Early sessions establish metronome discipline. Middle sessions integrate mechanics under load. Late sessions test form retention under fatigue. Form degradation under fatigue is the most common injury mechanism in distance running; most programs do not address it directly.",
                 color: .inkGreen
             )
 
             ventureProseBlock(
-                "Primary content surface while injured: what FORM did while the operator couldn't run. Ghost Protocol's run-form curriculum continuing, athletes still on structured Today and Ledger while the operator paces from the bike — logged outcomes, sequence intact, no live multi-athlete console. This is rarer content than any run recap — most apps collapse when the athlete stops. FORM doesn't.",
+                "Effort governs all FORM distribution copy. The app surface is the authority. One screen, one decision, one sentence. The moment copy explains the product instead of showing it, it is a tutorial. Tutorials are not distribution.",
                 color: .inkGreen
             )
 
             ventureProseBlock(
-                "Threshold Tuesdays: 6AM track, Simon (Speed Emergence) and Julien (Hyrox Running), same session type with different program structures on two phones. Sony carries the scene — track, coaching, athletes in motion. Phone captures one athlete's Today screen before or one Ledger log after. One sentence logged to Decision Ledger Tuesday night.",
+                "Simon: Speed Emergence, time-based threshold — easy plus steady on Today. Julien: Hyrox Running, structure shaped by program periodization. Same session type, Tuesday morning, two architectures on two phones. Individualization in practice — not a multi-athlete console, not live pace adjustment.",
                 color: .inkGreen
             )
 
             ventureProseBlock(
-                "Saturday long run: same format. Pre-dawn, bike pace, Sony for environment, phone for one athlete's Saturday structure. Simon runs time-based easy plus steady; Julien runs distance-based continuous. Different structures, same morning.",
+                "Threshold Tuesdays and Saturday long runs: Sony for scene, phone for one athlete's Today or Ledger, one ledger sentence after. Problem-space participation: one observation per week in runner communities — interpretation, not promotion.",
                 color: .inkGreen
             )
 
             ventureProseBlock(
-                "Problem-space participation: runner intelligence communities — Reddit, Strava training threads, niche forums. Drop observations, not promotions. One per week maximum. The authority comes from interpretation, not physical demonstration.",
+                "While injured: what FORM does when the athlete cannot run is the story — sequence intact, ledger receiving data, Ghost continuing. Distribution gap and four frictions: You → Doctrine → Operator.",
                 color: .inkGreen
             )
         }
@@ -399,6 +414,51 @@ struct VenturesTabView: View {
     }
 }
 
+// MARK: - Operator season (Intel · quick read; full in Doctrine → Operator)
+
+struct OperatorSeasonIntelCard: View {
+    @Environment(\.appMetrics) private var metrics
+
+    var body: some View {
+        CardView(style: .secondary) {
+            VStack(alignment: .leading, spacing: metrics.blockSpacing) {
+                MonoLabel(text: "OPERATOR · THIS SEASON", color: .violetLight, size: 10)
+
+                intelProse(
+                    "Injured — running suspended. That is the operating condition, not a disruption. Tuesday track and Saturday long runs shape FORM content while you pace from the bike. Reserve is real capacity limits; Compressed is a reduced window — diagnose inside vs outside before you stand down or push through."
+                )
+
+                intelProse(
+                    "Tuesday 6AM is sacred: two athletes, two programs, Sony, one ledger sentence. Trust is briefing and diagnostic — accurate observations, silence when there is nothing to say. Mechanism produces buy-in; monitoring counters do not."
+                )
+
+                HStack(spacing: 6) {
+                    Rectangle()
+                        .fill(Color.violetLight.opacity(0.4))
+                        .frame(width: 1.5, height: metrics.scaledSize(14))
+                    Text("Full read: You → Doctrine → Operator")
+                        .font(.mono(metrics.monoSmall))
+                        .foregroundColor(.violetLight.opacity(0.85))
+                }
+            }
+        }
+    }
+
+    private func intelProse(_ text: String) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Rectangle()
+                .fill(Color.violetLight.opacity(0.3))
+                .frame(width: 1.5)
+                .padding(.top, 3)
+            Text(text)
+                .font(.sora(metrics.bodySize, weight: .light))
+                .foregroundColor(.textPrimary)
+                .lineSpacing(metrics.scaledSize(5))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
 // MARK: - INTEL TAB
 // Stripped Dossier. Removed: agent-facing header, academic framing, comm protocol preamble.
 // Kept: live observed traits (data-derived, genuinely useful),
@@ -483,6 +543,9 @@ struct IntelTabView: View {
 
     var body: some View {
         VStack(spacing: metrics.blockSpacing) {
+
+            OperatorSeasonIntelCard()
+                .padding(.horizontal, metrics.hPad)
 
             // Live observed traits
             CardView(style: .secondary) {
@@ -654,7 +717,7 @@ struct YouFieldManualView: View {
             // Section label
             VStack(alignment: .leading, spacing: metrics.scaledSize(4)) {
                 MonoLabel(text: "FIELD MANUAL", color: .textMuted, size: 10)
-                Text("Open when something is stuck.")
+                Text("Principles when stuck · crash course when learning.")
                     .font(.sora(metrics.captionSize, weight: .light))
                     .foregroundColor(.textMuted)
             }
@@ -667,6 +730,14 @@ struct YouFieldManualView: View {
                 }
             }
             .padding(.horizontal, metrics.hPad)
+
+            Rectangle()
+                .fill(Color.muted.opacity(0.15))
+                .frame(height: 0.5)
+                .padding(.horizontal, metrics.hPad)
+                .padding(.vertical, metrics.sectionGap)
+
+            DistributionCrashCourseReading()
         }
         .padding(.bottom, 80)
     }
