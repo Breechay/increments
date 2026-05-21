@@ -13,6 +13,33 @@ import SwiftData
 // Field Manual expanded — distribution principles added alongside existing operator principles.
 // Reading mode: iPad evening primary. Prose, not bullets. Arm's-distance legibility.
 
+// MARK: - You tab ambient (extra depth on AtmosphericBackground)
+
+struct YouTabAmbience: View {
+    @State private var phase = false
+
+    var body: some View {
+        ZStack {
+            AtmosphericBackground()
+            RadialGradient(
+                colors: [Color.violetDim.opacity(0.06), Color.clear],
+                center: UnitPoint(x: phase ? 0.15 : 0.85, y: 0.2),
+                startRadius: 0,
+                endRadius: 320
+            )
+            RadialGradient(
+                colors: [Color.violetDim.opacity(0.05), Color.clear],
+                center: UnitPoint(x: phase ? 0.85 : 0.15, y: 0.75),
+                startRadius: 0,
+                endRadius: 280
+            )
+            .animation(.easeInOut(duration: 10).repeatForever(autoreverses: true), value: phase)
+        }
+        .onAppear { phase = true }
+        .ignoresSafeArea()
+    }
+}
+
 // MARK: - YouView root
 
 struct YouView: View {
@@ -29,7 +56,7 @@ struct YouView: View {
 
     var body: some View {
         ZStack {
-            AtmosphericBackground()
+            YouTabAmbience()
             VStack(spacing: 0) {
                 GlanceTabHeader(kicker: "INCREMENTS", title: profile.firstName.isEmpty ? "You" : profile.firstName, kickerColor: .violetLight) {
                     Image(systemName: "gearshape")
@@ -161,7 +188,6 @@ struct VenturesTabView: View {
 
         return CardView(style: isExpanded ? .primary : .secondary) {
             VStack(alignment: .leading, spacing: 0) {
-                // Header — always visible
                 Button(action: {
                     withAnimation(.spring(response: 0.36, dampingFraction: 0.82)) {
                         expandedVenture = isExpanded ? nil : id
@@ -178,11 +204,16 @@ struct VenturesTabView: View {
                             }
                             Text(headline)
                                 .font(.sora(metrics.bodySize, weight: .semibold))
-                                .foregroundColor(.textPrimary)
+                                .foregroundColor(isExpanded ? .textPrimary : .textSecond)
                                 .multilineTextAlignment(.leading)
-                            Text(status)
-                                .font(.mono(metrics.monoSmall))
-                                .foregroundColor(.textMuted)
+                            HStack(spacing: 6) {
+                                Circle()
+                                    .fill(kickerColor.opacity(0.5))
+                                    .frame(width: metrics.scaledSize(4), height: metrics.scaledSize(4))
+                                Text(status)
+                                    .font(.mono(metrics.monoSmall))
+                                    .foregroundColor(.textMuted)
+                            }
                         }
                         Spacer(minLength: 12)
                         Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
@@ -194,27 +225,34 @@ struct VenturesTabView: View {
 
                 if isExpanded {
                     VStack(alignment: .leading, spacing: metrics.sectionGap) {
-                        // Divider
                         Rectangle()
                             .fill(kickerColor.opacity(0.15))
                             .frame(height: 0.5)
                             .padding(.top, metrics.scaledSize(14))
 
-                        // Body prose
-                        Text(body)
-                            .font(.sora(metrics.bodySize, weight: .light))
-                            .foregroundColor(.textSecond)
-                            .lineSpacing(metrics.scaledSize(5))
-                            .fixedSize(horizontal: false, vertical: true)
+                        VStack(alignment: .leading, spacing: metrics.blockSpacing) {
+                            ForEach(Array(body.components(separatedBy: "\n\n").filter { !$0.isEmpty }.enumerated()), id: \.offset) { _, paragraph in
+                                DoctrineProseBlock(text: paragraph, accent: kickerColor)
+                            }
+                        }
 
-                        // Distribution
                         distributionSection
 
-                        // Signal
+                        Rectangle()
+                            .fill(kickerColor.opacity(0.15))
+                            .frame(height: 0.5)
+
                         signalSummary
                     }
                     .transition(.opacity.combined(with: .move(edge: .top)))
                 }
+            }
+        }
+        .overlay(alignment: .leading) {
+            if !isExpanded {
+                Rectangle()
+                    .fill(kickerColor.opacity(0.4))
+                    .frame(width: 2)
             }
         }
         .overlay(
@@ -389,17 +427,7 @@ struct VenturesTabView: View {
     // MARK: Helpers
 
     private func ventureProseBlock(_ text: String, color: Color) -> some View {
-        HStack(alignment: .top, spacing: 10) {
-            Rectangle()
-                .fill(color.opacity(0.3))
-                .frame(width: 1.5)
-                .padding(.top, metrics.scaledSize(3))
-            Text(text)
-                .font(.sora(metrics.captionSize, weight: .light))
-                .foregroundColor(.textSecond)
-                .lineSpacing(metrics.scaledSize(4))
-                .fixedSize(horizontal: false, vertical: true)
-        }
+        DoctrineProseBlock(text: text, accent: color)
     }
 
     private func signalMiniRow(_ label: String, _ value: String, _ color: Color) -> some View {
@@ -445,17 +473,7 @@ struct OperatorSeasonIntelCard: View {
     }
 
     private func intelProse(_ text: String) -> some View {
-        HStack(alignment: .top, spacing: 10) {
-            Rectangle()
-                .fill(Color.violetLight.opacity(0.3))
-                .frame(width: 1.5)
-                .padding(.top, 3)
-            Text(text)
-                .font(.sora(metrics.bodySize, weight: .light))
-                .foregroundColor(.textPrimary)
-                .lineSpacing(metrics.scaledSize(5))
-                .fixedSize(horizontal: false, vertical: true)
-        }
+        DoctrineProseBlock(text: text, accent: .violetLight)
     }
 }
 
@@ -553,7 +571,10 @@ struct IntelTabView: View {
                     HStack {
                         MonoLabel(text: "OBSERVED TRAITS", color: .inkGreen, size: 10)
                         Spacer()
-                        MonoLabel(text: "FROM USAGE DATA", color: .textMuted, size: 9)
+                        Text("FROM USAGE DATA")
+                            .font(.mono(metrics.monoSmall))
+                            .foregroundColor(.textMuted.opacity(0.4))
+                            .tracking(1.0)
                     }
 
                     Rectangle().fill(Color.muted.opacity(0.15)).frame(height: 0.5)
@@ -575,19 +596,37 @@ struct IntelTabView: View {
                          operationalDisplacementDays >= 4 ? .inkAmber : nil),
                     ]
 
-                    VStack(spacing: metrics.scaledSize(10)) {
-                        ForEach(traits, id: \.0) { trait in
-                            HStack(alignment: .top, spacing: 0) {
+                    VStack(spacing: metrics.scaledSize(6)) {
+                        ForEach(Array(traits.enumerated()), id: \.element.0) { index, trait in
+                            let warn = trait.2 == .inkAmber
+                            HStack(alignment: .top, spacing: 8) {
                                 Text(trait.0)
                                     .font(.mono(metrics.monoSmall))
                                     .foregroundColor(.textMuted)
                                     .frame(width: metrics.scaledSize(130), alignment: .leading)
-                                Text(trait.1)
-                                    .font(.sora(metrics.captionSize, weight: .light))
-                                    .foregroundColor(trait.2 ?? .textPrimary)
-                                    .lineSpacing(2)
+                                HStack(alignment: .top, spacing: 6) {
+                                    if warn {
+                                        Circle()
+                                            .fill(Color.inkAmber)
+                                            .frame(width: metrics.scaledSize(4), height: metrics.scaledSize(4))
+                                            .padding(.top, metrics.scaledSize(5))
+                                    }
+                                    Text(trait.1)
+                                        .font(.sora(metrics.captionSize, weight: .light))
+                                        .foregroundColor((trait.2 ?? .textPrimary).opacity(0.92))
+                                        .lineSpacing(metrics.scaledSize(4))
+                                        .tracking(0.1)
+                                }
                                 Spacer()
                             }
+                            .padding(.vertical, metrics.scaledSize(8))
+                            .padding(.horizontal, metrics.scaledSize(10))
+                            .background(
+                                index.isMultiple(of: 2)
+                                    ? Color.bgBase.opacity(0.3)
+                                    : Color.clear
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
                     }
                 }
@@ -754,7 +793,8 @@ struct YouFieldManualView: View {
                 HStack(alignment: .top, spacing: metrics.scaledSize(12)) {
                     Rectangle()
                         .fill(isExpanded ? entry.accentColor : Color.muted.opacity(0.35))
-                        .frame(width: 2, height: metrics.scaledSize(36))
+                        .frame(width: 2)
+                        .frame(minHeight: metrics.scaledSize(44))
                         .animation(.easeOut(duration: 0.2), value: isExpanded)
 
                     VStack(alignment: .leading, spacing: metrics.scaledSize(5)) {
@@ -764,8 +804,9 @@ struct YouFieldManualView: View {
                             .tracking(0.5)
                         Text(entry.trigger)
                             .font(.sora(metrics.bodySize, weight: .light))
-                            .foregroundColor(isExpanded ? .textPrimary : .textMuted)
-                            .lineSpacing(3)
+                            .foregroundColor(isExpanded ? .textPrimary.opacity(0.92) : .textMuted.opacity(0.75))
+                            .lineSpacing(metrics.scaledSize(4))
+                            .tracking(0.1)
                             .multilineTextAlignment(.leading)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -787,9 +828,9 @@ struct YouFieldManualView: View {
                             .frame(height: 0.5)
                             .padding(.leading, metrics.scaledSize(14))
 
-                        VStack(alignment: .leading, spacing: metrics.scaledSize(12)) {
+                        VStack(alignment: .leading, spacing: metrics.scaledSize(18)) {
                             manualBlock("MEANING", text: entry.meaning, color: entry.accentColor)
-                            manualBlock("MISREAD", text: entry.misread, color: .inkAmber)
+                            manualMisreadBlock(text: entry.misread)
                         }
                         .padding(.leading, metrics.scaledSize(14))
                         .padding(.bottom, metrics.scaledSize(14))
@@ -810,9 +851,26 @@ struct YouFieldManualView: View {
             MonoLabel(text: label, color: color, size: 9)
             Text(text)
                 .font(.sora(metrics.bodySize, weight: .light))
-                .foregroundColor(.textSecond)
-                .lineSpacing(metrics.scaledSize(4))
+                .foregroundColor(.textPrimary.opacity(0.92))
+                .lineSpacing(metrics.scaledSize(6))
+                .tracking(0.1)
                 .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func manualMisreadBlock(text: String) -> some View {
+        VStack(alignment: .leading, spacing: metrics.scaledSize(5)) {
+            MonoLabel(text: "MISREAD", color: .inkAmber, size: 9)
+            Text(text)
+                .font(.sora(metrics.bodySize, weight: .light))
+                .foregroundColor(.textSecond)
+                .lineSpacing(metrics.scaledSize(6))
+                .tracking(0.1)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.inkAmber.opacity(0.04))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
         }
     }
 

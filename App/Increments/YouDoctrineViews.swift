@@ -8,11 +8,35 @@ struct YouDoctrineTabView: View {
     @Environment(\.appMetrics) private var metrics
     @State private var section = 0
 
+    private let sectionTitles = ["This season", "Plant · log · adjust", "Night read", "Night read"]
+    private let sectionKickers = ["OPERATOR", "DISTRIBUTION", "HIDEOUT MIAMI", "FORM"]
+
     var body: some View {
         VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: metrics.scaledSize(3)) {
+                MonoLabel(text: sectionKickers[section], color: .textMuted, size: 9)
+                Text(sectionTitles[section])
+                    .font(.sora(metrics.headlineSize, weight: .semibold))
+                    .foregroundColor(.textPrimary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, metrics.hPad)
+            .padding(.top, metrics.scaledSize(12))
+            .padding(.bottom, metrics.scaledSize(10))
+            .animation(.easeOut(duration: 0.2), value: section)
+
             segmentControl(["Operator", "Distribution", "Hideout", "FORM"], selected: $section)
                 .padding(.horizontal, metrics.hPad)
-                .padding(.vertical, metrics.scaledSize(14))
+                .padding(.bottom, metrics.scaledSize(2))
+
+            LinearGradient(
+                colors: [Color.clear, Color.muted.opacity(0.15), Color.clear],
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+            .frame(height: 0.5)
+            .padding(.horizontal, metrics.hPad)
+            .padding(.bottom, metrics.scaledSize(4))
 
             ScrollView(showsIndicators: false) {
                 Group {
@@ -23,6 +47,9 @@ struct YouDoctrineTabView: View {
                     default: DoctrineFORMReading()
                     }
                 }
+                .id(section)
+                .transition(.opacity)
+                .animation(.easeOut(duration: 0.25), value: section)
                 .adaptiveContentWidth(metrics)
                 .padding(.bottom, 80)
             }
@@ -30,61 +57,104 @@ struct YouDoctrineTabView: View {
     }
 }
 
-// MARK: - Reading components
+// MARK: - Reading components (shared with Ventures · Manual · Intel)
 
-private struct DoctrineSectionHeader: View {
+struct DoctrineSectionHeader: View {
     let kicker: String
     let title: String
     let accent: Color
+    var isFirst: Bool = false
     @Environment(\.appMetrics) private var metrics
 
     var body: some View {
-        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
-            MonoLabel(text: kicker, color: accent, size: 10)
+        VStack(alignment: .leading, spacing: metrics.scaledSize(6)) {
+            Text(kicker)
+                .font(.mono(metrics.monoSmall))
+                .foregroundColor(accent.opacity(0.7))
+                .tracking(1.5)
             Text(title)
-                .font(.sora(metrics.headlineSize, weight: .semibold))
+                .font(.sora(metrics.titleSize, weight: .semibold))
                 .foregroundColor(.textPrimary)
+            Rectangle()
+                .fill(accent.opacity(0.25))
+                .frame(width: metrics.scaledSize(40), height: 1)
         }
         .padding(.horizontal, metrics.hPad)
+        .padding(.top, isFirst ? metrics.scaledSize(8) : metrics.sectionGap)
         .padding(.bottom, metrics.blockSpacing)
     }
 }
 
-private struct DoctrineSubsection: View {
+struct DoctrineSubsection: View {
     let label: String
     let accent: Color
     let paragraphs: [String]
     @Environment(\.appMetrics) private var metrics
 
     var body: some View {
-        CardView(style: .secondary) {
+        VStack(alignment: .leading, spacing: metrics.scaledSize(4)) {
+            VStack(alignment: .leading, spacing: metrics.scaledSize(6)) {
+                Text(label)
+                    .font(.mono(metrics.monoSmall))
+                    .foregroundColor(accent.opacity(0.7))
+                    .tracking(1.2)
+                Rectangle()
+                    .fill(accent.opacity(0.18))
+                    .frame(height: 0.5)
+            }
+            .padding(.bottom, metrics.scaledSize(4))
+
             VStack(alignment: .leading, spacing: metrics.blockSpacing) {
-                MonoLabel(text: label, color: .textMuted, size: 9)
                 ForEach(Array(paragraphs.enumerated()), id: \.offset) { _, text in
                     DoctrineProseBlock(text: text, accent: accent)
                 }
             }
         }
+        .padding(metrics.cardPad)
+        .background(
+            ZStack {
+                Color.surface2
+                LinearGradient(
+                    colors: [accent.opacity(0.04), Color.clear],
+                    startPoint: .top,
+                    endPoint: UnitPoint(x: 0.5, y: 0.3)
+                )
+            }
+        )
+        .clipShape(RoundedRectangle(cornerRadius: metrics.cardRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: metrics.cardRadius)
+                .strokeBorder(Color.white.opacity(0.035), lineWidth: 0.5)
+        )
+        .shadow(color: Color.bgBase.opacity(0.5), radius: 6, x: 0, y: 3)
         .padding(.horizontal, metrics.hPad)
         .padding(.bottom, metrics.sectionGap)
     }
 }
 
-private struct DoctrineProseBlock: View {
+struct DoctrineProseBlock: View {
     let text: String
     let accent: Color
     @Environment(\.appMetrics) private var metrics
 
     var body: some View {
-        HStack(alignment: .top, spacing: metrics.scaledSize(10)) {
+        HStack(alignment: .top, spacing: metrics.scaledSize(14)) {
             Rectangle()
-                .fill(accent.opacity(0.35))
+                .fill(
+                    LinearGradient(
+                        colors: [accent.opacity(0.5), accent.opacity(0.15)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
                 .frame(width: 1.5)
-                .padding(.top, metrics.scaledSize(4))
+                .padding(.top, metrics.scaledSize(5))
+
             Text(text)
                 .font(.sora(metrics.bodySize, weight: .light))
-                .foregroundColor(.textPrimary)
-                .lineSpacing(metrics.scaledSize(5))
+                .foregroundColor(.textPrimary.opacity(0.92))
+                .lineSpacing(metrics.scaledSize(6))
+                .tracking(0.1)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -100,7 +170,8 @@ struct DoctrineOperatorReading: View {
             DoctrineSectionHeader(
                 kicker: "OPERATOR",
                 title: "This season",
-                accent: .violetLight
+                accent: .violetLight,
+                isFirst: true
             )
 
             DoctrineSubsection(
@@ -230,7 +301,8 @@ struct DoctrineDistributionReading: View {
             DoctrineSectionHeader(
                 kicker: "DISTRIBUTION",
                 title: "Plant · log · adjust",
-                accent: .inkGreen
+                accent: .inkGreen,
+                isFirst: true
             )
 
             DoctrineSubsection(
@@ -301,7 +373,8 @@ struct DoctrineHideoutReading: View {
             DoctrineSectionHeader(
                 kicker: "HIDEOUT MIAMI",
                 title: "Night read",
-                accent: .warm
+                accent: .warm,
+                isFirst: true
             )
 
             DoctrineSubsection(
@@ -382,7 +455,8 @@ struct DoctrineFORMReading: View {
             DoctrineSectionHeader(
                 kicker: "FORM",
                 title: "Night read",
-                accent: .inkGreen
+                accent: .inkGreen,
+                isFirst: true
             )
 
             DoctrineSubsection(
@@ -455,16 +529,29 @@ struct DistributionCrashCourseReading: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: metrics.sectionGap) {
-            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
-                MonoLabel(text: "DISTRIBUTION", color: .inkGreen, size: 10)
-                Text("The crash course")
-                    .font(.sora(metrics.headlineSize, weight: .semibold))
-                    .foregroundColor(.textPrimary)
-                Text("Conceptual foundation — read once, then execute in Signal.")
-                    .font(.sora(metrics.captionSize, weight: .light))
-                    .foregroundColor(.textMuted)
+            ZStack(alignment: .topLeading) {
+                RadialGradient(
+                    colors: [Color.inkGreen.opacity(0.06), Color.clear],
+                    center: .topTrailing,
+                    startRadius: 0,
+                    endRadius: metrics.scaledSize(200)
+                )
+                VStack(alignment: .leading, spacing: metrics.scaledSize(8)) {
+                    MonoLabel(text: "DISTRIBUTION", color: .inkGreen.opacity(0.8), size: 9)
+                    Text("The crash course")
+                        .font(.sora(metrics.titleSize, weight: .semibold))
+                        .foregroundColor(.textPrimary)
+                    Text("Read once. Then execute in Signal.")
+                        .font(.sora(metrics.captionSize, weight: .light))
+                        .foregroundColor(.textMuted)
+                    Rectangle()
+                        .fill(Color.inkGreen.opacity(0.3))
+                        .frame(width: metrics.scaledSize(40), height: 1)
+                }
+                .padding(metrics.cardPad)
             }
             .padding(.horizontal, metrics.hPad)
+            .padding(.top, metrics.sectionGap)
 
             crashSection(
                 label: "WHY DISTRIBUTION EXISTS",
@@ -552,14 +639,6 @@ struct DistributionCrashCourseReading: View {
     }
 
     private func crashSection(label: String, accent: Color, paragraphs: [String]) -> some View {
-        CardView(style: .secondary) {
-            VStack(alignment: .leading, spacing: metrics.blockSpacing) {
-                MonoLabel(text: label, color: accent, size: 9)
-                ForEach(Array(paragraphs.enumerated()), id: \.offset) { _, text in
-                    DoctrineProseBlock(text: text, accent: accent)
-                }
-            }
-        }
-        .padding(.horizontal, metrics.hPad)
+        DoctrineSubsection(label: label, accent: accent, paragraphs: paragraphs)
     }
 }
