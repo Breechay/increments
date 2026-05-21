@@ -226,16 +226,20 @@ struct HomeView: View {
     }
 
     func priorityRowInline(_ num: String, _ text: String, _ color: Color, _ active: Bool) -> some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: metrics.scaledSize(8)) {
             MonoLabel(text: num, color: active ? color : Color.textMuted.opacity(0.4), size: 10)
-                .frame(width: 18, alignment: .leading)
+                .frame(width: metrics.scaledSize(22), alignment: .leading)
+                .fixedSize()
             Text(text)
-                .font(.sora(12, weight: .light))
+                .font(metrics.fontSora(12, weight: .light))
                 .foregroundColor(active ? Color.textSecond : Color.textMuted.opacity(0.4))
                 .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
             Spacer()
             if active {
-                Circle().fill(color.opacity(0.6)).frame(width: 5, height: 5).padding(.top, 5)
+                Circle().fill(color.opacity(0.6))
+                    .frame(width: metrics.scaledSize(5), height: metrics.scaledSize(5))
+                    .padding(.top, metrics.scaledSize(5))
             }
         }
     }
@@ -265,35 +269,306 @@ struct HomeView: View {
     var body: some View {
         ZStack {
             AtmosphericBackground(enhanced: true)
-            ScrollView(showsIndicators: false) {
+            if metrics.isIPad {
+                // iPad: orientation + priority left, command center right
                 VStack(spacing: 0) {
-
-                    // Header
-                    HStack {
-                        VStack(alignment: .leading, spacing: 5) {
+                    // Full-width header bar — matches Today tab pattern
+                    HStack(alignment: .center) {
+                        VStack(alignment: .leading, spacing: metrics.scaledSize(3)) {
                             MonoLabel(text: "INCREMENTS", color: .violet, size: 10)
                             Text(profile.homeGreeting(completedToday: completedToday))
-                                .font(.sora(17, weight: .light))
+                                .font(metrics.fontSora(20, weight: .semibold))
                                 .foregroundColor(.textPrimary)
-                                .lineSpacing(2)
+                        }
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: metrics.scaledSize(3)) {
+                            MonoLabel(text: "DAY \(profile.daysInSystem)", color: .warm, size: 10)
+                            MonoLabel(text: profile.monthProgress, color: .textMuted, size: 9)
+                        }
+                    }
+                    .padding(.horizontal, metrics.hPad)
+                    .padding(.top, metrics.screenTopPadding)
+                    .padding(.bottom, metrics.headerBottomPadding)
+                    .opacity(appeared ? 1 : 0)
+                    .animation(.easeOut(duration: 0.4), value: appeared)
+
+                    // Dashboard divider
+                    Rectangle()
+                        .fill(LinearGradient(
+                            colors: [Color.clear, Color.muted.opacity(0.22), Color.clear],
+                            startPoint: .leading, endPoint: .trailing
+                        ))
+                        .frame(height: 0.5)
+                        .padding(.horizontal, metrics.hPad)
+                        .padding(.bottom, metrics.scaledSize(2))
+
+                    IPadMasterDetailLayout(metrics: metrics, leftFraction: metrics.masterDetailLeftFraction) {
+                        // Left: orientation — priority, hideout status, housing, friction
+                        ScrollView(showsIndicators: false) {
+                            VStack(spacing: metrics.blockSpacing) {
+
+                                CardView(style: .ambient) {
+                                    VStack(alignment: .leading, spacing: metrics.scaledSize(10)) {
+                                        HStack(spacing: metrics.scaledSize(6)) {
+                                            Rectangle()
+                                                .fill(Color.warm)
+                                                .frame(width: 3, height: metrics.scaledSize(14))
+                                                .clipShape(RoundedRectangle(cornerRadius: 1.5))
+                                            MonoLabel(text: "OPERATING PRIORITY", color: .warm, size: 10)
+                                        }
+                                        Text("Hideout distribution")
+                                            .font(metrics.fontSora(15, weight: .semibold))
+                                            .foregroundColor(.textPrimary)
+                                        VStack(alignment: .leading, spacing: metrics.scaledSize(5)) {
+                                            priorityRowInline("01", "Hideout growth — card, GBP, A-frame", Color.inkTeal, true)
+                                            priorityRowInline("02", "Housing cost offset", Color.inkAmber, !growthVideoPosted)
+                                            priorityRowInline("03", "Nothing else until loop closed", Color.textMuted, false)
+                                        }
+                                        Rectangle().fill(Color.muted.opacity(0.15)).frame(height: 0.5)
+                                        Text("Parallelism is the failure mode.")
+                                            .font(.system(size: metrics.scaledSize(10), design: .monospaced))
+                                            .foregroundColor(.textMuted)
+                                    }
+                                }
+
+                                if todayIsHideoutDay {
+                                    CardView {
+                                        VStack(alignment: .leading, spacing: metrics.scaledSize(8)) {
+                                            HStack(alignment: .center) {
+                                                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                                                    MonoLabel(text: "HIDEOUT", color: .textMuted, size: 9)
+                                                    Text(hideoutStatusLine)
+                                                        .font(metrics.fontSora(14, weight: shiftLoggedToday ? .medium : .light))
+                                                        .foregroundColor(shiftLoggedToday ? .inkGreen : .textPrimary)
+                                                }
+                                                Spacer()
+                                                Image(systemName: "chevron.right")
+                                                    .font(.system(size: metrics.scaledSize(10), weight: .light))
+                                                    .foregroundColor(.textMuted.opacity(0.5))
+                                            }
+                                            if let growthAction = nextGrowthAction {
+                                                HStack(alignment: .top, spacing: metrics.scaledSize(8)) {
+                                                    Rectangle()
+                                                        .fill(Color.inkTeal.opacity(0.4))
+                                                        .frame(width: 1.5, height: metrics.scaledSize(28))
+                                                        .padding(.leading, 2)
+                                                    Text(growthAction)
+                                                        .font(metrics.fontSora(11, weight: .light))
+                                                        .foregroundColor(.inkTeal)
+                                                        .lineSpacing(2)
+                                                }
+                                            }
+                                        }
+                                    }
+                                    .contentShape(Rectangle())
+                                    .onTapGesture { state.selectedTab = 4 }
+                                } else if let growthAction = nextGrowthAction {
+                                    CardView {
+                                        HStack(alignment: .top, spacing: metrics.scaledSize(12)) {
+                                            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                                                MonoLabel(text: "DISTRIBUTION", color: .inkTeal.opacity(0.8), size: 9)
+                                                Text(growthAction.replacingOccurrences(of: "Growth · ", with: ""))
+                                                    .font(metrics.fontSora(13, weight: .light))
+                                                    .foregroundColor(.inkTeal)
+                                                    .lineSpacing(2)
+                                            }
+                                            Spacer()
+                                        }
+                                    }
+                                    .contentShape(Rectangle())
+                                    .onTapGesture { state.selectedTab = 5 }
+                                }
+
+                                if let housingAction = nextHousingAction {
+                                    CardView {
+                                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                                            MonoLabel(text: "HOUSING", color: .inkAmber.opacity(0.8), size: 9)
+                                            Text(housingAction.replacingOccurrences(of: "Housing · ", with: ""))
+                                                .font(metrics.fontSora(13, weight: .light))
+                                                .foregroundColor(.inkAmber)
+                                                .lineSpacing(2)
+                                        }
+                                    }
+                                    .contentShape(Rectangle())
+                                    .onTapGesture { state.selectedTab = 6 }
+                                }
+
+                                if let friction = unresolvedFriction {
+                                    CardView(style: .ambient) {
+                                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                                            MonoLabel(text: "OPEN FRICTION", color: .inkAmber, size: 9)
+                                            Text(friction)
+                                                .font(metrics.fontSora(13, weight: .light))
+                                                .foregroundColor(.textSecond)
+                                                .lineSpacing(3)
+                                                .fixedSize(horizontal: false, vertical: true)
+                                        }
+                                    }
+                                }
+
+                            }
+                            .padding(.horizontal, metrics.hPad)
+                            .padding(.bottom, 80)
+                        }
+                    } right: {
+                        // Right: command center — weather, first action, commit, sleep, training
+                        ScrollView(showsIndicators: false) {
+                            VStack(spacing: metrics.blockSpacing) {
+
+                                WeatherCard(weather: weather)
+
+                                if let action = firstIrreversible {
+                                    CardView {
+                                        VStack(alignment: .leading, spacing: metrics.scaledSize(8)) {
+                                            HStack {
+                                                MonoLabel(text: "FIRST ACTION", color: .textMuted, size: 9)
+                                                Spacer()
+                                                if let block = action.scheduledBlock {
+                                                    MonoLabel(text: block, color: action.system.color.opacity(0.8), size: 9)
+                                                }
+                                            }
+                                            HStack(spacing: metrics.scaledSize(12)) {
+                                                RoundedRectangle(cornerRadius: 2)
+                                                    .fill(LinearGradient(colors: [action.system.color, action.system.color.opacity(0.3)],
+                                                                       startPoint: .top, endPoint: .bottom))
+                                                    .frame(width: 3, height: metrics.scaledSize(40))
+                                                Text(action.title)
+                                                    .font(metrics.fontSora(16, weight: .semibold))
+                                                    .foregroundColor(.textPrimary)
+                                                    .lineSpacing(2)
+                                                Spacer()
+                                                Image(systemName: "arrow.right")
+                                                    .font(.system(size: metrics.scaledSize(11), weight: .medium))
+                                                    .foregroundColor(action.system.color.opacity(0.6))
+                                            }
+                                        }
+                                    }
+                                    .contentShape(Rectangle())
+                                    .onTapGesture { showFirstActionDetail = true }
+                                    .sheet(isPresented: $showFirstActionDetail) {
+                                        ActionDetailSheet(action: action, isPresented: $showFirstActionDetail, onComplete: {})
+                                    }
+                                }
+
+                                if let commit = tomorrowCommit, !commit.isEmpty {
+                                    CardView(style: .ambient) {
+                                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                                            MonoLabel(text: "PRE-COMMITTED", color: .warm, size: 9)
+                                            Text(commit)
+                                                .font(metrics.fontSora(14, weight: .light))
+                                                .foregroundColor(.textPrimary)
+                                                .lineSpacing(3)
+                                                .fixedSize(horizontal: false, vertical: true)
+                                        }
+                                    }
+                                }
+
+                                let sleepHour = Calendar.current.component(.hour, from: Date())
+                                let sleepMin = Calendar.current.component(.minute, from: Date())
+                                let sleepTotalMin = sleepHour * 60 + sleepMin
+                                let sleepTargetMin = 21 * 60 + 15
+                                let sleepShutdownMin = 20 * 60 + 30
+                                let sleepYesterdayLog = logs.first(where: { Calendar.current.isDateInYesterday($0.date) })
+                                if sleepHour < 10 || sleepTotalMin >= sleepShutdownMin {
+                                    CardView {
+                                        HStack {
+                                            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                                                MonoLabel(text: "SLEEP", color: .textMuted, size: 9)
+                                                if sleepHour < 10 {
+                                                    if let sq = sleepYesterdayLog?.sleepQuality, !sq.isEmpty {
+                                                        let isGood = sq.lowercased().contains("well") || sq.lowercased().contains("good")
+                                                        Text("Last night: \(sq.lowercased())")
+                                                            .font(metrics.fontSora(13, weight: .light))
+                                                            .foregroundColor(isGood ? .inkGreen : .inkAmber)
+                                                        if let body = bodySignal, !body.isEmpty {
+                                                            Text("Body: \(body.lowercased())")
+                                                                .font(metrics.fontSora(12, weight: .light))
+                                                                .foregroundColor(.textMuted)
+                                                        }
+                                                    } else {
+                                                        Text("4:00 AM wake · 6H 45MIN window")
+                                                            .font(metrics.fontSora(13, weight: .light))
+                                                            .foregroundColor(.textSecond)
+                                                    }
+                                                } else if sleepTotalMin >= sleepTargetMin {
+                                                    Text("In corridor. Sleep now.")
+                                                        .font(metrics.fontSora(13, weight: .medium))
+                                                        .foregroundColor(.inkGreen)
+                                                } else {
+                                                    let remaining = sleepTargetMin - sleepTotalMin
+                                                    Text("\(remaining) min to 9:15. Screens down.")
+                                                        .font(metrics.fontSora(13, weight: .light))
+                                                        .foregroundColor(.inkAmber)
+                                                }
+                                            }
+                                            Spacer()
+                                        }
+                                    }
+                                }
+
+                                let trainingHour = Calendar.current.component(.hour, from: Date())
+                                let gymAction = allActions.first(where: {
+                                    $0.title.lowercased().contains("strength") || $0.title.lowercased().contains("gym")
+                                })
+                                let trainingDone = gymAction?.isCompleted == true &&
+                                    Calendar.current.isDateInToday(gymAction?.completedAt ?? .distantPast)
+                                if trainingDone || trainingHour >= 12 {
+                                    CardView {
+                                        HStack(alignment: .center) {
+                                            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                                                MonoLabel(text: "TRAINING", color: .textMuted, size: 9)
+                                                Text(trainingDone ? "Strength done." : "Strength pending.")
+                                                    .font(metrics.fontSora(14, weight: trainingDone ? .medium : .light))
+                                                    .foregroundColor(trainingDone ? .inkGreen : .textSecond)
+                                                MonoLabel(text: "FORGE BREECHAY · WEEK \(profile.trainingWeek)", color: .textMuted, size: 9)
+                                            }
+                                            Spacer()
+                                            if !trainingDone {
+                                                MonoLabel(text: "17:30", color: .textMuted.opacity(0.5), size: 11)
+                                            }
+                                        }
+                                    }
+                                }
+
+                                WendyObservationCard()
+
+                            }
+                            .padding(.horizontal, metrics.hPad)
+                            .padding(.bottom, 80)
+                        }
+                    }
+                }
+                .opacity(appeared ? 1 : 0)
+                .animation(.easeOut(duration: 0.4).delay(0.05), value: appeared)
+            } else {
+                // iPhone: original single-column scroll
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 0) {
+                    // Header
+                    HStack {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                            MonoLabel(text: "INCREMENTS", color: .violet, size: 10)
+                            Text(profile.homeGreeting(completedToday: completedToday))
+                                .font(metrics.fontSora(17, weight: .light))
+                                .foregroundColor(.textPrimary)
+                                .lineSpacing(4)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         Spacer()
-                        VStack(alignment: .trailing, spacing: 2) {
+                        VStack(alignment: .trailing, spacing: metrics.headerStackSpacing) {
                             MonoLabel(text: "DAY \(profile.daysInSystem)", color: .warm, size: 10)
                             MonoLabel(text: profile.monthProgress, color: .textMuted, size: 10)
                         }
                     }
-                    .padding(.horizontal, metrics.hPad).padding(.top, metrics.isIPad ? 28 : 20).padding(.bottom, metrics.isIPad ? 20 : 16)
+                    .padding(.horizontal, metrics.hPad)
+                    .padding(.top, metrics.screenTopPadding)
+                    .padding(.bottom, metrics.headerBottomPadding)
                     .opacity(appeared ? 1 : 0).offset(y: appeared ? 0 : 10)
                     .animation(.easeOut(duration: 0.4), value: appeared)
 
-                    // ── PRIORITY LOCK — May 2026 phase ────────────────────────────────
-                    // Not dismissible. Cognition drifts under momentum — lock stays visible.
-                    // Remove this card manually when the phase genuinely ends.
                     CardView(style: .ambient) {
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack(spacing: 6) {
+                        VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                            HStack(spacing: metrics.rowSpacing) {
                                 Rectangle()
                                     .fill(Color.warm)
                                     .frame(width: 3, height: 14)
@@ -301,16 +576,16 @@ struct HomeView: View {
                                 MonoLabel(text: "CURRENT OPERATING PRIORITY", color: .warm, size: 10)
                             }
                             Text("Hideout distribution")
-                                .font(.sora(15, weight: .semibold))
+                                .font(metrics.fontSora(15, weight: .semibold))
                                 .foregroundColor(.textPrimary)
-                            VStack(alignment: .leading, spacing: 5) {
+                            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                 priorityRowInline("01", "Hideout growth — card, GBP, A-frame", Color.inkTeal, true)
                                 priorityRowInline("02", "Housing cost offset — reduce fixed pressure", Color.inkAmber, !growthVideoPosted)
                                 priorityRowInline("03", "Nothing else until Week 1 loop is complete", Color.textMuted, false)
                             }
                             Rectangle().fill(Color.muted.opacity(0.15)).frame(height: 0.5)
                             Text("Parallelism is the failure mode. One front closes before the next opens.")
-                                .font(.system(size: 10, design: .monospaced))
+                                .font(.system(size: metrics.scaledSize(11), design: .monospaced))
                                 .foregroundColor(.textMuted)
                                 .lineSpacing(2)
                         }
@@ -319,18 +594,13 @@ struct HomeView: View {
                     .opacity(appeared ? 1 : 0).offset(y: appeared ? 0 : 10)
                     .animation(.easeOut(duration: 0.3), value: appeared)
 
-                    // ── COMMAND CENTER ─────────────────────────────────────────────────
-                    // Answers one question: what matters now in this life architecture?
+                    VStack(spacing: metrics.blockSpacing) {
 
-                    VStack(spacing: 10) {
-
-                        // 0. WEATHER + SUNRISE — Miami · updates on open
                         WeatherCard(weather: weather)
 
-                        // 1. FIRST ACTION — taps directly into the action detail
                         if let action = firstIrreversible {
                             CardView {
-                                VStack(alignment: .leading, spacing: 8) {
+                                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                     HStack {
                                         MonoLabel(text: "FIRST ACTION", color: .textMuted, size: 9)
                                         Spacer()
@@ -338,8 +608,7 @@ struct HomeView: View {
                                             MonoLabel(text: block, color: action.system.color.opacity(0.8), size: 9)
                                         }
                                     }
-                                    HStack(spacing: 12) {
-                                        // System accent
+                                    HStack(spacing: metrics.cardSpacing) {
                                         RoundedRectangle(cornerRadius: 2)
                                             .fill(
                                                 LinearGradient(colors: [action.system.color, action.system.color.opacity(0.3)],
@@ -347,12 +616,12 @@ struct HomeView: View {
                                             )
                                             .frame(width: 3, height: 40)
                                         Text(action.title)
-                                            .font(.sora(16, weight: .semibold))
+                                            .font(metrics.fontSora(16, weight: .semibold))
                                             .foregroundColor(.textPrimary)
                                             .lineSpacing(2)
                                         Spacer()
                                         Image(systemName: "arrow.right")
-                                            .font(.system(size: 11, weight: .medium))
+                                            .font(.system(size: metrics.scaledSize(12), weight: .medium))
                                             .foregroundColor(action.system.color.opacity(0.6))
                                     }
                                 }
@@ -364,13 +633,12 @@ struct HomeView: View {
                             }
                         }
 
-                        // 2. TOMORROW PRE-COMMITMENT — from last night's review
                         if let commit = tomorrowCommit, !commit.isEmpty {
                             CardView(style: .ambient) {
-                                VStack(alignment: .leading, spacing: 5) {
+                                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                     MonoLabel(text: "PRE-COMMITTED", color: .warm, size: 9)
                                     Text(commit)
-                                        .font(.sora(14, weight: .light))
+                                        .font(metrics.fontSora(15, weight: .light))
                                         .foregroundColor(.textPrimary)
                                         .lineSpacing(3)
                                         .fixedSize(horizontal: false, vertical: true)
@@ -378,12 +646,11 @@ struct HomeView: View {
                             }
                         }
 
-                        // 3. HIDEOUT — shift status on Hideout days, growth action every day
                         if todayIsHideoutDay {
                             CardView {
-                                VStack(alignment: .leading, spacing: 8) {
+                                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                     HStack(alignment: .center) {
-                                        VStack(alignment: .leading, spacing: 3) {
+                                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                             MonoLabel(text: "HIDEOUT", color: .textMuted, size: 9)
                                             Text(hideoutStatusLine)
                                                 .font(.sora(14, weight: shiftLoggedToday ? .medium : .light))
@@ -391,18 +658,17 @@ struct HomeView: View {
                                         }
                                         Spacer()
                                         Image(systemName: "chevron.right")
-                                            .font(.system(size: 10, weight: .light))
+                                            .font(.system(size: metrics.scaledSize(11), weight: .light))
                                             .foregroundColor(.textMuted.opacity(0.5))
                                     }
-                                    // Growth action — surfaces every day until system is live
                                     if let growthAction = nextGrowthAction {
-                                        HStack(alignment: .top, spacing: 8) {
+                                        HStack(alignment: .top, spacing: metrics.rowSpacing) {
                                             Rectangle()
                                                 .fill(Color.inkTeal.opacity(0.4))
                                                 .frame(width: 1.5, height: 28)
                                                 .padding(.leading, 2)
                                             Text(growthAction)
-                                                .font(.sora(11, weight: .light))
+                                                .font(metrics.fontSora(13, weight: .light))
                                                 .foregroundColor(.inkTeal)
                                                 .lineSpacing(2)
                                         }
@@ -412,48 +678,45 @@ struct HomeView: View {
                             .contentShape(Rectangle())
                             .onTapGesture { state.selectedTab = 4 }
                         } else if let growthAction = nextGrowthAction {
-                            // Base days (Mon/Tue) — still surface the next growth action
                             CardView {
-                                HStack(alignment: .top, spacing: 12) {
-                                    VStack(alignment: .leading, spacing: 3) {
-                                        MonoLabel(text: "HIDEOUT GROWTH", color: .inkTeal.opacity(0.8), size: 9)
+                                HStack(alignment: .top, spacing: metrics.cardSpacing) {
+                                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                                        MonoLabel(text: "DISTRIBUTION", color: .inkTeal.opacity(0.8), size: 9)
                                         Text(growthAction.replacingOccurrences(of: "Growth · ", with: ""))
-                                            .font(.sora(13, weight: .light))
+                                            .font(metrics.fontSora(14, weight: .light))
                                             .foregroundColor(.inkTeal)
                                             .lineSpacing(2)
                                     }
                                     Spacer()
                                     Image(systemName: "chevron.right")
-                                        .font(.system(size: 10, weight: .light))
+                                        .font(.system(size: metrics.scaledSize(11), weight: .light))
                                         .foregroundColor(.inkTeal.opacity(0.4))
                                 }
                             }
                             .contentShape(Rectangle())
-                            .onTapGesture { state.selectedTab = 4 }
+                            .onTapGesture { state.selectedTab = 5 }
                         }
 
-                        // Housing action — surfaces every day until resolved
                         if let housingAction = nextHousingAction {
                             CardView {
-                                HStack(alignment: .top, spacing: 12) {
-                                    VStack(alignment: .leading, spacing: 3) {
+                                HStack(alignment: .top, spacing: metrics.cardSpacing) {
+                                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                         MonoLabel(text: "HOUSING", color: .inkAmber.opacity(0.8), size: 9)
                                         Text(housingAction.replacingOccurrences(of: "Housing · ", with: ""))
-                                            .font(.sora(13, weight: .light))
+                                            .font(metrics.fontSora(14, weight: .light))
                                             .foregroundColor(.inkAmber)
                                             .lineSpacing(2)
                                     }
                                     Spacer()
                                     Image(systemName: "chevron.right")
-                                        .font(.system(size: 10, weight: .light))
+                                        .font(.system(size: metrics.scaledSize(11), weight: .light))
                                         .foregroundColor(.inkAmber.opacity(0.4))
                                 }
                             }
                             .contentShape(Rectangle())
-                            .onTapGesture { state.selectedTab = 5 }  // routes to You → Capital
+                            .onTapGesture { state.selectedTab = 6 }
                         }
 
-                        // SLEEP — morning shows last night, evening shows countdown, daytime hidden
                         let sleepHour = Calendar.current.component(.hour, from: Date())
                         let sleepMin = Calendar.current.component(.minute, from: Date())
                         let sleepTotalMin = sleepHour * 60 + sleepMin
@@ -466,32 +729,32 @@ struct HomeView: View {
                         if showSleepMorning || showSleepEvening {
                             CardView {
                                 HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
+                                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                         MonoLabel(text: "SLEEP", color: .textMuted, size: 9)
                                         if showSleepMorning {
                                             if let sq = sleepYesterdayLog?.sleepQuality, !sq.isEmpty {
                                                 let isGood = sq.lowercased().contains("well") || sq.lowercased().contains("good")
                                                 Text("Last night: \(sq.lowercased())")
-                                                    .font(.sora(13, weight: .light))
+                                                    .font(metrics.fontSora(14, weight: .light))
                                                     .foregroundColor(isGood ? .inkGreen : .inkAmber)
                                                 if let body = bodySignal, !body.isEmpty {
                                                     Text("Body: \(body.lowercased())")
-                                                        .font(.sora(12, weight: .light))
+                                                        .font(metrics.fontSora(13, weight: .light))
                                                         .foregroundColor(.textMuted)
                                                 }
                                             } else {
                                                 Text("4:00 AM wake · 6H 45MIN window")
-                                                    .font(.sora(13, weight: .light))
+                                                    .font(metrics.fontSora(14, weight: .light))
                                                     .foregroundColor(.textSecond)
                                             }
                                         } else if sleepTotalMin >= sleepTargetMin {
                                             Text("In corridor. Sleep now.")
-                                                .font(.sora(13, weight: .medium))
+                                                .font(metrics.fontSora(14, weight: .medium))
                                                 .foregroundColor(.inkGreen)
                                         } else {
                                             let remaining = sleepTargetMin - sleepTotalMin
                                             Text("\(remaining) min to 9:15. Screens down.")
-                                                .font(.sora(13, weight: .light))
+                                                .font(metrics.fontSora(14, weight: .light))
                                                 .foregroundColor(.inkAmber)
                                         }
                                     }
@@ -500,19 +763,16 @@ struct HomeView: View {
                             }
                         }
 
-                        // 6. TRAINING STATUS — only surface when relevant
                         let trainingHour = Calendar.current.component(.hour, from: Date())
                         let gymAction = allActions.first(where: {
                             $0.title.lowercased().contains("strength") || $0.title.lowercased().contains("gym")
                         })
                         let trainingDone = gymAction?.isCompleted == true &&
                             Calendar.current.isDateInToday(gymAction?.completedAt ?? .distantPast)
-                        // Show: if done (all day), or if approaching window (12:00+), or evening
-                        // Hide: early morning (before noon, not done) — wrong time context
                         if trainingDone || trainingHour >= 12 {
                             CardView {
                                 HStack(alignment: .center) {
-                                    VStack(alignment: .leading, spacing: 3) {
+                                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                         MonoLabel(text: "TRAINING", color: .textMuted, size: 9)
                                         Text(trainingDone ? "Strength done." : "Strength pending.")
                                             .font(.sora(14, weight: trainingDone ? .medium : .light))
@@ -527,16 +787,14 @@ struct HomeView: View {
                             }
                         }
 
-                        // 6b. WENDY OBSERVATION — rare, surfaces on Home when present
                         WendyObservationCard()
 
-                        // 7. UNRESOLVED FRICTION — carried from yesterday's debrief
                         if let friction = unresolvedFriction {
                             CardView(style: .ambient) {
-                                VStack(alignment: .leading, spacing: 5) {
+                                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                     MonoLabel(text: "OPEN FRICTION", color: .inkAmber, size: 9)
                                     Text(friction)
-                                        .font(.sora(13, weight: .light))
+                                        .font(metrics.fontSora(14, weight: .light))
                                         .foregroundColor(.textSecond)
                                         .lineSpacing(3)
                                         .fixedSize(horizontal: false, vertical: true)
@@ -544,14 +802,13 @@ struct HomeView: View {
                             }
                         }
 
-
-
                     }
                     .padding(.horizontal, metrics.hPad)
                     .adaptiveContentWidth(metrics)
                     .opacity(appeared ? 1 : 0).offset(y: appeared ? 0 : 14)
                     .animation(.easeOut(duration: 0.4).delay(0.05), value: appeared)
 
+                    }
                 }
             }
         }
@@ -565,7 +822,6 @@ struct HomeView: View {
         }
     }
 }
-
 // MARK: - TAB 3: PROTOCOLS — standalone tab wrapping ProtocolsViewEmbed
 
 struct ProtocolsTabView: View {
@@ -574,15 +830,11 @@ struct ProtocolsTabView: View {
         ZStack {
             AtmosphericBackground()
             VStack(spacing: 0) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 3) {
-                        MonoLabel(text: "INCREMENTS", color: .violet, size: 10)
-                        Text("Protocols")
-                            .font(.sora(24, weight: .semibold)).foregroundColor(.textPrimary)
+                GlanceTabHeader(kicker: "INCREMENTS", title: "Protocols", kickerColor: .violet) {
+                    if metrics.isIPad {
+                        MonoLabel(text: DayType.today.label.uppercased(), color: .textMuted, size: 9)
                     }
-                    Spacer()
                 }
-                .padding(.horizontal, metrics.hPad).padding(.top, 20).padding(.bottom, 4)
                 ProtocolsViewEmbed()
             }
         }
@@ -598,10 +850,10 @@ struct ManualTabView: View {
             AtmosphericBackground()
             VStack(spacing: 0) {
                 HStack {
-                    VStack(alignment: .leading, spacing: 3) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "INCREMENTS", color: .violet, size: 10)
                         Text("Manual")
-                            .font(.sora(24, weight: .semibold)).foregroundColor(.textPrimary)
+                            .font(metrics.fontSora(24, weight: .semibold)).foregroundColor(.textPrimary)
                     }
                     Spacer()
                 }
@@ -632,6 +884,7 @@ struct TodayView: View {
     @State private var firstOpenTime: Date = Date()
     @State private var selectedTodaySeg = 0   // 0=Today 1=Systems 2=Habits 3=Timeline
     @State private var scrollProxy: ScrollViewProxy? = nil
+    @State private var selectedRailAction: Action? = nil
 
     var currentTimeGroupID: String {
         let h = Calendar.current.component(.hour, from: Date())
@@ -930,9 +1183,9 @@ struct TodayView: View {
         Button(action: { state.showReview = true }) {
             HStack {
                 Image(systemName: alreadyReviewedToday ? "pencil" : "checkmark.circle")
-                    .font(.system(size: 12, weight: .light))
+                    .font(.system(size: metrics.scaledSize(12), weight: .light))
                 Text(alreadyReviewedToday ? "Edit Today's Log" : "Daily Review")
-                    .font(.sora(14, weight: .medium))
+                    .font(metrics.fontSora(15, weight: .medium))
             }
             .foregroundColor(alreadyReviewedToday ? .textMuted : .warm)
             .frame(maxWidth: .infinity).frame(height: 48)
@@ -946,55 +1199,486 @@ struct TodayView: View {
         }
     }
 
+    var focusRailAction: Action? {
+        if let selected = selectedRailAction,
+           todayActions.contains(where: { $0.id == selected.id }) {
+            return selected
+        }
+        return pendingToday.first ?? completedToday.last
+    }
+
+    // MARK: - iPad landscape — rail (left) + reflection (right)
+
+    /// The current time group — used to render a NOW divider in the rail
+    var currentTimeGroup: TimeGroup {
+        let h = Calendar.current.component(.hour, from: Date())
+        switch h {
+        case 0..<12:  return .morning
+        case 12..<17: return .afternoon
+        default:      return .evening
+        }
+    }
+
+    @ViewBuilder
+    func todayIPadRailColumn(scrollProxy: ScrollViewProxy? = nil) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+
+            // Doctrine line
+            if !activeDoctrine.isEmpty {
+                HStack(spacing: metrics.scaledSize(10)) {
+                    Rectangle()
+                        .fill(LinearGradient(colors: [.violet, .warm.opacity(0.4)],
+                                            startPoint: .top, endPoint: .bottom))
+                        .frame(width: 2, height: metrics.scaledSize(20))
+                    Text(activeDoctrine)
+                        .font(metrics.fontSora(11, weight: .light))
+                        .foregroundColor(.textSecond)
+                        .lineSpacing(3)
+                }
+                .padding(.horizontal, metrics.hPad)
+                .padding(.bottom, metrics.sectionGap)
+            }
+
+            ForEach(pendingByTimeGroup, id: \.group.rawValue) { bucket in
+                VStack(alignment: .leading, spacing: metrics.scaledSize(4)) {
+
+                    // Section header — label + NOW pulse + count
+                    HStack(spacing: metrics.scaledSize(8)) {
+                        SectionHeader(
+                            text: bucket.group.rawValue,
+                            color: bucket.group == currentTimeGroup
+                                ? action_color_for_group(bucket.group)
+                                : stackHeaderColor
+                        )
+                        if bucket.group == currentTimeGroup {
+                            Circle()
+                                .fill(action_color_for_group(bucket.group))
+                                .frame(width: metrics.scaledSize(4), height: metrics.scaledSize(4))
+                                .shadow(color: action_color_for_group(bucket.group).opacity(0.8), radius: 3)
+                        }
+                        Spacer()
+                        Text("\(bucket.actions.count)")
+                            .font(metrics.fontMono(9))
+                            .foregroundColor(.textMuted.opacity(0.4))
+                    }
+                    .padding(.horizontal, metrics.hPad)
+                    .padding(.bottom, metrics.scaledSize(2))
+
+                    VStack(spacing: 0) {
+                        ForEach(bucket.actions) { action in
+                            iPadActionRow(
+                                action: action,
+                                onComplete: { completeAction(action) },
+                                onSelect: { selectedRailAction = action },
+                                isSelected: focusRailAction?.id == action.id
+                            )
+                            .padding(.horizontal, metrics.scaledSize(6))
+                        }
+                    }
+                }
+                .padding(.bottom, metrics.sectionGap)
+                .id(bucket.group.rawValue)
+            }
+
+            // Completed — capped at 5, dimmed, collapsible
+            if !completedToday.isEmpty {
+                VStack(alignment: .leading, spacing: metrics.scaledSize(4)) {
+                    HStack(spacing: metrics.scaledSize(8)) {
+                        SectionHeader(text: "DONE · \(completedToday.count)", color: .inkGreen)
+                        Spacer()
+                    }
+                    .padding(.horizontal, metrics.hPad)
+                    .padding(.bottom, metrics.scaledSize(2))
+
+                    VStack(spacing: 0) {
+                        ForEach(completedToday.prefix(5)) { action in
+                            iPadActionRow(
+                                action: action,
+                                onComplete: { completeAction(action) },
+                                onSelect: { selectedRailAction = action },
+                                isSelected: focusRailAction?.id == action.id
+                            )
+                            .padding(.horizontal, metrics.scaledSize(6))
+                            .opacity(0.45)
+                        }
+                        if completedToday.count > 5 {
+                            Text("+ \(completedToday.count - 5) more")
+                                .font(metrics.fontMono(10))
+                                .foregroundColor(.textMuted.opacity(0.4))
+                                .padding(.horizontal, metrics.hPad)
+                                .padding(.top, metrics.scaledSize(6))
+                        }
+                    }
+                }
+                .padding(.bottom, metrics.sectionGap)
+            }
+
+        }
+        .padding(.top, metrics.scaledSize(10))
+        .padding(.bottom, 100)
+    }
+
+    func action_color_for_group(_ group: TimeGroup) -> Color {
+        switch group {
+        case .morning:   return .warm
+        case .afternoon: return .inkTeal
+        case .evening:   return .violetLight
+        case .anytime:   return .textMuted
+        }
+    }
+
+    @ViewBuilder
+    func todayIPadReflectionColumn() -> some View {
+        VStack(alignment: .leading, spacing: metrics.sectionGap) {
+
+            // ── MORNING EVIDENCE ──────────────────────────────────────────────
+            if let evidence = morningEvidenceData {
+                CardView(style: .secondary) {
+                    VStack(alignment: .leading, spacing: metrics.scaledSize(8)) {
+                        HStack(spacing: metrics.scaledSize(6)) {
+                            Circle()
+                                .fill(Color.inkGreen)
+                                .frame(width: metrics.scaledSize(5), height: metrics.scaledSize(5))
+                                .shadow(color: Color.inkGreen.opacity(0.6), radius: 3)
+                            MonoLabel(text: "MORNING EVIDENCE", color: .inkGreen, size: 9)
+                        }
+                        Text(evidence.text)
+                            .font(metrics.fontSora(12, weight: .light))
+                            .foregroundColor(.textPrimary)
+                            .lineSpacing(4)
+                        if let tomorrow = evidence.tomorrowAction, !tomorrow.isEmpty {
+                            HStack(spacing: metrics.scaledSize(8)) {
+                                Rectangle()
+                                    .fill(Color.warm.opacity(0.4))
+                                    .frame(width: 2, height: metrics.scaledSize(20))
+                                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                                    MonoLabel(text: "STAGED", color: .warm, size: 8)
+                                    Text(tomorrow)
+                                        .font(metrics.fontSora(13, weight: .medium))
+                                        .foregroundColor(.warm)
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, metrics.hPad)
+            }
+
+            // ── FOCUS ACTION — full note, full cue, clean button ─────────────
+            if let action = focusRailAction {
+                CardView {
+                    VStack(alignment: .leading, spacing: metrics.scaledSize(12)) {
+
+                        // Kicker row
+                        HStack {
+                            HStack(spacing: metrics.scaledSize(6)) {
+                                Circle()
+                                    .fill(action.system.color)
+                                    .frame(width: metrics.scaledSize(5), height: metrics.scaledSize(5))
+                                    .shadow(color: action.system.color.opacity(0.6), radius: 3)
+                                MonoLabel(
+                                    text: action.isCompleted ? "CLOSED" : "FOCUS",
+                                    color: action.system.color,
+                                    size: 9
+                                )
+                            }
+                            Spacer()
+                            Text(action.system.rawValue.uppercased())
+                                .font(metrics.fontMono(8))
+                                .foregroundColor(action.system.color.opacity(0.6))
+                                .tracking(1.0)
+                                .padding(.horizontal, metrics.scaledSize(8))
+                                .padding(.vertical, metrics.scaledSize(3))
+                                .background(action.system.color.opacity(0.08))
+                                .clipShape(Capsule())
+                        }
+
+                        // Title
+                        HStack(alignment: .top, spacing: metrics.scaledSize(10)) {
+                            RoundedRectangle(cornerRadius: 2)
+                                .fill(AnyShapeStyle(LinearGradient(
+                                    colors: [action.system.color, action.system.color.opacity(0.2)],
+                                    startPoint: .top, endPoint: .bottom
+                                )))
+                                .frame(width: metrics.scaledSize(3))
+                                .frame(minHeight: metrics.scaledSize(36))
+                            VStack(alignment: .leading, spacing: metrics.scaledSize(4)) {
+                                Text(action.title)
+                                    .font(metrics.fontSora(18, weight: .semibold))
+                                    .foregroundColor(.textPrimary)
+                                    .lineSpacing(3)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                if let block = action.scheduledBlock, !action.isCompleted {
+                                    Text(formatBlockTime(block))
+                                        .font(metrics.fontMono(10))
+                                        .foregroundColor(.textMuted)
+                                }
+                            }
+                        }
+
+                        // Full note — no truncation, this is the point
+                        if let note = action.note, !note.isEmpty {
+                            Text(note)
+                                .font(metrics.fontSora(12, weight: .light))
+                                .foregroundColor(.textSecond)
+                                .lineSpacing(4)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+
+                        // Cue
+                        if let cue = action.cue, !cue.isEmpty {
+                            HStack(alignment: .top, spacing: metrics.scaledSize(7)) {
+                                Rectangle()
+                                    .fill(action.system.color.opacity(0.25))
+                                    .frame(width: 1.5)
+                                    .frame(minHeight: metrics.scaledSize(12))
+                                Text(cue)
+                                    .font(metrics.fontMono(10))
+                                    .foregroundColor(action.system.color.opacity(0.8))
+                                    .lineSpacing(3)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+
+                        // Mark Done — compact, not thick
+                        Button(action: { completeAction(action) }) {
+                            HStack(spacing: metrics.scaledSize(8)) {
+                                if action.isCompleted {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.system(size: metrics.scaledSize(12)))
+                                        .foregroundColor(.textMuted)
+                                    Text("Undo")
+                                        .font(metrics.fontSora(12, weight: .medium))
+                                        .foregroundColor(.textMuted)
+                                } else {
+                                    Text("Mark Done")
+                                        .font(metrics.fontSora(12, weight: .semibold))
+                                        .foregroundColor(.bgBase)
+                                    Spacer()
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: metrics.scaledSize(11), weight: .semibold))
+                                        .foregroundColor(.bgBase.opacity(0.7))
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, metrics.scaledSize(11))
+                            .padding(.horizontal, metrics.scaledSize(16))
+                            .background(
+                                Group {
+                                    if action.isCompleted {
+                                        Color.surface2
+                                    } else {
+                                        LinearGradient(
+                                            colors: [action.system.color, action.system.color.opacity(0.8)],
+                                            startPoint: .leading, endPoint: .trailing
+                                        )
+                                    }
+                                }
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: metrics.scaledSize(10)))
+                            .shadow(color: action.isCompleted ? .clear : action.system.color.opacity(0.22),
+                                    radius: 8, x: 0, y: 4)
+                        }
+                    }
+                }
+                .padding(.horizontal, metrics.hPad)
+            }
+
+            // ── COMING UP — next 3 ────────────────────────────────────────────
+            let upNext: [Action] = {
+                guard let focus = focusRailAction else { return [] }
+                let remaining = pendingToday.filter { $0.id != focus.id }
+                return Array(remaining.prefix(3))
+            }()
+
+            if !upNext.isEmpty {
+                CardView(style: .secondary) {
+                    VStack(alignment: .leading, spacing: metrics.scaledSize(8)) {
+                        MonoLabel(text: "COMING UP", color: .textMuted, size: 9)
+                        VStack(alignment: .leading, spacing: metrics.scaledSize(7)) {
+                            ForEach(upNext) { action in
+                                HStack(alignment: .center, spacing: 0) {
+                                    // Fixed-width time slot — titles always start at same x
+                                    Text(action.scheduledBlock.map { formatBlockTime($0) } ?? "—")
+                                        .font(metrics.fontMono(10))
+                                        .foregroundColor(.textMuted)
+                                        .frame(width: metrics.scaledSize(52), alignment: .leading)
+                                    // Colour accent dot
+                                    Circle()
+                                        .fill(action.system.color.opacity(0.5))
+                                        .frame(width: metrics.scaledSize(4), height: metrics.scaledSize(4))
+                                        .padding(.trailing, metrics.scaledSize(8))
+                                    Text(action.title)
+                                        .font(metrics.fontSora(12, weight: .light))
+                                        .foregroundColor(.textSecond)
+                                        .lineLimit(1)
+                                    Spacer(minLength: 0)
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, metrics.hPad)
+            }
+
+            // ── SYSTEM MOMENTUM ───────────────────────────────────────────────
+            iPadSystemMomentumStrip
+                .padding(.horizontal, metrics.hPad)
+
+            HydrationPulseCard()
+                .padding(.horizontal, metrics.hPad)
+
+            reviewCTAButton
+                .padding(.horizontal, metrics.hPad)
+                .padding(.bottom, 100)
+        }
+        .padding(.top, metrics.scaledSize(10))
+    }
+
+    /// Compact system momentum strip for iPad reflection pane — shows which systems moved today.
+    @ViewBuilder
+    var iPadSystemMomentumStrip: some View {
+        let activeSystems = todayActions.filter(\.isCompleted).map(\.system)
+        let uniqueActive = Array(Set(activeSystems))
+        let allSystems = SystemTag.allCases
+
+        if !activeSystems.isEmpty {
+            CardView(style: .ambient) {
+                VStack(alignment: .leading, spacing: metrics.scaledSize(10)) {
+                    MonoLabel(text: "SYSTEMS MOVED", color: .textMuted, size: 9)
+                    HStack(spacing: metrics.scaledSize(8)) {
+                        ForEach(allSystems, id: \.rawValue) { system in
+                            let isActive = uniqueActive.contains(system)
+                            let count = activeSystems.filter { $0 == system }.count
+                            VStack(spacing: metrics.scaledSize(5)) {
+                                ZStack {
+                                    Circle()
+                                        .fill(isActive ? system.color.opacity(0.15) : Color.surface2.opacity(0.5))
+                                        .frame(width: metrics.scaledSize(32), height: metrics.scaledSize(32))
+                                    if isActive {
+                                        Circle()
+                                            .fill(system.color)
+                                            .frame(width: metrics.scaledSize(8), height: metrics.scaledSize(8))
+                                            .shadow(color: system.color.opacity(0.6), radius: 4)
+                                    } else {
+                                        Circle()
+                                            .fill(Color.muted.opacity(0.25))
+                                            .frame(width: metrics.scaledSize(6), height: metrics.scaledSize(6))
+                                    }
+                                }
+                                if count > 0 {
+                                    Text("\(count)")
+                                        .font(metrics.fontMono(9))
+                                        .foregroundColor(system.color.opacity(0.8))
+                                }
+                            }
+                        }
+                        Spacer()
+                    }
+                }
+            }
+        }
+    }
+
     var body: some View {
         ZStack { AtmosphericBackground()
             VStack(spacing: 0) {
-                HStack(alignment: .bottom) {
-                    VStack(alignment: .leading, spacing: 3) {
+                // Header — on iPad, this sits above a two-column layout so needs to be
+                // a full-width bar with balanced weight left and right
+                HStack(alignment: .center) {
+                    VStack(alignment: .leading, spacing: metrics.scaledSize(4)) {
                         MonoLabel(text: profile.todayContextLine(), color: .textMuted, size: 10)
-                        Text(profile.firstName.isEmpty ? "TODAY" : "TODAY, \(profile.firstName.uppercased())")
-                            .font(.sora(24, weight: .semibold)).foregroundColor(.textPrimary)
+                        Text(profile.firstName.isEmpty ? "Today" : "Today, \(profile.firstName)")
+                            .font(metrics.fontSora(metrics.isIPad ? 20 : 22, weight: .semibold))
+                            .foregroundColor(.textPrimary)
                     }
                     Spacer()
+                    // Progress readout — single mono string, no baseline fighting
                     if totalCount > 0 {
-                        VStack(alignment: .trailing, spacing: 1) {
-                            Text("\(completedCount)")
-                                .font(.system(size: 20, weight: .ultraLight, design: .monospaced))
-                                .foregroundColor(.inkGreen)
-                            MonoLabel(text: "of \(totalCount)", color: .textMuted, size: 9)
-                        }
+                        Text("\(completedCount) / \(totalCount)")
+                            .font(.system(size: metrics.scaledSize(14), weight: .light, design: .monospaced))
+                            .foregroundColor(.textMuted)
+                            .monospacedDigit()
                     }
                     Button(action: { showAdd = true }) {
-                        HStack(spacing: 5) {
-                            Image(systemName: "plus").font(.system(size: 12, weight: .semibold))
-                            Text("Add").font(.sora(12, weight: .medium))
+                        HStack(spacing: metrics.scaledSize(5)) {
+                            Image(systemName: "plus").font(.system(size: metrics.scaledSize(11), weight: .semibold))
+                            if metrics.isIPad {
+                                Text("Add").font(metrics.fontSora(11, weight: .medium))
+                            }
                         }
                         .foregroundColor(.violet)
-                        .padding(.horizontal, 12).padding(.vertical, 8)
+                        .padding(.horizontal, metrics.scaledSize(12)).padding(.vertical, metrics.scaledSize(8))
                         .background(Color.violetDim.opacity(0.3))
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .clipShape(RoundedRectangle(cornerRadius: metrics.scaledSize(10)))
                     }
                 }
-                .padding(.horizontal, metrics.hPad).padding(.top, metrics.isIPad ? 28 : 22).padding(.bottom, metrics.isIPad ? 14 : 10)
+                .padding(.horizontal, metrics.hPad)
+                .padding(.top, metrics.screenTopPadding)
+                .padding(.bottom, metrics.headerBottomPadding)
 
-                segmentControl(["Rail", "Protocols", "Log"], selected: $selectedTodaySeg)
-                    .padding(.horizontal, metrics.hPad).padding(.bottom, metrics.isIPad ? 20 : 16)
+                if !metrics.useMasterDetail {
+                    segmentControl(["Rail", "Protocols", "Log"], selected: $selectedTodaySeg)
+                        .padding(.horizontal, metrics.hPad)
+                        .padding(.bottom, metrics.sectionGap)
+                }
+
+                // Dashboard divider — separates header bar from live content columns
+                if metrics.isIPad {
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.clear, Color.muted.opacity(0.25), Color.clear],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                        )
+                        .frame(height: 0.5)
+                        .padding(.horizontal, metrics.hPad)
+                        .padding(.bottom, metrics.scaledSize(2))
+                }
 
                 ScrollViewReader { proxy in
-                ScrollView(showsIndicators: false) {
+                Group {
+                  if metrics.useMasterDetail {
+                      IPadMasterDetailLayout(metrics: metrics, leftFraction: metrics.todayRailLeftFraction) {
+                        ScrollView(showsIndicators: false) {
+                          todayIPadRailColumn(scrollProxy: proxy)
+                        }
+                      } right: {
+                        ScrollView(showsIndicators: false) {
+                          todayIPadReflectionColumn()
+                        }
+                      }
+                      .onAppear {
+                        if selectedRailAction == nil {
+                          selectedRailAction = pendingToday.first
+                        }
+                        // Auto-scroll rail to current time group — no touching required
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                            withAnimation(.easeOut(duration: 0.4)) {
+                                proxy.scrollTo(currentTimeGroupID, anchor: .top)
+                            }
+                        }
+                      }
+                  } else {
                   switch selectedTodaySeg {
                   case 1:
-                    ProtocolsViewEmbed()
+                    ScrollView(showsIndicators: false) {
+                      ProtocolsViewEmbed()
+                    }
                   case 2:
-                    TimelineViewEmbed()
+                    ScrollView(showsIndicators: false) {
+                      TimelineViewEmbed()
+                    }
                   default:
-                    VStack(spacing: 16) {
+                    ScrollView(showsIndicators: false) {
+                    VStack(spacing: metrics.blockSpacing) {
 
                         // FIX 08 — Morning evidence card (reads actual completions, not log count)
                         if let evidence = morningEvidenceData {
                             CardView(style: .secondary) {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    HStack(spacing: 14) {
+                                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                                    HStack(spacing: metrics.blockSpacing) {
                                         ZStack {
                                             Circle()
                                                 .fill(Color.inkGreen.opacity(0.15))
@@ -1005,20 +1689,20 @@ struct TodayView: View {
                                                 .shadow(color: Color.inkGreen.opacity(0.6), radius: 4)
                                         }
                                         Text(evidence.text)
-                                            .font(.sora(13, weight: .light)).foregroundColor(.textPrimary).lineSpacing(4)
+                                            .font(metrics.fontSora(14, weight: .light)).foregroundColor(.textPrimary).lineSpacing(4)
                                         Spacer()
                                     }
                                     // Tomorrow's pre-committed action from last night's review
                                     if let tomorrowAction = evidence.tomorrowAction, !tomorrowAction.isEmpty {
-                                        HStack(spacing: 8) {
+                                        HStack(spacing: metrics.rowSpacing) {
                                             Rectangle()
                                                 .fill(Color.warm.opacity(0.3))
                                                 .frame(width: 1, height: 24)
                                                 .padding(.leading, 4)
-                                            VStack(alignment: .leading, spacing: 2) {
+                                            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                                 MonoLabel(text: "START HERE", color: .warm, size: 11)
                                                 Text(tomorrowAction)
-                                                    .font(.sora(13, weight: .medium)).foregroundColor(.textPrimary)
+                                                    .font(metrics.fontSora(14, weight: .medium)).foregroundColor(.textPrimary)
                                             }
                                         }
                                     }
@@ -1036,19 +1720,21 @@ struct TodayView: View {
 
                         // Progress
                         CardView {
-                            HStack(spacing: 14) {
+                            HStack(spacing: metrics.blockSpacing) {
                                 CircularProgress(
                                     value: totalCount > 0 ? Double(completedCount) / Double(totalCount) : 0,
-                                    size: 44, color: .inkGreen, lineWidth: 2.5
+                                    size: metrics.glanceRingSize,
+                                    color: .inkGreen,
+                                    lineWidth: 2.5
                                 )
-                                VStack(alignment: .leading, spacing: 3) {
-                                    Text("Today's actions").font(.sora(13, weight: .medium)).foregroundColor(.textPrimary)
+                                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                                    Text("Today's actions").font(metrics.fontSora(14, weight: .medium)).foregroundColor(.textPrimary)
                                     Text(completedCount == 0
                                          ? "Nothing closed yet."
                                          : completedCount == totalCount
                                          ? "All \(totalCount) done."
                                          : "\(completedCount) of \(totalCount)")
-                                        .font(.mono(11)).foregroundColor(.textSecond).tracking(0.3)
+                                        .font(metrics.fontMono(12)).foregroundColor(.textSecond).tracking(0.3)
                                 }
                                 Spacer()
                                 // Removed: large standalone number — Competition trap.
@@ -1061,10 +1747,10 @@ struct TodayView: View {
                         // Inline readiness chip — honest about what's being collected.
                         // Disappears after day 7 when pattern window opens.
                         if showReadinessChip && !readinessChipText.isEmpty {
-                            HStack(spacing: 8) {
+                            HStack(spacing: metrics.rowSpacing) {
                                 Circle().fill(Color.violet.opacity(0.3)).frame(width: 4, height: 4)
                                 Text(readinessChipText)
-                                    .font(.mono(10)).foregroundColor(.textMuted.opacity(0.7)).tracking(0.3)
+                                    .font(metrics.fontMono(11)).foregroundColor(.textMuted.opacity(0.7)).tracking(0.3)
                                 Spacer()
                             }
                             .padding(.horizontal, 4)
@@ -1077,19 +1763,19 @@ struct TodayView: View {
                         // Surfaces only after Environment is completed — not speculative
                         if let gateway = gatewaySignal {
                             CardView(style: .ambient) {
-                                HStack(spacing: 12) {
-                                    HStack(spacing: 6) {
+                                HStack(spacing: metrics.cardSpacing) {
+                                    HStack(spacing: metrics.rowSpacing) {
                                         Circle().fill(Color.inkGreen).frame(width: 6, height: 6)
                                         Image(systemName: "arrow.right")
-                                            .font(.system(size: 10, weight: .light))
+                                            .font(.system(size: metrics.scaledSize(11), weight: .light))
                                             .foregroundColor(.textMuted)
                                         Circle().fill(gateway.system.color).frame(width: 6, height: 6)
                                     }
-                                    VStack(alignment: .leading, spacing: 2) {
+                                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                         Text("Environment's done. \(gateway.system.rawValue.capitalized) usually follows.")
-                                            .font(.sora(12, weight: .light)).foregroundColor(.textSecond)
+                                            .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond)
                                         Text(gateway.actionTitle)
-                                            .font(.sora(12, weight: .medium)).foregroundColor(.textPrimary)
+                                            .font(metrics.fontSora(13, weight: .medium)).foregroundColor(.textPrimary)
                                     }
                                     Spacer()
                                 }
@@ -1103,12 +1789,12 @@ struct TodayView: View {
                         // Only appears when creative actions are being crowded by 3+ admin actions
                         if creativeProtectionWarning {
                             CardView(style: .ambient) {
-                                HStack(spacing: 10) {
+                                HStack(spacing: metrics.cardSpacing) {
                                     Image(systemName: "sparkles")
-                                        .font(.system(size: 12, weight: .light))
+                                        .font(.system(size: metrics.scaledSize(12), weight: .light))
                                         .foregroundColor(.warm)
                                     Text("Admin's crowding the creative work.")
-                                        .font(.sora(12, weight: .light)).foregroundColor(.textSecond)
+                                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond)
                                     Spacer()
                                 }
                             }
@@ -1118,11 +1804,18 @@ struct TodayView: View {
 
                         // Action stack — time-grouped by day arc with timeline connector
                         if !todayActions.isEmpty {
-                            VStack(alignment: .leading, spacing: 16) {
+                            VStack(alignment: .leading, spacing: metrics.blockSpacing) {
+
+                                // Energy state doctrine banner — shown for Reserve and Compressed
+                                if let es = state.todayEnergyState,
+                                   es == .reserve || es == .compressed {
+                                    EnergyStateBanner(state: es)
+                                        .padding(.horizontal, 0)
+                                }
 
                                 // Pending actions grouped into time bands
                                 ForEach(pendingByTimeGroup, id: \.group.rawValue) { bucket in
-                                    VStack(alignment: .leading, spacing: 10) {
+                                    VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                                         SectionHeader(text: bucket.group.rawValue,
                                                       color: participationQuietDays >= 5 && bucket.group == .morning ? .inkAmber : .textMuted)
                                         CardView {
@@ -1148,7 +1841,7 @@ struct TodayView: View {
 
                                 // Completed actions — collapsed under DONE
                                 if !completedToday.isEmpty {
-                                    VStack(alignment: .leading, spacing: 10) {
+                                    VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                                         SectionHeader(text: "DONE · \(completedToday.count)", color: .inkGreen)
                                         CardView(style: .secondary) {
                                             VStack(spacing: 0) {
@@ -1172,9 +1865,9 @@ struct TodayView: View {
 
                         // Session protocols stack
                         if !todaySessions.isEmpty {
-                            VStack(alignment: .leading, spacing: 12) {
+                            VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                                 SectionHeader(text: "PROTOCOLS")
-                                VStack(spacing: 8) {
+                                VStack(spacing: metrics.rowSpacing) {
                                     ForEach(todaySessions) { session in
                                         CardView {
                                             SessionCard(
@@ -1198,7 +1891,9 @@ struct TodayView: View {
                             .opacity(appeared ? 1 : 0).animation(.easeOut(duration: 0.35).delay(0.15), value: appeared)
                     }
                     .padding(.horizontal, metrics.hPad)
+                    } // end ScrollView
                   } // end switch
+                  } // end iPhone path
                 }
                 .onAppear { scrollProxy = proxy }
                 } // end ScrollViewReader
@@ -1257,11 +1952,7 @@ struct TodayView: View {
         action.isCompleted.toggle()
         action.completedAt = action.isCompleted ? Date() : nil
         #if os(iOS)
-
-        #if os(iOS)
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
-        #endif
-
         #endif
         if action.isCompleted {
             state.systemLastActivity[action.system] = Date()
@@ -1362,6 +2053,7 @@ struct TodayView: View {
 
 // FIX 06 — One Door Card component
 struct OneDoorCard: View {
+    @Environment(\.appMetrics) private var metrics
     let action: Action
     var onComplete: () -> Void
     @State private var completed = false
@@ -1369,10 +2061,10 @@ struct OneDoorCard: View {
     var body: some View {
         if !completed {
             CardView {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "ONE DOOR", color: .violet)
                     Text(action.title)
-                        .font(.sora(18, weight: .semibold)).foregroundColor(.textPrimary)
+                        .font(metrics.fontSora(18, weight: .semibold)).foregroundColor(.textPrimary)
                     MonoLabel(text: "Open it.", color: .textSecond, size: 11)
 
                     Button(action: {
@@ -1382,13 +2074,13 @@ struct OneDoorCard: View {
                         UINotificationFeedbackGenerator().notificationOccurred(.success)
                     }) {
                         Text("RE-ENTER")
-                            .font(.sora(13, weight: .semibold)).foregroundColor(.bgBase).tracking(1.5)
+                            .font(metrics.fontSora(14, weight: .semibold)).foregroundColor(.bgBase).tracking(1.5)
                             .frame(maxWidth: .infinity).frame(height: 44)
                             .background(Color.violet).clipShape(RoundedRectangle(cornerRadius: 10))
                     }
 
                     Text("Nothing else required.")
-                        .font(.mono(11)).foregroundColor(.muted).tracking(1)
+                        .font(metrics.fontMono(12)).foregroundColor(.muted).tracking(1)
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
             }
@@ -1400,6 +2092,7 @@ struct OneDoorCard: View {
 // MARK: - PHASE 2: ENERGY STATE INPUT CARD
 
 struct EnergyStateInputCard: View {
+    @Environment(\.appMetrics) private var metrics
     @Bindable var state: AppState
     @Query(sort: \DailyLog.date, order: .reverse) private var recentLogs: [DailyLog]
 
@@ -1431,7 +2124,7 @@ struct EnergyStateInputCard: View {
 
     var body: some View {
         CardView(style: .secondary) {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: metrics.blockSpacing) {
                 HStack {
                     MonoLabel(text: "CAPACITY TODAY", color: .textMuted)
                     Spacer()
@@ -1440,7 +2133,7 @@ struct EnergyStateInputCard: View {
                     }
                 }
 
-                HStack(spacing: 10) {
+                HStack(spacing: metrics.cardSpacing) {
                     ForEach([EnergyState.full, .partial, .reserve, .compressed], id: \.rawValue) { es in
                         Button(action: {
                             withAnimation(.easeOut(duration: 0.25)) {
@@ -1456,15 +2149,15 @@ struct EnergyStateInputCard: View {
                                 writeCognitionLog(energyState: es)
                             }
                         }) {
-                            VStack(spacing: 6) {
+                            VStack(spacing: metrics.rowSpacing) {
                                 Image(systemName: es.icon)
                                     .font(.system(size: 20, weight: .ultraLight))
                                     .foregroundColor(es.color)
                                 Text(es.label)
-                                    .font(.sora(13, weight: .medium))
+                                    .font(metrics.fontSora(14, weight: .medium))
                                     .foregroundColor(.textPrimary)
                                 Text(es.sublabel)
-                                    .font(.sora(10, weight: .light))
+                                    .font(metrics.fontSora(12, weight: .light))
                                     .foregroundColor(.textMuted)
                                     .multilineTextAlignment(.center)
                                     .lineSpacing(2)
@@ -1593,48 +2286,298 @@ struct ProtocolsViewEmbed: View {
         return "NIGHT"
     }
 
-    var body: some View {
-        ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 0) {
+    @State private var ipadFocusSession: Session? = nil
 
-                // Time context header
-                HStack(spacing: 8) {
-                    Rectangle()
-                        .fill(Color.violet.opacity(0.4))
-                        .frame(width: 16, height: 0.5)
-                    MonoLabel(text: currentContextLabel, color: .textMuted, size: 10)
-                    MonoLabel(text: "· \(orderedProtocols.filter { !$0.isCompleted }.count) PENDING", color: .textMuted.opacity(0.5), size: 9)
-                }
-                .padding(.horizontal, metrics.hPad)
-                .padding(.top, 16)
-                .padding(.bottom, 12)
+    var focusSession: Session? {
+        if let ipadFocusSession,
+           orderedProtocols.contains(where: { $0.id == ipadFocusSession.id }) {
+            return ipadFocusSession
+        }
+        return orderedProtocols.first(where: { !$0.isCompleted }) ?? orderedProtocols.first
+    }
 
-                // Protocol doors — one per session, ordered by time relevance
-                ForEach(Array(orderedProtocols.enumerated()), id: \.element.id) { idx, session in
-                    ProtocolDoor(session: session) { selectedSession = session }
-                        .padding(.horizontal, metrics.hPad)
-                        .padding(.bottom, idx < orderedProtocols.count - 1 ? 8 : 0)
-                        .opacity(session.isCompleted ? 0.45 : 1.0)
-                }
+    @ViewBuilder
+    var protocolListColumn: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Column kicker
+            HStack(spacing: metrics.scaledSize(8)) {
+                SectionHeader(
+                    text: currentContextLabel,
+                    color: .violet
+                )
+                Text("· \(orderedProtocols.filter { !$0.isCompleted }.count) pending")
+                    .font(metrics.fontMono(9))
+                    .foregroundColor(.textMuted.opacity(0.45))
+                Spacer()
+            }
+            .padding(.horizontal, metrics.hPad)
+            .padding(.top, metrics.scaledSize(12))
+            .padding(.bottom, metrics.scaledSize(8))
 
-                // Completed sessions — dimmed, at the bottom
-                if orderedProtocols.allSatisfy({ !$0.isCompleted }) == false {
-                    HStack(spacing: 8) {
-                        Rectangle()
-                            .fill(Color.inkGreen.opacity(0.3))
-                            .frame(width: 16, height: 0.5)
-                        MonoLabel(text: "DONE TODAY", color: .inkGreen.opacity(0.5), size: 9)
-                    }
-                    .padding(.horizontal, metrics.hPad)
-                    .padding(.top, 20)
-                    .padding(.bottom, 8)
+            VStack(spacing: metrics.scaledSize(4)) {
+                ForEach(orderedProtocols) { session in
+                    ProtocolRailRow(
+                        session: session,
+                        isSelected: focusSession?.id == session.id,
+                        onSelect: { ipadFocusSession = session }
+                    )
+                    .padding(.horizontal, metrics.scaledSize(6))
+                    .opacity(session.isCompleted ? 0.45 : 1)
                 }
             }
-            .padding(.bottom, 80)
+        }
+        .padding(.bottom, 80)
+    }
+
+    var body: some View {
+        Group {
+            if metrics.useMasterDetail {
+                IPadMasterDetailLayout(metrics: metrics) {
+                    ScrollView(showsIndicators: false) {
+                        protocolListColumn
+                    }
+                } right: {
+                    ScrollView(showsIndicators: false) {
+                        if let session = focusSession {
+                            ProtocolReflectionPanel(session: session) {
+                                selectedSession = session
+                            }
+                        }
+                    }
+                }
+                .onAppear {
+                    if ipadFocusSession == nil {
+                        ipadFocusSession = orderedProtocols.first(where: { !$0.isCompleted })
+                    }
+                }
+            } else {
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        HStack(spacing: metrics.rowSpacing) {
+                            Rectangle()
+                                .fill(Color.violet.opacity(0.4))
+                                .frame(width: 16, height: 0.5)
+                            MonoLabel(text: currentContextLabel, color: .textMuted, size: 10)
+                            MonoLabel(text: "· \(orderedProtocols.filter { !$0.isCompleted }.count) PENDING", color: .textMuted.opacity(0.5), size: 9)
+                        }
+                        .padding(.horizontal, metrics.hPad)
+                        .padding(.top, 16)
+                        .padding(.bottom, 12)
+
+                        ForEach(Array(orderedProtocols.enumerated()), id: \.element.id) { idx, session in
+                            ProtocolDoor(session: session) { selectedSession = session }
+                                .padding(.horizontal, metrics.hPad)
+                                .padding(.bottom, idx < orderedProtocols.count - 1 ? metrics.cardSpacing : 0)
+                                .opacity(session.isCompleted ? 0.45 : 1.0)
+                        }
+
+                        if orderedProtocols.allSatisfy({ !$0.isCompleted }) == false {
+                            HStack(spacing: metrics.rowSpacing) {
+                                Rectangle()
+                                    .fill(Color.inkGreen.opacity(0.3))
+                                    .frame(width: 16, height: 0.5)
+                                MonoLabel(text: "DONE TODAY", color: .inkGreen.opacity(0.5), size: 9)
+                            }
+                            .padding(.horizontal, metrics.hPad)
+                            .padding(.top, 20)
+                            .padding(.bottom, 8)
+                        }
+                    }
+                    .padding(.bottom, 80)
+                }
+            }
         }
         .sheet(item: $selectedSession) { session in
             SessionExecutionView(session: session) { selectedSession = nil }
         }
+    }
+}
+
+// MARK: - IPAD PROTOCOL RAIL + REFLECTION
+
+struct ProtocolRailRow: View {
+    let session: Session
+    let isSelected: Bool
+    var onSelect: () -> Void
+    @Environment(\.appMetrics) private var metrics
+
+    var timingLabel: String {
+        let t = session.title.lowercased()
+        if t.contains("morning") || t.contains("whole human") { return "4–5 AM" }
+        if t.contains("warmup") || t.contains("pre-lift") { return "5:15 PM" }
+        if t.contains("shutdown") || t.contains("preservation") { return "8:25 PM" }
+        if t.contains("weekly reset") { return "Sunday" }
+        if !session.cue.isEmpty {
+            let parts = session.cue.components(separatedBy: "—")
+            let first = parts.first?.trimmingCharacters(in: .whitespaces) ?? ""
+            return first.count < 20 ? first : ""
+        }
+        return ""
+    }
+
+    var body: some View {
+        Button(action: onSelect) {
+            HStack(spacing: metrics.rowSpacing) {
+                // Accent bar — same language as CompactRailRow
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(session.isCompleted
+                          ? AnyShapeStyle(session.system.color.opacity(0.3))
+                          : AnyShapeStyle(LinearGradient(colors: [session.system.color, session.system.color.opacity(0.5)],
+                                           startPoint: .top, endPoint: .bottom)))
+                    .frame(width: metrics.scaledSize(3))
+                    .frame(minHeight: metrics.scaledSize(44))
+
+                VStack(alignment: .leading, spacing: metrics.scaledSize(5)) {
+                    if !timingLabel.isEmpty {
+                        Text(timingLabel)
+                            .font(metrics.fontMono(10))
+                            .foregroundColor(.textMuted)
+                            .tracking(0.3)
+                    }
+                    Text(session.title)
+                        .font(metrics.fontSora(14, weight: isSelected ? .semibold : .regular))
+                        .foregroundColor(session.isCompleted ? .textMuted : (isSelected ? .textPrimary : .textSecond))
+                        .multilineTextAlignment(.leading)
+                        .lineLimit(2)
+                    Text("\(session.steps.count) steps")
+                        .font(metrics.fontMono(10))
+                        .foregroundColor(session.system.color.opacity(isSelected ? 0.7 : 0.45))
+                }
+                Spacer()
+                if session.isCompleted {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: metrics.scaledSize(14)))
+                        .foregroundColor(.inkGreen.opacity(0.7))
+                } else if isSelected {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: metrics.scaledSize(10), weight: .medium))
+                        .foregroundColor(session.system.color.opacity(0.5))
+                }
+            }
+            .padding(.vertical, metrics.scaledSize(14))
+            .padding(.horizontal, metrics.scaledSize(16))
+            .background(
+                RoundedRectangle(cornerRadius: metrics.cardRadius)
+                    .fill(isSelected ? session.system.color.opacity(0.07) : Color.surface.opacity(0.6))
+            )
+            .clipShape(RoundedRectangle(cornerRadius: metrics.cardRadius))
+            .overlay(
+                RoundedRectangle(cornerRadius: metrics.cardRadius)
+                    .strokeBorder(
+                        isSelected ? session.system.color.opacity(0.25) : Color.white.opacity(0.04),
+                        lineWidth: isSelected ? 1 : 0.5
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .opacity(session.isCompleted ? 0.55 : 1.0)
+    }
+}
+
+struct ProtocolReflectionPanel: View {
+    let session: Session
+    var onRun: () -> Void
+    @Environment(\.appMetrics) private var metrics
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: metrics.sectionGap) {
+
+            // System kicker + session title — the hero
+            VStack(alignment: .leading, spacing: metrics.scaledSize(10)) {
+                HStack(spacing: metrics.scaledSize(8)) {
+                    Circle()
+                        .fill(session.system.color)
+                        .frame(width: metrics.scaledSize(7), height: metrics.scaledSize(7))
+                        .shadow(color: session.system.color.opacity(0.7), radius: 5)
+                    MonoLabel(text: "PROTOCOL · \(session.system.rawValue.uppercased())", color: session.system.color, size: 10)
+                    Spacer()
+                    Text("\(session.steps.count) STEPS")
+                        .font(metrics.fontMono(9))
+                        .foregroundColor(.textMuted)
+                        .tracking(1.0)
+                }
+
+                HStack(alignment: .top, spacing: metrics.scaledSize(14)) {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(LinearGradient(
+                            colors: [session.system.color, session.system.color.opacity(0.2)],
+                            startPoint: .top, endPoint: .bottom
+                        ))
+                        .frame(width: metrics.scaledSize(4))
+                        .frame(minHeight: metrics.scaledSize(52))
+                    Text(session.title)
+                        .font(metrics.fontSora(26, weight: .semibold))
+                        .foregroundColor(.textPrimary)
+                        .lineSpacing(5)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+
+            if !session.cue.isEmpty {
+                HStack(spacing: metrics.scaledSize(10)) {
+                    Rectangle()
+                        .fill(session.system.color.opacity(0.3))
+                        .frame(width: 2, height: metrics.scaledSize(18))
+                    Text(session.cue)
+                        .font(metrics.fontMono(12))
+                        .foregroundColor(.textSecond)
+                        .lineLimit(2)
+                }
+            }
+
+            // Steps — the full list, readable at 3ft
+            CardView(style: .secondary) {
+                VStack(alignment: .leading, spacing: metrics.blockSpacing) {
+                    ForEach(Array(session.steps.enumerated()), id: \.offset) { index, step in
+                        HStack(alignment: .top, spacing: metrics.scaledSize(14)) {
+                            Text(String(format: "%02d", index + 1))
+                                .font(metrics.fontMono(12))
+                                .foregroundColor(session.system.color.opacity(0.7))
+                                .frame(width: metrics.scaledSize(26), alignment: .leading)
+                            Text(step)
+                                .font(metrics.fontSora(15, weight: .light))
+                                .foregroundColor(.textPrimary)
+                                .lineSpacing(5)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        if index < session.steps.count - 1 {
+                            Rectangle()
+                                .fill(session.system.color.opacity(0.08))
+                                .frame(height: 0.5)
+                        }
+                    }
+                }
+            }
+
+            // Run button — colour-matched, same weight as GlanceNextActionCard
+            Button(action: onRun) {
+                HStack(spacing: metrics.scaledSize(10)) {
+                    Image(systemName: session.isCompleted ? "arrow.clockwise" : "play.fill")
+                        .font(.system(size: metrics.scaledSize(13), weight: .medium))
+                    Text(session.isCompleted ? "Run again" : "Run protocol")
+                        .font(metrics.fontSora(15, weight: .semibold))
+                        .tracking(0.3)
+                    Spacer()
+                    if !session.isCompleted {
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: metrics.scaledSize(12), weight: .medium))
+                    }
+                }
+                .foregroundColor(.bgBase)
+                .frame(maxWidth: .infinity)
+                .frame(height: metrics.touchTarget)
+                .background(
+                    LinearGradient(
+                        colors: [session.system.color, session.system.color.opacity(0.75)],
+                        startPoint: .leading, endPoint: .trailing
+                    )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: metrics.cardRadius * 0.8))
+                .shadow(color: session.system.color.opacity(0.3), radius: 12, x: 0, y: 6)
+            }
+        }
+        .padding(metrics.hPad)
+        .padding(.bottom, 80)
     }
 }
 
@@ -1643,6 +2586,7 @@ struct ProtocolsViewEmbed: View {
 // No walls of text. The room is inside.
 
 struct ProtocolDoor: View {
+    @Environment(\.appMetrics) private var metrics
     let session: Session
     var onTap: () -> Void
 
@@ -1664,7 +2608,7 @@ struct ProtocolDoor: View {
 
     var body: some View {
         Button(action: onTap) {
-            HStack(spacing: 14) {
+            HStack(spacing: metrics.blockSpacing) {
                 // System color strip
                 RoundedRectangle(cornerRadius: 2)
                     .fill(
@@ -1675,20 +2619,20 @@ struct ProtocolDoor: View {
                     )
                     .frame(width: 3, height: 44)
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                     Text(session.title)
-                        .font(.sora(15, weight: .semibold))
+                        .font(metrics.fontSora(15, weight: .semibold))
                         .foregroundColor(session.isCompleted ? .textMuted : .textPrimary)
-                    HStack(spacing: 8) {
+                    HStack(spacing: metrics.rowSpacing) {
                         Text(timingLabel)
-                            .font(.mono(10))
+                            .font(metrics.fontMono(11))
                             .foregroundColor(session.system.color.opacity(0.7))
                             .tracking(0.3)
                         Text("·")
-                            .font(.mono(10))
+                            .font(metrics.fontMono(11))
                             .foregroundColor(.textMuted.opacity(0.4))
                         Text("\(session.steps.count) steps")
-                            .font(.mono(10))
+                            .font(metrics.fontMono(11))
                             .foregroundColor(.textMuted.opacity(0.6))
                             .tracking(0.3)
                     }
@@ -1699,11 +2643,11 @@ struct ProtocolDoor: View {
                 // Completion or enter indicator
                 if session.isCompleted {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 14, weight: .light))
+                        .font(.system(size: metrics.scaledSize(14), weight: .light))
                         .foregroundColor(.inkGreen.opacity(0.6))
                 } else {
                     Image(systemName: "arrow.right")
-                        .font(.system(size: 11, weight: .light))
+                        .font(.system(size: metrics.scaledSize(12), weight: .light))
                         .foregroundColor(.textMuted.opacity(0.4))
                 }
             }
@@ -1735,27 +2679,28 @@ struct ProtocolDoorButtonStyle: ButtonStyle {
 // MARK: - COLLAPSED CAPACITY CHIP
 
 struct CollapsedCapacityChip: View {
+    @Environment(\.appMetrics) private var metrics
     @Bindable var state: AppState
     @State private var showExpanded = false
 
     var body: some View {
         if let es = state.todayEnergyState {
-            HStack(spacing: 8) {
+            HStack(spacing: metrics.rowSpacing) {
                 Circle()
                     .fill(es.color)
                     .frame(width: 5, height: 5)
                     .shadow(color: es.color.opacity(0.5), radius: 3)
                 Text(es.label.uppercased())
-                    .font(.mono(10)).foregroundColor(es.color).tracking(0.8)
+                    .font(metrics.fontMono(11)).foregroundColor(es.color).tracking(0.8)
                 Text("·")
-                    .font(.mono(10)).foregroundColor(.textMuted)
+                    .font(metrics.fontMono(11)).foregroundColor(.textMuted)
                 Text(es.sublabel)
-                    .font(.mono(10)).foregroundColor(.textMuted).tracking(0.2)
+                    .font(metrics.fontMono(11)).foregroundColor(.textMuted).tracking(0.2)
                     .lineLimit(1)
                 Spacer()
                 Button(action: { withAnimation(.easeOut(duration: 0.2)) { showExpanded.toggle() } }) {
                     Image(systemName: showExpanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 9, weight: .light))
+                        .font(.system(size: metrics.scaledSize(10), weight: .light))
                         .foregroundColor(.textMuted.opacity(0.6))
                 }
             }
@@ -1776,6 +2721,7 @@ struct CollapsedCapacityChip: View {
 struct HydrationPulseCard: View {
     @Query(sort: \HydrationLog.timestamp, order: .reverse) private var logs: [HydrationLog]
     @Environment(\.modelContext) private var context
+    @Environment(\.appMetrics) private var metrics
     @State private var pulse = false
 
     var lastLog: HydrationLog? { logs.first }
@@ -1795,12 +2741,10 @@ struct HydrationPulseCard: View {
         return "Not yet today."
     }
 
-    // After 8pm — card is invisible. No evening hydration pressure.
     var isAfter8pm: Bool {
         Calendar.current.component(.hour, from: Date()) >= 20
     }
 
-    // Pulse state: subtle animation when quiet for 2+ hours during active hours
     var shouldPulse: Bool { hoursSinceLast >= 2 && !isAfter8pm }
 
     var dotOpacity: Double {
@@ -1812,38 +2756,43 @@ struct HydrationPulseCard: View {
     var body: some View {
         if !isAfter8pm {
             CardView(style: .secondary) {
-                HStack(spacing: 14) {
-                    // inkTeal dot — pulses gently when overdue
+                HStack(spacing: metrics.scaledSize(14)) {
                     ZStack {
                         if shouldPulse {
                             Circle()
                                 .fill(Color.inkTeal.opacity(0.15))
-                                .frame(width: 20, height: 20)
+                                .frame(width: metrics.scaledSize(20), height: metrics.scaledSize(20))
                                 .scaleEffect(pulse ? 1.4 : 1.0)
                                 .opacity(pulse ? 0 : 0.4)
                                 .animation(.easeOut(duration: 1.8).repeatForever(autoreverses: false), value: pulse)
                         }
                         Circle()
                             .fill(Color.inkTeal.opacity(dotOpacity))
-                            .frame(width: 8, height: 8)
+                            .frame(width: metrics.scaledSize(8), height: metrics.scaledSize(8))
                     }
-                    .frame(width: 20, height: 20)
+                    .frame(width: metrics.scaledSize(20), height: metrics.scaledSize(20))
 
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: metrics.scaledSize(2)) {
                         Text("Water.")
-                            .font(.sora(14, weight: .medium)).foregroundColor(.textPrimary)
+                            .font(metrics.fontSora(13, weight: .medium))
+                            .foregroundColor(.textPrimary)
                         Text(relativeLabel)
-                            .font(.mono(11)).foregroundColor(.textMuted).tracking(0.3)
+                            .font(metrics.fontMono(11))
+                            .foregroundColor(.textMuted)
+                            .tracking(0.3)
                     }
                     Spacer()
-                    // Single tap logs — no confirmation, no celebration
                     Button(action: logHydration) {
                         Text("LOG")
-                            .font(.mono(11)).foregroundColor(.inkTeal).tracking(1.5)
-                            .padding(.horizontal, 12).padding(.vertical, 6)
+                            .font(metrics.fontMono(11))
+                            .foregroundColor(.inkTeal)
+                            .tracking(1.5)
+                            .padding(.horizontal, metrics.scaledSize(12))
+                            .padding(.vertical, metrics.scaledSize(6))
                             .background(Color.inkTeal.opacity(0.1))
                             .clipShape(RoundedRectangle(cornerRadius: 6))
-                            .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(Color.inkTeal.opacity(0.25), lineWidth: 0.5))
+                            .overlay(RoundedRectangle(cornerRadius: 6)
+                                .strokeBorder(Color.inkTeal.opacity(0.25), lineWidth: 0.5))
                     }
                 }
             }
@@ -1855,11 +2804,7 @@ struct HydrationPulseCard: View {
     func logHydration() {
         context.insert(HydrationLog())
         #if os(iOS)
-
-        #if os(iOS)
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
-        #endif
-
         #endif
         pulse = false
     }
@@ -1874,12 +2819,13 @@ struct WendyObservationCard: View {
     // Observe the singleton directly — @ObservedObject with the shared instance
     // is correct here: the card doesn't own the object, it observes it.
     // The default value ensures it always references the same singleton.
+    @Environment(\.appMetrics) private var metrics
     @ObservedObject private var wendyState = WendyState.shared
 
     var body: some View {
         if let observation = wendyState.pendingObservation {
             CardView(style: .secondary) {
-                HStack(alignment: .top, spacing: 14) {
+                HStack(alignment: .top, spacing: metrics.blockSpacing) {
                     // Violet dot — distinguishes Wendy from Layer A system signals
                     VStack {
                         Circle()
@@ -1890,10 +2836,10 @@ struct WendyObservationCard: View {
                     }
                     .padding(.top, 3)
 
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         // No label header — the observation speaks for itself
                         Text(observation)
-                            .font(.sora(14, weight: .light))
+                            .font(metrics.fontSora(15, weight: .light))
                             .foregroundColor(.textPrimary)
                             .lineSpacing(3)
                             .fixedSize(horizontal: false, vertical: true)
@@ -1906,7 +2852,7 @@ struct WendyObservationCard: View {
                     // Dismiss — one tap, no confirmation
                     Button(action: { withAnimation(.easeOut(duration: 0.2)) { wendyState.dismiss() } }) {
                         Image(systemName: "xmark")
-                            .font(.system(size: 10, weight: .medium))
+                            .font(.system(size: metrics.scaledSize(11), weight: .medium))
                             .foregroundColor(.textMuted)
                             .frame(width: 22, height: 22)
                     }
@@ -1923,12 +2869,13 @@ struct WendyObservationCard: View {
 // MARK: - WEATHER CARD
 
 struct WeatherCard: View {
+    @Environment(\.appMetrics) private var metrics
     @ObservedObject var weather: WeatherViewModel
 
     var body: some View {
         CardView(style: .secondary) {
             if weather.isLoading && weather.snapshot == nil {
-                HStack(spacing: 8) {
+                HStack(spacing: metrics.rowSpacing) {
                     ProgressView().scaleEffect(0.6).tint(.textMuted)
                     MonoLabel(text: "MIAMI · NOW", color: .textMuted, size: 10)
                     Spacer()
@@ -1937,18 +2884,18 @@ struct WeatherCard: View {
             } else if let w = weather.snapshot {
                 HStack(alignment: .center, spacing: 0) {
                     // Left: temperature + condition
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "MIAMI · NOW", color: .textMuted, size: 9)
-                        HStack(alignment: .firstTextBaseline, spacing: 5) {
+                        HStack(alignment: .firstTextBaseline, spacing: metrics.rowSpacing) {
                             Text("\(w.tempF)°")
                                 .font(.system(size: 32, weight: .ultraLight, design: .monospaced))
                                 .foregroundColor(.textPrimary)
                             Image(systemName: w.conditionIcon)
-                                .font(.system(size: 13, weight: .ultraLight))
+                                .font(.system(size: metrics.scaledSize(13), weight: .ultraLight))
                                 .foregroundColor(.warm.opacity(0.7))
                         }
                         Text(w.conditionLabel)
-                            .font(.sora(12, weight: .light))
+                            .font(metrics.fontSora(13, weight: .light))
                             .foregroundColor(.textSecond)
                         if w.windMph > 8 {
                             MonoLabel(text: "WIND \(Int(w.windMph)) MPH", color: .inkAmber, size: 9)
@@ -1961,20 +2908,20 @@ struct WeatherCard: View {
                         .frame(width: 0.5, height: 48)
                         .padding(.horizontal, 16)
                     // Right: sunrise / sunset
-                    VStack(alignment: .trailing, spacing: 8) {
-                        VStack(alignment: .trailing, spacing: 1) {
+                    VStack(alignment: .trailing, spacing: metrics.rowSpacing) {
+                        VStack(alignment: .trailing, spacing: metrics.rowSpacing) {
                             MonoLabel(text: "SUNRISE", color: .textMuted, size: 9)
                             Text(w.sunrise)
-                                .font(.system(size: 15, weight: .medium, design: .monospaced))
+                                .font(.system(size: metrics.scaledSize(15), weight: .medium, design: .monospaced))
                                 .foregroundColor(.inkAmber)
                             if let mins = w.minutesToSunrise {
                                 MonoLabel(text: "\(mins) MIN", color: .inkAmber.opacity(0.6), size: 9)
                             }
                         }
-                        VStack(alignment: .trailing, spacing: 1) {
+                        VStack(alignment: .trailing, spacing: metrics.rowSpacing) {
                             MonoLabel(text: "SUNSET", color: .textMuted, size: 9)
                             Text(w.sunset)
-                                .font(.system(size: 13, weight: .light, design: .monospaced))
+                                .font(.system(size: metrics.scaledSize(13), weight: .light, design: .monospaced))
                                 .foregroundColor(.textSecond)
                         }
                     }
@@ -2005,7 +2952,7 @@ struct MaintenanceSection: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: metrics.cardSpacing) {
             // Section header + controls
             HStack {
                 SectionHeader(text: "MAINTENANCE")
@@ -2017,7 +2964,7 @@ struct MaintenanceSection: View {
                 }
                 Button(action: { showAdd = true }) {
                     Image(systemName: "plus")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.system(size: metrics.scaledSize(13), weight: .medium))
                         .foregroundColor(.violet)
                         .frame(width: 28, height: 28)
                         .background(Color.violetDim.opacity(0.3))
@@ -2029,15 +2976,15 @@ struct MaintenanceSection: View {
             if visibleItems.isEmpty {
                 // Nothing upcoming or due — quiet state
                 CardView(style: .ambient) {
-                    HStack(spacing: 10) {
+                    HStack(spacing: metrics.cardSpacing) {
                         Circle().fill(Color.inkGreen.opacity(0.5)).frame(width: 6, height: 6)
                         Text("All maintenance items idle.")
-                            .font(.sora(13, weight: .light)).foregroundColor(.textMuted)
+                            .font(metrics.fontSora(14, weight: .light)).foregroundColor(.textMuted)
                     }
                 }
                 .padding(.horizontal, metrics.hPad)
             } else {
-                VStack(spacing: 6) {
+                VStack(spacing: metrics.rowSpacing) {
                     ForEach(visibleItems) { item in
                         MaintenanceItemRow(item: item)
                             .padding(.horizontal, metrics.hPad)
@@ -2050,6 +2997,7 @@ struct MaintenanceSection: View {
 }
 
 struct MaintenanceItemRow: View {
+    @Environment(\.appMetrics) private var metrics
     @Bindable var item: MaintenanceItem
     @State private var confirming = false
 
@@ -2071,18 +3019,18 @@ struct MaintenanceItemRow: View {
 
     var body: some View {
         CardView(style: .ambient) {
-            HStack(spacing: 12) {
+            HStack(spacing: metrics.cardSpacing) {
                 // Domain accent dot
                 Circle()
                     .fill(item.system.color.opacity(item.state == .quiet ? 0.35 : 0.7))
                     .frame(width: 7, height: 7)
 
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                     Text(item.title)
                         .font(.sora(13, weight: item.state == .quiet ? .light : .medium))
                         .foregroundColor(item.state == .quiet ? .textMuted : .textPrimary)
                     Text(stateText)
-                        .font(.mono(11)).foregroundColor(stateColor).tracking(0.5)
+                        .font(metrics.fontMono(12)).foregroundColor(stateColor).tracking(0.5)
                 }
                 Spacer()
 
@@ -2108,7 +3056,7 @@ struct MaintenanceItemRow: View {
                         }
                     }) {
                         Text(confirming ? "Confirm" : "Mark complete")
-                            .font(.mono(11)).tracking(0.5)
+                            .font(metrics.fontMono(12)).tracking(0.5)
                             .foregroundColor(confirming ? .bgBase : stateColor)
                             .padding(.horizontal, 10).padding(.vertical, 5)
                             .background(confirming ? stateColor : stateColor.opacity(0.1))
@@ -2122,6 +3070,7 @@ struct MaintenanceItemRow: View {
 }
 
 struct AddMaintenanceSheet: View {
+    @Environment(\.appMetrics) private var metrics
     @Binding var isPresented: Bool
     @Environment(\.modelContext) private var context
     @State private var title = ""
@@ -2136,25 +3085,25 @@ struct AddMaintenanceSheet: View {
         ZStack {
             Color.bgBase.ignoresSafeArea()
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: metrics.sectionGap) {
                     SheetHandle().frame(maxWidth: .infinity, alignment: .center)
                     HStack {
-                        Text("New Maintenance Item").font(.sora(20, weight: .semibold)).foregroundColor(.textPrimary)
+                        Text("New Maintenance Item").font(metrics.fontSora(20, weight: .semibold)).foregroundColor(.textPrimary)
                         Spacer()
-                        Button("Cancel") { isPresented = false }.font(.sora(14)).foregroundColor(.textMuted)
+                        Button("Cancel") { isPresented = false }.font(metrics.fontSora(15)).foregroundColor(.textMuted)
                     }
 
                     inputField("ITEM", placeholder: "What needs periodic attention?", text: $title)
 
                     // System picker
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "SYSTEM")
-                        HStack(spacing: 8) {
+                        HStack(spacing: metrics.rowSpacing) {
                             ForEach(SystemTag.allCases, id: \.self) { tag in
                                 Button(action: { system = tag }) {
-                                    VStack(spacing: 4) {
-                                        Image(systemName: tag.icon).font(.system(size: 12))
-                                        Text(tag.rawValue.prefix(3).uppercased()).font(.mono(9)).tracking(1)
+                                    VStack(spacing: metrics.rowSpacing) {
+                                        Image(systemName: tag.icon).font(.system(size: metrics.scaledSize(12)))
+                                        Text(tag.rawValue.prefix(3).uppercased()).font(metrics.fontMono(10)).tracking(1)
                                     }
                                     .foregroundColor(system == tag ? tag.color : .textMuted)
                                     .frame(maxWidth: .infinity).padding(.vertical, 10)
@@ -2168,13 +3117,13 @@ struct AddMaintenanceSheet: View {
                     }
 
                     // Interval picker
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "INTERVAL")
-                        HStack(spacing: 8) {
+                        HStack(spacing: metrics.rowSpacing) {
                             ForEach(intervals, id: \.self) { days in
                                 Button(action: { intervalDays = days }) {
                                     Text(days == 7 ? "7d" : days == 14 ? "14d" : days == 30 ? "30d" : days == 60 ? "60d" : "90d")
-                                        .font(.mono(11)).tracking(0.5)
+                                        .font(metrics.fontMono(12)).tracking(0.5)
                                         .foregroundColor(intervalDays == days ? .bgBase : .textSecond)
                                         .frame(maxWidth: .infinity).padding(.vertical, 10)
                                         .background(intervalDays == days ? Color.violet : Color.surface)
@@ -2208,6 +3157,7 @@ struct AddMaintenanceSheet: View {
 // MARK: - PHASE 3 PRIORITY 4: FINANCIAL CLARITY CARD
 
 struct FinancialClarityCard: View {
+    @Environment(\.appMetrics) private var metrics
     @Query private var states: [FinancialState]
     @State private var showEdit = false
     @Environment(\.modelContext) private var context
@@ -2227,31 +3177,31 @@ struct FinancialClarityCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
             CardView(style: .ambient) {
-                HStack(spacing: 14) {
-                    VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: metrics.blockSpacing) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "FINANCIAL", color: .warm, size: 11)
-                        HStack(spacing: 8) {
+                        HStack(spacing: metrics.rowSpacing) {
                             Circle()
                                 .fill(current.runwayState.color)
                                 .frame(width: 7, height: 7)
                                 .shadow(color: current.runwayState.color.opacity(0.5), radius: 4)
                             Text(current.runwayState.label)
-                                .font(.sora(14, weight: .medium)).foregroundColor(.textPrimary)
+                                .font(metrics.fontSora(15, weight: .medium)).foregroundColor(.textPrimary)
                         }
                         if let obligationText = nextObligationText {
                             Text(obligationText)
-                                .font(.mono(11)).foregroundColor(.textMuted).tracking(0.3)
+                                .font(metrics.fontMono(12)).foregroundColor(.textMuted).tracking(0.3)
                         }
                         // Inflow — binary signal only
                         Text(current.inflowReceived ? "Income received this period." : "Nothing logged.")
-                            .font(.mono(11)).foregroundColor(current.inflowReceived ? .inkGreen : .textMuted).tracking(0.3)
+                            .font(metrics.fontMono(12)).foregroundColor(current.inflowReceived ? .inkGreen : .textMuted).tracking(0.3)
                     }
                     Spacer()
                     Button(action: { showEdit = true }) {
                         Image(systemName: "pencil")
-                            .font(.system(size: 12)).foregroundColor(.textMuted)
+                            .font(.system(size: metrics.scaledSize(12))).foregroundColor(.textMuted)
                             .frame(width: 28, height: 28)
                             .background(Color.surface)
                             .clipShape(Circle())
@@ -2269,6 +3219,7 @@ struct FinancialClarityCard: View {
 }
 
 struct EditFinancialStateSheet: View {
+    @Environment(\.appMetrics) private var metrics
     @Binding var isPresented: Bool
     var state: FinancialState?
     @Environment(\.modelContext) private var context
@@ -2287,27 +3238,27 @@ struct EditFinancialStateSheet: View {
         ZStack {
             Color.bgBase.ignoresSafeArea()
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: metrics.sectionGap) {
                     SheetHandle().frame(maxWidth: .infinity, alignment: .center)
                     HStack {
-                        Text("Financial State").font(.sora(20, weight: .semibold)).foregroundColor(.textPrimary)
+                        Text("Financial State").font(metrics.fontSora(20, weight: .semibold)).foregroundColor(.textPrimary)
                         Spacer()
-                        Button("Done") { save(); isPresented = false }.font(.sora(14)).foregroundColor(.violet)
+                        Button("Done") { save(); isPresented = false }.font(metrics.fontSora(15)).foregroundColor(.violet)
                     }
 
                     // Runway State — three options only
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "RUNWAY")
                         MonoLabel(text: "Categorical — not numerical", color: .muted, size: 10)
-                        HStack(spacing: 8) {
+                        HStack(spacing: metrics.rowSpacing) {
                             ForEach(RunwayState.allCases, id: \.self) { rs in
                                 Button(action: { runwayState = rs }) {
-                                    VStack(spacing: 6) {
+                                    VStack(spacing: metrics.rowSpacing) {
                                         Circle()
                                             .fill(rs.color.opacity(runwayState == rs ? 0.9 : 0.3))
                                             .frame(width: 8, height: 8)
                                         Text(rs.rawValue)
-                                            .font(.mono(11)).tracking(0.5)
+                                            .font(metrics.fontMono(12)).tracking(0.5)
                                             .foregroundColor(runwayState == rs ? .textPrimary : .textMuted)
                                     }
                                     .frame(maxWidth: .infinity).padding(.vertical, 14)
@@ -2321,13 +3272,13 @@ struct EditFinancialStateSheet: View {
                     }
 
                     // Inflow — binary only
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "INFLOW THIS PERIOD")
-                        HStack(spacing: 12) {
+                        HStack(spacing: metrics.cardSpacing) {
                             ForEach([true, false], id: \.self) { val in
                                 Button(action: { inflowReceived = val }) {
                                     Text(val ? "Received" : "Not yet")
-                                        .font(.sora(13))
+                                        .font(metrics.fontSora(14))
                                         .foregroundColor(inflowReceived == val ? .bgBase : .textSecond)
                                         .frame(maxWidth: .infinity).padding(.vertical, 12)
                                         .background(inflowReceived == val ? Color.inkGreen : Color.surface)
@@ -2338,7 +3289,7 @@ struct EditFinancialStateSheet: View {
                     }
 
                     // Next obligation — optional
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         HStack {
                             MonoLabel(text: "NEXT OBLIGATION")
                             Spacer()
@@ -2349,7 +3300,7 @@ struct EditFinancialStateSheet: View {
                             DatePicker("Date", selection: $nextDate, displayedComponents: .date)
                                 .datePickerStyle(.compact)
                                 .colorScheme(.dark)
-                                .font(.sora(13)).foregroundColor(.textPrimary)
+                                .font(metrics.fontSora(14)).foregroundColor(.textPrimary)
                                 .padding(14).background(Color.surface).clipShape(RoundedRectangle(cornerRadius: 10))
                         }
                     }
@@ -2357,10 +3308,10 @@ struct EditFinancialStateSheet: View {
                     inputField("NOTES (OPTIONAL)", placeholder: "Running context", text: $notes)
 
                     CardView(style: .ambient) {
-                        VStack(alignment: .leading, spacing: 6) {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                             MonoLabel(text: "NO AMOUNTS STORED", color: .muted, size: 10)
                             Text("Financial state is categorical, not numerical. No amounts, no budgets, no targets.")
-                                .font(.sora(12, weight: .light)).foregroundColor(.textMuted).lineSpacing(3)
+                                .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted).lineSpacing(3)
                         }
                     }
                 }
@@ -2471,10 +3422,10 @@ struct TimelineView: View {
             VStack(spacing: 0) {
                 // Header
                 HStack {
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "TIMELINE", color: .violet, size: 11)
                         Text("What actually happened.")
-                            .font(.sora(13, weight: .light)).foregroundColor(.textMuted)
+                            .font(metrics.fontSora(14, weight: .light)).foregroundColor(.textMuted)
                     }
                     Spacer()
                 }
@@ -2485,10 +3436,10 @@ struct TimelineView: View {
                 if actionsByDay.isEmpty {
                     // Empty state — no praise, just factual
                     Spacer()
-                    VStack(spacing: 12) {
+                    VStack(spacing: metrics.cardSpacing) {
                         MonoLabel(text: "NO ENTRIES YET", color: .textMuted)
                         Text("Complete actions in Today to build the record.")
-                            .font(.sora(13, weight: .light))
+                            .font(metrics.fontSora(14, weight: .light))
                             .foregroundColor(.textSecond)
                             .multilineTextAlignment(.center)
                     }
@@ -2501,10 +3452,10 @@ struct TimelineView: View {
                                 let (day, pairs, dayLog) = entry
 
                                 // Day header
-                                VStack(alignment: .leading, spacing: 4) {
+                                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                     MonoLabel(text: dayHeader(day), color: .violetLight, size: 11)
                                     Text(daySummary(for: day, pairs: pairs))
-                                        .font(.mono(11)).foregroundColor(.textMuted).tracking(0.3)
+                                        .font(metrics.fontMono(12)).foregroundColor(.textMuted).tracking(0.3)
                                 }
                                 .padding(.horizontal, metrics.hPad)
                                 .padding(.top, idx == 0 ? 0 : 28)
@@ -2542,25 +3493,25 @@ struct TimelineView: View {
 
                                 // Daily review note — surfaces what was logged that day
                                 if let log = dayLog, let win = log.topWin, !win.isEmpty {
-                                    VStack(alignment: .leading, spacing: 6) {
-                                        HStack(spacing: 6) {
+                                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                                        HStack(spacing: metrics.rowSpacing) {
                                             Rectangle()
                                                 .fill(Color.warm.opacity(0.4))
                                                 .frame(width: 1, height: 14)
                                                 .padding(.leading, 24 + 44 + 14 + 3)
                                             Spacer()
                                         }
-                                        HStack(alignment: .top, spacing: 10) {
+                                        HStack(alignment: .top, spacing: metrics.cardSpacing) {
                                             Spacer().frame(width: 24 + 44 + 14)
-                                            VStack(alignment: .leading, spacing: 3) {
+                                            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                                 MonoLabel(text: "LOG", color: .warm, size: 10)
                                                 Text(win)
-                                                    .font(.sora(12, weight: .light))
+                                                    .font(metrics.fontSora(13, weight: .light))
                                                     .foregroundColor(.textSecond)
                                                     .fixedSize(horizontal: false, vertical: true)
                                                 if let note = log.notes, !note.isEmpty {
                                                     Text(note)
-                                                        .font(.sora(11, weight: .light))
+                                                        .font(metrics.fontSora(13, weight: .light))
                                                         .foregroundColor(.textMuted)
                                                         .fixedSize(horizontal: false, vertical: true)
                                                 }
@@ -2600,10 +3551,10 @@ struct TimelineEntryRow: View {
     let completionDate: Date   // explicit date — from completionDates history, not volatile completedAt
 
     var body: some View {
-        HStack(alignment: .center, spacing: 14) {
+        HStack(alignment: .center, spacing: metrics.blockSpacing) {
             // Timestamp — mono, small, left column
             Text(format12h(completionDate))
-                .font(.mono(11)).foregroundColor(.textMuted)
+                .font(metrics.fontMono(12)).foregroundColor(.textMuted)
                 .frame(width: 44, alignment: .trailing)
 
             // System color dot
@@ -2613,14 +3564,14 @@ struct TimelineEntryRow: View {
 
             // Action name
             Text(action.title)
-                .font(.sora(14)).foregroundColor(.textPrimary)
+                .font(metrics.fontSora(15)).foregroundColor(.textPrimary)
                 .lineLimit(1)
 
             Spacer()
 
             // System icon — no label, no XP, nothing evaluative
             Image(systemName: action.system.icon)
-                .font(.system(size: 12, weight: .light))
+                .font(.system(size: metrics.scaledSize(12), weight: .light))
                 .foregroundColor(action.system.color.opacity(0.7))
         }
         .padding(.horizontal, metrics.hPad)
@@ -2645,27 +3596,27 @@ struct AddActionSheet: View {
         ZStack {
             Color.bgBase.ignoresSafeArea()
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: metrics.sectionGap) {
                     SheetHandle().frame(maxWidth: .infinity, alignment: .center)
                     HStack {
-                        Text("New Increment").font(.sora(20, weight: .semibold)).foregroundColor(.textPrimary)
+                        Text("New Increment").font(metrics.fontSora(20, weight: .semibold)).foregroundColor(.textPrimary)
                         Spacer()
-                        Button("Cancel") { isPresented = false }.font(.sora(14)).foregroundColor(.textMuted)
+                        Button("Cancel") { isPresented = false }.font(metrics.fontSora(15)).foregroundColor(.textMuted)
                     }
 
                     inputField("ACTION", placeholder: "What's the one action?", text: $title)
                     inputField("WHEN (CUE)", placeholder: "e.g. After first standing transition", text: $cue)
 
                     // System picker
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "SYSTEM")
                         ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 8) {
+                            HStack(spacing: metrics.rowSpacing) {
                                 ForEach(SystemTag.allCases, id: \.self) { s in
                                     Button(action: { system = s }) {
-                                        HStack(spacing: 5) {
-                                            Image(systemName: s.icon).font(.system(size: 11))
-                                            Text(s.rawValue.capitalized).font(.sora(12))
+                                        HStack(spacing: metrics.rowSpacing) {
+                                            Image(systemName: s.icon).font(.system(size: metrics.scaledSize(12)))
+                                            Text(s.rawValue.capitalized).font(metrics.fontSora(13))
                                         }
                                         .foregroundColor(system == s ? .bgBase : s.color)
                                         .padding(.horizontal, 12).padding(.vertical, 8)
@@ -2678,13 +3629,13 @@ struct AddActionSheet: View {
                     }
 
                     // Recurrence picker — was missing, caused confusion about daily vs weekly
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "RECURRENCE")
-                        HStack(spacing: 8) {
+                        HStack(spacing: metrics.rowSpacing) {
                             ForEach([RecurrenceType.daily, .weekdays, .weekends, .weekly], id: \.self) { r in
                                 Button(action: { recurrence = r }) {
                                     Text(r.displayLabel)
-                                        .font(.sora(11, weight: .medium))
+                                        .font(metrics.fontSora(13, weight: .medium))
                                         .foregroundColor(recurrence == r ? .bgBase : .textSecond)
                                         .padding(.horizontal, 10).padding(.vertical, 7)
                                         .background(recurrence == r ? Color.violet : Color.surface)
@@ -2700,17 +3651,17 @@ struct AddActionSheet: View {
 
                     // Cognition sub-type
                     if system == .cognition {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                             MonoLabel(text: "COGNITION TYPE")
                             MonoLabel(text: "Helps distinguish creative from depleting work", color: .muted, size: 10)
-                            HStack(spacing: 8) {
+                            HStack(spacing: metrics.rowSpacing) {
                                 ForEach(CognitionMode.allCases, id: \.self) { mode in
                                     Button(action: {
                                         cognitionMode = cognitionMode == mode ? nil : mode
                                     }) {
-                                        VStack(spacing: 5) {
-                                            Image(systemName: mode.icon).font(.system(size: 14, weight: .light))
-                                            Text(mode.label).font(.mono(10)).tracking(0.5)
+                                        VStack(spacing: metrics.rowSpacing) {
+                                            Image(systemName: mode.icon).font(.system(size: metrics.scaledSize(14), weight: .light))
+                                            Text(mode.label).font(metrics.fontMono(11)).tracking(0.5)
                                         }
                                         .foregroundColor(cognitionMode == mode ? .bgBase : .violetLight)
                                         .frame(maxWidth: .infinity).padding(.vertical, 12)
@@ -2723,7 +3674,7 @@ struct AddActionSheet: View {
                             }
                             if let mode = cognitionMode {
                                 Text(mode.description)
-                                    .font(.sora(11, weight: .light)).foregroundColor(.textMuted).lineSpacing(2)
+                                    .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted).lineSpacing(2)
                             }
                         }
                     }
@@ -2958,21 +3909,21 @@ struct CurriculumCard: View {
 
     var body: some View {
         CardView(style: .secondary) {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 10) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                HStack(spacing: metrics.cardSpacing) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                        HStack(spacing: metrics.rowSpacing) {
                             MonoLabel(text: "NEXT LAYER", color: item.system.color, size: 10)
                             MonoLabel(text: "· \(item.weeklyOrDaily.uppercased())", color: .textMuted, size: 10)
                         }
                         Text(item.title)
-                            .font(.sora(15, weight: .semibold))
+                            .font(metrics.fontSora(15, weight: .semibold))
                             .foregroundColor(.textPrimary)
                     }
                     Spacer()
                     Button(action: { withAnimation(.easeOut(duration: 0.2)) { expanded.toggle() } }) {
                         Image(systemName: expanded ? "chevron.up" : "chevron.down")
-                            .font(.system(size: 12, weight: .light))
+                            .font(.system(size: metrics.scaledSize(12), weight: .light))
                             .foregroundColor(.textMuted)
                     }
                 }
@@ -2980,28 +3931,28 @@ struct CurriculumCard: View {
                 // WHY — leads with the reason. Analytical + Determination strength means
                 // understanding the mechanism is what produces buy-in, not the prescription itself.
                 Text(item.why)
-                    .font(.sora(13, weight: .light))
+                    .font(metrics.fontSora(14, weight: .light))
                     .foregroundColor(.textSecond)
                     .lineSpacing(2)
                     .fixedSize(horizontal: false, vertical: true)
 
                 if expanded {
-                    VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                         Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
 
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                             MonoLabel(text: "HOW", color: .textMuted, size: 10)
                             Text(item.how)
-                                .font(.sora(12, weight: .light))
+                                .font(metrics.fontSora(13, weight: .light))
                                 .foregroundColor(.textSecond)
                                 .lineSpacing(2)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
 
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                             MonoLabel(text: "CUE", color: .textMuted, size: 10)
                             Text(item.cue)
-                                .font(.mono(11))
+                                .font(metrics.fontMono(12))
                                 .foregroundColor(item.system.color.opacity(0.8))
                                 .tracking(0.3)
                         }
@@ -3010,19 +3961,19 @@ struct CurriculumCard: View {
                         // This is the adoption affordance: read why → understand how → one tap to commit
                         if !added {
                             Button(action: { addToStack() }) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "plus.circle").font(.system(size: 13))
+                                HStack(spacing: metrics.rowSpacing) {
+                                    Image(systemName: "plus.circle").font(.system(size: metrics.scaledSize(13)))
                                     Text("Add to my stack")
-                                        .font(.sora(13, weight: .medium))
+                                        .font(metrics.fontSora(14, weight: .medium))
                                 }
                                 .foregroundColor(item.system.color)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.top, 4)
                             }
                         } else {
-                            HStack(spacing: 6) {
+                            HStack(spacing: metrics.rowSpacing) {
                                 Image(systemName: "checkmark.circle.fill").foregroundColor(.inkGreen)
-                                Text("Added to your stack.").font(.sora(12, weight: .light)).foregroundColor(.textMuted)
+                                Text("Added to your stack.").font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted)
                             }
                         }
                     }
@@ -3096,10 +4047,10 @@ struct IncrementsView: View {
         ZStack { AtmosphericBackground()
             VStack(spacing: 0) {
                 HStack {
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "SYSTEMS", color: .violet, size: 11)
                         Text("State of all five systems.")
-                            .font(.sora(13, weight: .light)).foregroundColor(.textMuted)
+                            .font(metrics.fontSora(14, weight: .light)).foregroundColor(.textMuted)
                     }
                     Spacer()
                 }
@@ -3109,14 +4060,14 @@ struct IncrementsView: View {
                     .padding(.horizontal, metrics.hPad).padding(.bottom, 20)
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 8) {
+                    VStack(spacing: metrics.rowSpacing) {
                         ForEach(Array(SystemTag.allCases.enumerated()), id: \.element) { i, sys in
                             let score = state.systemScores[sys] ?? 0
                             let pending = filteredActions.filter { $0.system == sys && !$0.isCompleted }
                             let done = completedToday.filter { $0.system == sys }.count
                             let quiet = daysSinceActivity(sys)
 
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                 // System row — tappable, opens detail sheet with all actions
                                 SystemDetailRow(
                                     sys: sys, score: score, state: state,
@@ -3126,7 +4077,7 @@ struct IncrementsView: View {
 
                                 if quiet >= 3 && quiet < 999 {
                                     Text("\(sys.rawValue.capitalized) — nothing here in \(quiet) days.")
-                                        .font(.mono(11)).foregroundColor(.textMuted).tracking(0.3)
+                                        .font(metrics.fontMono(12)).foregroundColor(.textMuted).tracking(0.3)
                                         .padding(.horizontal, 6).padding(.top, 2)
                                 }
                             }
@@ -3136,19 +4087,19 @@ struct IncrementsView: View {
                         }
 
                         if !completedToday.isEmpty {
-                            VStack(alignment: .leading, spacing: 12) {
+                            VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                                 SectionHeader(text: "COMPLETED TODAY", color: .inkGreen).padding(.horizontal, metrics.hPad)
                                 CardView {
                                     VStack(spacing: 0) {
                                         ForEach(Array(completedToday.enumerated()), id: \.element.id) { i, a in
                                             HStack {
                                                 Image(systemName: "checkmark.circle.fill")
-                                                    .foregroundColor(.inkGreen).font(.system(size: 14))
-                                                Text(a.title).font(.sora(13)).foregroundColor(.textSecond)
+                                                    .foregroundColor(.inkGreen).font(.system(size: metrics.scaledSize(14)))
+                                                Text(a.title).font(metrics.fontSora(14)).foregroundColor(.textSecond)
                                                     .strikethrough(true, color: .textMuted)
                                                 Spacer()
                                                 if let t = a.completedAt {
-                                                    Text(t, style: .time).font(.mono(11)).foregroundColor(.textMuted)
+                                                    Text(t, style: .time).font(metrics.fontMono(12)).foregroundColor(.textMuted)
                                                 }
                                             }
                                             if i < completedToday.count - 1 {
@@ -3193,6 +4144,7 @@ struct IncrementsView: View {
 // MARK: - SYSTEM DETAIL ROW + SHEET
 
 struct SystemDetailRow: View {
+    @Environment(\.appMetrics) private var metrics
     let sys: SystemTag
     let score: Int
     let state: AppState
@@ -3210,28 +4162,28 @@ struct SystemDetailRow: View {
                         .fill(sys.color.opacity(0.7))
                         .frame(width: 2)
                         .padding(.trailing, 14)
-                    HStack(spacing: 14) {
+                    HStack(spacing: metrics.blockSpacing) {
                         ZStack {
                             Circle().fill(sys.color.opacity(0.1)).frame(width: 36, height: 36)
-                            Image(systemName: sys.icon).font(.system(size: 15)).foregroundColor(sys.color)
+                            Image(systemName: sys.icon).font(.system(size: metrics.scaledSize(15))).foregroundColor(sys.color)
                         }
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                             Text(sys.rawValue.capitalized)
-                                .font(.sora(15, weight: .medium)).foregroundColor(.textPrimary)
+                                .font(metrics.fontSora(15, weight: .medium)).foregroundColor(.textPrimary)
                             Text("\(pending.count) pending · \(done) today")
-                                .font(.sora(11, weight: .light)).foregroundColor(.textSecond)
+                                .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond)
                         }
                         Spacer()
-                        VStack(alignment: .trailing, spacing: 3) {
+                        VStack(alignment: .trailing, spacing: metrics.rowSpacing) {
                             Text(state.scoreLabel(score))
-                                .font(.mono(11)).foregroundColor(state.scoreColor(score)).tracking(1)
+                                .font(metrics.fontMono(12)).foregroundColor(state.scoreColor(score)).tracking(1)
                             ZStack(alignment: .leading) {
                                 RoundedRectangle(cornerRadius: 2).fill(Color.surface2).frame(width: 52, height: 2)
                                 RoundedRectangle(cornerRadius: 2).fill(sys.color.opacity(0.7))
                                     .frame(width: 52 * CGFloat(score) / 100, height: 2)
                             }
                         }
-                        Image(systemName: "chevron.right").font(.system(size: 11)).foregroundColor(.textMuted)
+                        Image(systemName: "chevron.right").font(.system(size: metrics.scaledSize(12))).foregroundColor(.textMuted)
                     }
                 }
             }
@@ -3244,6 +4196,7 @@ struct SystemDetailRow: View {
 }
 
 struct SystemDetailSheet: View {
+    @Environment(\.appMetrics) private var metrics
     let sys: SystemTag
     let score: Int
     let state: AppState
@@ -3262,64 +4215,64 @@ struct SystemDetailSheet: View {
         ZStack {
             Color.bgBase.ignoresSafeArea()
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: metrics.sectionGap) {
                     SheetHandle().frame(maxWidth: .infinity, alignment: .center)
 
                     // Header
                     HStack(alignment: .top) {
-                        HStack(spacing: 12) {
+                        HStack(spacing: metrics.cardSpacing) {
                             ZStack {
                                 Circle().fill(sys.color.opacity(0.12)).frame(width: 44, height: 44)
-                                Image(systemName: sys.icon).font(.system(size: 18)).foregroundColor(sys.color)
+                                Image(systemName: sys.icon).font(.system(size: metrics.scaledSize(18))).foregroundColor(sys.color)
                             }
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                 Text(sys.rawValue.capitalized)
-                                    .font(.sora(22, weight: .semibold)).foregroundColor(.textPrimary)
-                                HStack(spacing: 6) {
+                                    .font(metrics.fontSora(22, weight: .semibold)).foregroundColor(.textPrimary)
+                                HStack(spacing: metrics.rowSpacing) {
                                     Circle().fill(state.scoreColor(score)).frame(width: 7, height: 7)
                                     Text(state.scoreLabel(score))
-                                        .font(.mono(11)).foregroundColor(state.scoreColor(score)).tracking(0.5)
+                                        .font(metrics.fontMono(12)).foregroundColor(state.scoreColor(score)).tracking(0.5)
                                 }
                             }
                         }
                         Spacer()
                         Button(action: { dismiss() }) {
-                            Image(systemName: "xmark").font(.system(size: 13, weight: .light))
+                            Image(systemName: "xmark").font(.system(size: metrics.scaledSize(13), weight: .light))
                                 .foregroundColor(.textMuted).frame(width: 30, height: 30)
                                 .background(Color.surface).clipShape(Circle())
                         }
                     }
 
                     // Why this system matters
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "WHY THIS SYSTEM", color: sys.color, size: 10)
                         Text(sys.scienceNote)
-                            .font(.sora(14, weight: .light)).foregroundColor(.textPrimary).lineSpacing(4)
+                            .font(metrics.fontSora(15, weight: .light)).foregroundColor(.textPrimary).lineSpacing(4)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(18).background(Color.surface).clipShape(RoundedRectangle(cornerRadius: 12))
 
                     // What moves it
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "WHAT MOVES IT", color: .textMuted, size: 10)
                         Text(sys.whatMovesIt)
-                            .font(.sora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                            .font(metrics.fontSora(14, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
                     // Completion rate
                     if !allSystemActions.isEmpty {
-                        HStack(spacing: 20) {
-                            VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: metrics.sectionGap) {
+                            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                 MonoLabel(text: "AVG COMPLETION", color: .textMuted, size: 10)
                                 Text(String(format: "%.0f%%", avgCompletionRate * 100))
-                                    .font(.sora(20, weight: .semibold))
+                                    .font(metrics.fontSora(20, weight: .semibold))
                                     .foregroundColor(avgCompletionRate >= 0.7 ? .inkGreen : avgCompletionRate >= 0.4 ? .inkAmber : .textSecond)
                             }
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                 MonoLabel(text: "TOTAL ACTIONS", color: .textMuted, size: 10)
                                 Text("\(allSystemActions.count)")
-                                    .font(.sora(20, weight: .semibold)).foregroundColor(.textSecond)
+                                    .font(metrics.fontSora(20, weight: .semibold)).foregroundColor(.textSecond)
                             }
                         }
                         .padding(16).background(Color.surface).clipShape(RoundedRectangle(cornerRadius: 12))
@@ -3327,7 +4280,7 @@ struct SystemDetailSheet: View {
 
                     // Pending actions in this system
                     if !pendingActions.isEmpty {
-                        VStack(alignment: .leading, spacing: 10) {
+                        VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                             MonoLabel(text: "PENDING", color: .textMuted, size: 10)
                             ForEach(pendingActions) { action in
                                 SystemActionSummaryRow(action: action)
@@ -3337,15 +4290,15 @@ struct SystemDetailSheet: View {
 
                     // Completed actions
                     if !completedActions.isEmpty {
-                        VStack(alignment: .leading, spacing: 10) {
+                        VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                             MonoLabel(text: "DONE TODAY", color: .inkGreen, size: 10)
                             ForEach(completedActions) { action in
-                                HStack(spacing: 10) {
-                                    Image(systemName: "checkmark.circle.fill").foregroundColor(.inkGreen).font(.system(size: 14))
-                                    Text(action.title).font(.sora(13)).foregroundColor(.textSecond).strikethrough(true, color: .textMuted)
+                                HStack(spacing: metrics.cardSpacing) {
+                                    Image(systemName: "checkmark.circle.fill").foregroundColor(.inkGreen).font(.system(size: metrics.scaledSize(14)))
+                                    Text(action.title).font(metrics.fontSora(14)).foregroundColor(.textSecond).strikethrough(true, color: .textMuted)
                                     Spacer()
                                     if let at = action.completedAt {
-                                        Text(format12h(at)).font(.mono(10)).foregroundColor(.textMuted)
+                                        Text(format12h(at)).font(metrics.fontMono(11)).foregroundColor(.textMuted)
                                     }
                                 }
                             }
@@ -3363,28 +4316,29 @@ struct SystemDetailSheet: View {
 
 // Compact action row for SystemDetailSheet — shows completion rate and note
 struct SystemActionSummaryRow: View {
+    @Environment(\.appMetrics) private var metrics
     let action: Action
     @State private var showDetail = false
 
     var body: some View {
         Button(action: { showDetail = true }) {
-            HStack(spacing: 12) {
+            HStack(spacing: metrics.cardSpacing) {
                 Circle().stroke(action.system.color.opacity(0.5), lineWidth: 1.5).frame(width: 10, height: 10)
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
+                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                    HStack(spacing: metrics.rowSpacing) {
                         if let block = action.scheduledBlock {
-                            Text(formatBlockTime(block)).font(.mono(10)).foregroundColor(action.system.color.opacity(0.7)).tracking(0.3)
+                            Text(formatBlockTime(block)).font(metrics.fontMono(11)).foregroundColor(action.system.color.opacity(0.7)).tracking(0.3)
                         }
-                        Text(action.title).font(.sora(13)).foregroundColor(.textPrimary).lineLimit(1)
+                        Text(action.title).font(metrics.fontSora(14)).foregroundColor(.textPrimary).lineLimit(1)
                     }
                     if let note = action.note, !note.isEmpty {
-                        Text(note).font(.sora(11, weight: .light)).foregroundColor(.textMuted).lineLimit(1)
+                        Text(note).font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted).lineLimit(1)
                     }
                 }
                 Spacer()
                 Text(String(format: "%.0f%%", action.completionRate * 100))
-                    .font(.mono(10)).foregroundColor(action.completionRate >= 0.7 ? .inkGreen : .textMuted).tracking(0.3)
-                Image(systemName: "chevron.right").font(.system(size: 10)).foregroundColor(.textMuted)
+                    .font(metrics.fontMono(11)).foregroundColor(action.completionRate >= 0.7 ? .inkGreen : .textMuted).tracking(0.3)
+                Image(systemName: "chevron.right").font(.system(size: metrics.scaledSize(11))).foregroundColor(.textMuted)
             }
             .padding(.vertical, 6)
         }
@@ -3425,12 +4379,12 @@ struct CurriculumSection: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: metrics.cardSpacing) {
             HStack {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                     SectionHeader(text: "PROGRESSION", color: .violetLight)
                     Text("Next layers — unlocked as prerequisites prove.")
-                        .font(.sora(11, weight: .light)).foregroundColor(.textMuted)
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted)
                 }
                 Spacer()
                 if !unlockedItems.isEmpty {
@@ -3441,16 +4395,16 @@ struct CurriculumSection: View {
 
             if unlockedItems.isEmpty {
                 CardView(style: .secondary) {
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "COLLECTING", color: .textMuted, size: 10)
                         Text("Next layers unlock as current practices are proven. Keep the completion rate above 70% for 7+ days.")
-                            .font(.sora(12, weight: .light)).foregroundColor(.textMuted).lineSpacing(2)
+                            .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted).lineSpacing(2)
                     }
                 }
                 .padding(.horizontal, metrics.hPad)
             } else {
                 // Show next item prominently, rest collapsed
-                VStack(spacing: 8) {
+                VStack(spacing: metrics.rowSpacing) {
                     ForEach(Array(unlockedItems.enumerated()), id: \.element.id) { i, item in
                         CurriculumCard(item: item)
                             .padding(.horizontal, metrics.hPad)
@@ -3461,10 +4415,10 @@ struct CurriculumSection: View {
                 let totalItems = ProgressionCurriculum.library.count
                 let lockedCount = totalItems - unlockedItems.count
                 if lockedCount > 0 {
-                    HStack(spacing: 6) {
+                    HStack(spacing: metrics.rowSpacing) {
                         Circle().fill(Color.muted.opacity(0.3)).frame(width: 4, height: 4)
                         Text("\(lockedCount) more unlock as system matures.")
-                            .font(.mono(10)).foregroundColor(.muted).tracking(0.3)
+                            .font(metrics.fontMono(11)).foregroundColor(.muted).tracking(0.3)
                     }
                     .padding(.horizontal, metrics.hPad)
                 }
@@ -3488,13 +4442,13 @@ struct HabitsView: View {
         ZStack { AtmosphericBackground()
             VStack(spacing: 0) {
                 HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("HABITS").font(.sora(20, weight: .semibold)).foregroundColor(.textPrimary)
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                        Text("HABITS").font(metrics.fontSora(20, weight: .semibold)).foregroundColor(.textPrimary)
                         MonoLabel(text: "recurring anchors", color: .textMuted, size: 11)
                     }
                     Spacer()
                     Button(action: { showAdd = true }) {
-                        Image(systemName: "plus").font(.system(size: 16, weight: .medium))
+                        Image(systemName: "plus").font(.system(size: metrics.scaledSize(16), weight: .medium))
                             .foregroundColor(.violet).frame(width: 36, height: 36)
                             .background(Color.violetDim.opacity(0.3)).clipShape(Circle())
                     }
@@ -3502,7 +4456,7 @@ struct HabitsView: View {
                 .padding(.horizontal, metrics.hPad).padding(.top, 20).padding(.bottom, 20)
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 10) {
+                    VStack(spacing: metrics.cardSpacing) {
                         if activeHabits.isEmpty {
                             emptyState(icon: "arrow.triangle.2.circlepath",
                                        title: "No active habits",
@@ -3542,17 +4496,18 @@ struct HabitsView: View {
 }
 
 struct HabitCard: View {
+    @Environment(\.appMetrics) private var metrics
     @Environment(\.modelContext) private var context
     let habit: Habit
 
     var body: some View {
         CardView {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                 HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(habit.title).font(.sora(15, weight: .medium)).foregroundColor(.textPrimary)
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                        Text(habit.title).font(metrics.fontSora(15, weight: .medium)).foregroundColor(.textPrimary)
                         if !habit.cue.isEmpty {
-                            Text("When: \(habit.cue)").font(.mono(11)).foregroundColor(.textMuted).tracking(0.3)
+                            Text("When: \(habit.cue)").font(metrics.fontMono(12)).foregroundColor(.textMuted).tracking(0.3)
                         }
                     }
                     Spacer()
@@ -3560,25 +4515,25 @@ struct HabitCard: View {
                 }
 
                 if !habit.minimumScope.isEmpty {
-                    HStack(spacing: 6) {
-                        Image(systemName: "minus.circle").font(.system(size: 10)).foregroundColor(.violetLight)
-                        Text("Minimum: \(habit.minimumScope)").font(.sora(11, weight: .light)).foregroundColor(.textSecond)
+                    HStack(spacing: metrics.rowSpacing) {
+                        Image(systemName: "minus.circle").font(.system(size: metrics.scaledSize(11))).foregroundColor(.violetLight)
+                        Text("Minimum: \(habit.minimumScope)").font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond)
                     }
                 }
 
-                HStack(spacing: 10) {
+                HStack(spacing: metrics.cardSpacing) {
                     // Last completed — factual, not a streak display (v1.1 HOLD — no streak visualization)
                     if habit.completedToday {
-                        HStack(spacing: 5) {
+                        HStack(spacing: metrics.rowSpacing) {
                             Circle().fill(habit.system.color).frame(width: 7, height: 7)
-                            Text("Done today").font(.mono(11)).foregroundColor(habit.system.color).tracking(0.3)
+                            Text("Done today").font(metrics.fontMono(12)).foregroundColor(habit.system.color).tracking(0.3)
                         }
                     } else if let last = habit.completionHistory.last {
                         let days = Calendar.current.dateComponents([.day], from: last, to: Date()).day ?? 0
                         Text(days == 0 ? "Done today" : days == 1 ? "Yesterday" : "\(days) days ago")
-                            .font(.mono(11)).foregroundColor(.textMuted).tracking(0.3)
+                            .font(metrics.fontMono(12)).foregroundColor(.textMuted).tracking(0.3)
                     } else {
-                        Text("Not yet started").font(.mono(11)).foregroundColor(.textMuted).tracking(0.3)
+                        Text("Not yet started").font(metrics.fontMono(12)).foregroundColor(.textMuted).tracking(0.3)
                     }
                     Spacer()
                     Button(action: {
@@ -3591,12 +4546,12 @@ struct HabitCard: View {
 
                         #endif
                     }) {
-                        HStack(spacing: 6) {
+                        HStack(spacing: metrics.rowSpacing) {
                             if habit.completedToday {
-                                Image(systemName: "checkmark").font(.system(size: 10, weight: .semibold))
+                                Image(systemName: "checkmark").font(.system(size: metrics.scaledSize(11), weight: .semibold))
                             }
                             Text(habit.completedToday ? "Done" : "Mark")
-                                .font(.sora(12, weight: .medium))
+                                .font(metrics.fontSora(13, weight: .medium))
                         }
                         .foregroundColor(habit.completedToday ? .bgBase : habit.system.color)
                         .padding(.horizontal, 14).padding(.vertical, 7)
@@ -3612,6 +4567,7 @@ struct HabitCard: View {
 
 // FIX 02 — AddHabitSheet: cue + minimumScope required before save
 struct AddHabitSheet: View {
+    @Environment(\.appMetrics) private var metrics
     @Environment(\.modelContext) private var context
     @Binding var isPresented: Bool
     @State private var title = ""
@@ -3626,35 +4582,35 @@ struct AddHabitSheet: View {
         ZStack {
             Color.bgBase.ignoresSafeArea()
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: metrics.sectionGap) {
                     SheetHandle().frame(maxWidth: .infinity, alignment: .center)
                     HStack {
-                        Text("New Habit").font(.sora(20, weight: .semibold)).foregroundColor(.textPrimary)
+                        Text("New Habit").font(metrics.fontSora(20, weight: .semibold)).foregroundColor(.textPrimary)
                         Spacer()
-                        Button("Cancel") { isPresented = false }.font(.sora(14)).foregroundColor(.textMuted)
+                        Button("Cancel") { isPresented = false }.font(metrics.fontSora(15)).foregroundColor(.textMuted)
                     }
 
                     inputField("HABIT", placeholder: "Name this anchor", text: $title)
 
                     // FIX 02 — required fields
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         inputField("WHAT EXISTING CUE TRIGGERS THIS?",
                                    placeholder: "e.g. When opening laptop", text: $cue)
                         MonoLabel(text: "Required — anchors the habit to a reliable trigger", color: .muted, size: 10)
                     }
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         inputField("WHAT'S THE SMALLEST VERSION?",
                                    placeholder: "e.g. 5 minutes only", text: $minimumScope)
                         MonoLabel(text: "Required — prevents motivation-state habits", color: .muted, size: 10)
                     }
 
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "SYSTEM")
                         ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 8) {
+                            HStack(spacing: metrics.rowSpacing) {
                                 ForEach(SystemTag.allCases, id: \.self) { s in
                                     Button(action: { system = s }) {
-                                        Text(s.rawValue.capitalized).font(.sora(12))
+                                        Text(s.rawValue.capitalized).font(metrics.fontSora(13))
                                             .foregroundColor(system == s ? .bgBase : s.color)
                                             .padding(.horizontal, 12).padding(.vertical, 8)
                                             .background(system == s ? s.color : s.color.opacity(0.15))
@@ -3665,12 +4621,12 @@ struct AddHabitSheet: View {
                         }
                     }
 
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "FREQUENCY")
-                        HStack(spacing: 8) {
+                        HStack(spacing: metrics.rowSpacing) {
                             ForEach([RecurrenceType.daily, .weekdays, .weekends, .weekly], id: \.self) { f in
                                 Button(action: { frequency = f }) {
-                                    Text(f.rawValue.capitalized).font(.sora(12))
+                                    Text(f.rawValue.capitalized).font(metrics.fontSora(13))
                                         .foregroundColor(frequency == f ? .bgBase : .textSecond)
                                         .padding(.horizontal, 12).padding(.vertical, 8)
                                         .background(frequency == f ? Color.violet : Color.surface)
@@ -3688,7 +4644,7 @@ struct AddHabitSheet: View {
 
                     if !canSave {
                         Text("Cue and minimum scope required before saving.")
-                            .font(.sora(11, weight: .light)).foregroundColor(.muted)
+                            .font(metrics.fontSora(13, weight: .light)).foregroundColor(.muted)
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
 
@@ -3706,6 +4662,7 @@ struct AddHabitSheet: View {
 // MARK: - DAILY REVIEW — FIX 01 (no skip) + FIX 07 (reworded questions)
 
 struct DailyReviewSheet: View {
+    @Environment(\.appMetrics) private var metrics
     @Binding var isPresented: Bool
     @Bindable var state: AppState
     @Environment(\.modelContext) private var context
@@ -3783,14 +4740,14 @@ struct DailyReviewSheet: View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                     MonoLabel(text: "CLOSE DAY · \(page + 1) of \(totalPages)", color: .violetLight, size: 11)
                     Text(blockTitle)
-                        .font(.sora(13, weight: .light)).foregroundColor(.textMuted)
+                        .font(metrics.fontSora(14, weight: .light)).foregroundColor(.textMuted)
                 }
                 Spacer()
                 Button("Skip tonight") { isPresented = false }
-                    .font(.sora(13, weight: .light)).foregroundColor(.textMuted)
+                    .font(metrics.fontSora(14, weight: .light)).foregroundColor(.textMuted)
             }
             .padding(.horizontal, 28).padding(.top, 24).padding(.bottom, 12)
 
@@ -3922,11 +4879,11 @@ struct DailyReviewSheet: View {
             }
 
             // Navigation
-            HStack(spacing: 12) {
+            HStack(spacing: metrics.cardSpacing) {
                 if page > 0 {
                     Button(action: { withAnimation(.easeOut(duration: 0.2)) { page -= 1 } }) {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(.system(size: metrics.scaledSize(14), weight: .medium))
                             .foregroundColor(.textMuted)
                             .frame(width: 48, height: 50)
                             .background(Color.surface)
@@ -3936,7 +4893,7 @@ struct DailyReviewSheet: View {
 
                 Button(action: advance) {
                     Text(page < totalPages - 1 ? "NEXT" : "CLOSE DAY")
-                        .font(.sora(14, weight: .semibold)).foregroundColor(.bgBase).tracking(1.2)
+                        .font(metrics.fontSora(15, weight: .semibold)).foregroundColor(.bgBase).tracking(1.2)
                         .frame(maxWidth: .infinity).frame(height: 50)
                         .background(canAdvance ? Color.violetLight : Color.muted.opacity(0.3))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -4005,16 +4962,16 @@ struct DailyReviewSheet: View {
     // MARK: — QUESTION PAGE
 
     func questionPage(_ question: String, sublabel: String? = nil, options: [String], colors: [Color], selected: Binding<String?>) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: metrics.blockSpacing) {
+            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                 Text(question)
-                    .font(.sora(18, weight: .semibold)).foregroundColor(.textPrimary).lineSpacing(3)
+                    .font(metrics.fontSora(18, weight: .semibold)).foregroundColor(.textPrimary).lineSpacing(3)
                 if let sub = sublabel {
                     Text(sub)
-                        .font(.sora(12, weight: .light)).foregroundColor(.textMuted).lineSpacing(3)
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted).lineSpacing(3)
                 }
             }
-            VStack(spacing: 8) {
+            VStack(spacing: metrics.rowSpacing) {
                 ForEach(Array(options.enumerated()), id: \.offset) { i, option in
                     let color = i < colors.count ? colors[i] : Color.textMuted
                     let isSelected = selected.wrappedValue == option
@@ -4028,7 +4985,7 @@ struct DailyReviewSheet: View {
                         #endif
                         selected.wrappedValue = isSelected ? nil : option
                     }) {
-                        HStack(spacing: 12) {
+                        HStack(spacing: metrics.cardSpacing) {
                             Circle()
                                 .fill(isSelected ? color : Color.muted.opacity(0.2))
                                 .frame(width: 8, height: 8)
@@ -4038,7 +4995,7 @@ struct DailyReviewSheet: View {
                             Spacer()
                             if isSelected {
                                 Image(systemName: "checkmark")
-                                    .font(.system(size: 11, weight: .semibold))
+                                    .font(.system(size: metrics.scaledSize(12), weight: .semibold))
                                     .foregroundColor(color)
                             }
                         }
@@ -4058,15 +5015,15 @@ struct DailyReviewSheet: View {
     // MARK: — FINAL PAGE
 
     var finalPage: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: metrics.sectionGap) {
             Text("Anything worth noting?")
-                .font(.sora(18, weight: .semibold)).foregroundColor(.textPrimary)
+                .font(metrics.fontSora(18, weight: .semibold)).foregroundColor(.textPrimary)
             Text("Optional. What actually happened today — the thing the data won't see.")
-                .font(.sora(12, weight: .light)).foregroundColor(.textMuted).lineSpacing(3)
+                .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted).lineSpacing(3)
 
             TextField("", text: $closingNote,
                       prompt: Text("One honest sentence.").foregroundColor(.textMuted))
-                .font(.sora(14)).foregroundColor(.textPrimary)
+                .font(metrics.fontSora(15)).foregroundColor(.textPrimary)
                 .padding(14).background(Color.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .tint(.violetLight)
@@ -4074,13 +5031,13 @@ struct DailyReviewSheet: View {
             Divider().background(Color.muted.opacity(0.2))
 
             Text("What's first tomorrow?")
-                .font(.sora(18, weight: .semibold)).foregroundColor(.textPrimary)
+                .font(metrics.fontSora(18, weight: .semibold)).foregroundColor(.textPrimary)
             Text("Pre-commitment. Shows up in your morning card.")
-                .font(.sora(12, weight: .light)).foregroundColor(.textMuted)
+                .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted)
 
             TextField("", text: $tomorrowFirst,
                       prompt: Text("One specific action.").foregroundColor(.textMuted))
-                .font(.sora(14)).foregroundColor(.textPrimary)
+                .font(metrics.fontSora(15)).foregroundColor(.textPrimary)
                 .padding(14).background(Color.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .tint(.violetLight)
@@ -4091,7 +5048,7 @@ struct DailyReviewSheet: View {
     // MARK: — RESULT
 
     var closeDayResult: some View {
-        VStack(spacing: 28) {
+        VStack(spacing: metrics.sectionGap) {
             Spacer().frame(height: 48)
             ZStack {
                 Circle().stroke(Color.violetLight.opacity(0.15), lineWidth: 1.5).frame(width: 72, height: 72)
@@ -4099,14 +5056,14 @@ struct DailyReviewSheet: View {
                     .font(.system(size: 28, weight: .ultraLight))
                     .foregroundColor(.violetLight)
             }
-            VStack(spacing: 6) {
-                Text("Closed.").font(.sora(24, weight: .semibold)).foregroundColor(.textPrimary)
+            VStack(spacing: metrics.rowSpacing) {
+                Text("Closed.").font(metrics.fontSora(24, weight: .semibold)).foregroundColor(.textPrimary)
                 Text("19 signals captured.")
-                    .font(.sora(14, weight: .light)).foregroundColor(.textSecond)
+                    .font(metrics.fontSora(15, weight: .light)).foregroundColor(.textSecond)
             }
 
             // Key signals summary
-            VStack(spacing: 8) {
+            VStack(spacing: metrics.rowSpacing) {
                 if let feel = dayFeel { closedRow("Today", feel) }
                 if let work = meaningfulWork { closedRow("Meaningful work", work) }
                 if let blocker = mainBlocker { closedRow("Main drag", blocker) }
@@ -4118,10 +5075,10 @@ struct DailyReviewSheet: View {
 
             if !tomorrowFirst.isEmpty {
                 CardView(style: .secondary) {
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "TOMORROW FIRST", color: .warm)
                         Text(tomorrowFirst)
-                            .font(.sora(13, weight: .medium)).foregroundColor(.textPrimary)
+                            .font(metrics.fontSora(14, weight: .medium)).foregroundColor(.textPrimary)
                     }
                 }
                 .padding(.horizontal, 28)
@@ -4129,7 +5086,7 @@ struct DailyReviewSheet: View {
 
             Button(action: { isPresented = false }) {
                 Text("DONE")
-                    .font(.sora(13, weight: .semibold)).foregroundColor(.bgBase).tracking(2)
+                    .font(metrics.fontSora(14, weight: .semibold)).foregroundColor(.bgBase).tracking(2)
                     .frame(maxWidth: .infinity).frame(height: 48)
                     .background(Color.violetLight).clipShape(RoundedRectangle(cornerRadius: 12))
             }
@@ -4142,7 +5099,7 @@ struct DailyReviewSheet: View {
         HStack {
             MonoLabel(text: label.uppercased(), color: .textMuted, size: 10)
                 .frame(width: 120, alignment: .leading)
-            Text(value).font(.sora(12, weight: .light)).foregroundColor(.textPrimary)
+            Text(value).font(metrics.fontSora(13, weight: .light)).foregroundColor(.textPrimary)
             Spacer()
         }
     }
@@ -4245,4 +5202,71 @@ struct DailyReviewSheet: View {
         if let log = todayCognitionLog { log.actualCompletionCount = count }
     }
 
+}
+
+// MARK: - TOMORROW COMMITMENT CARD
+// Surfaces tomorrowPriority from yesterday's DailyReviewSheet.
+// The Stage Tomorrow action captures this at 8:45 PM. It must be visible at 4 AM.
+// Previously: captured in the model, never shown the next morning. Fixed here.
+
+struct TomorrowCommitmentCard: View {
+    let commitment: String
+    @Environment(\.appMetrics) private var metrics
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Rectangle()
+                    .fill(Color.warm)
+                    .frame(width: 2, height: 18)
+                    .clipShape(RoundedRectangle(cornerRadius: 1))
+                MonoLabel(text: "YOU COMMITTED TO THIS LAST NIGHT", color: .warm, size: 9)
+            }
+            Text(commitment)
+                .font(.sora(metrics.scaledSize(16), weight: .medium))
+                .foregroundColor(.textPrimary)
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.warm.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.warm.opacity(0.15), lineWidth: 0.5))
+        .padding(.horizontal, 24)
+    }
+}
+
+// MARK: - ENERGY STATE BANNER
+// Shows the doctrine override text when state is Reserve or Compressed.
+// The user sees their filtered action stack but previously had no explanation.
+// "Reserve. Anchors only. Protect the body." needs to be visible, not just felt.
+
+struct EnergyStateBanner: View {
+    let state: EnergyState
+    @Environment(\.appMetrics) private var metrics
+
+    var body: some View {
+        Group {
+            if let doctrine = state.doctrineOverride {
+                HStack(spacing: 10) {
+                    Image(systemName: state.icon)
+                        .font(.system(size: metrics.scaledSize(13)))
+                        .foregroundColor(state.color)
+                    VStack(alignment: .leading, spacing: 2) {
+                        MonoLabel(text: state.label.uppercased(), color: state.color, size: 9)
+                        Text(doctrine)
+                            .font(.sora(metrics.scaledSize(12), weight: .light))
+                            .foregroundColor(.textSecond)
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, 14).padding(.vertical, 10)
+                .background(state.color.opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .overlay(RoundedRectangle(cornerRadius: 10)
+                    .strokeBorder(state.color.opacity(0.2), lineWidth: 0.5))
+            }
+        }
+    }
 }

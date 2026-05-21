@@ -145,8 +145,9 @@
 //            mastery (sleep score calibration, output sharing, fasted morning trial).
 // PROG-02  — CurriculumCard: expandable card showing why/how/cue for each unlocked item.
 //            Not an action — a prescription. User decides when to adopt.
-// SCHED-09 — Fixed hideout schedule: arrives 7:00–7:10 (slow open), deep work 8:30.
-//            Was 8:00 → 8:30. The slow open is protected time, not dead time.
+// SCHED-09 — Fixed hideout schedule: arrives 6:30 (30-min prep window), opens at 7:00, deep work 8:30.
+//            6:30–7:00 = plant check, terrace audit, staging, pre-shift behaviors.
+//            Was 7:00–7:10 (slow open). Corrected to reflect actual 6:30 arrival.
 // SCHED-10 — Gym anchor added: strength training 17:00 daily with Tim. Post-workout
 //            protein seeded (30min window). Gym is a fixed anchor — tracked in health system.
 // SCHED-11 — Wendy updated with gym context, slow-open awareness, and curriculum tier info.
@@ -337,11 +338,20 @@ extension Color {
 // MARK: - TYPOGRAPHY
 
 extension Font {
+    /// Custom faces ship with limited weights; map SwiftUI weights to supported glyphs.
+    private static func resolvedCustomWeight(_ weight: Font.Weight) -> Font.Weight {
+        switch weight {
+        case .ultraLight, .thin, .light: return .regular
+        case .medium, .semibold: return .bold
+        default: return weight
+        }
+    }
+
     static func sora(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        .custom("Sora", size: size).weight(weight)
+        .custom("Sora", size: size).weight(resolvedCustomWeight(weight))
     }
     static func mono(_ size: CGFloat, weight: Font.Weight = .light) -> Font {
-        .custom("DM Mono", size: size).weight(weight)
+        .custom("DM Mono", size: size).weight(resolvedCustomWeight(weight))
     }
 }
 
@@ -522,14 +532,23 @@ enum DayType: String, Codable {
     }
 
     // Brice's schedule (4AM wake):
-    // Hideout: arrives 6:00 for prep, open at 7:00 (slow open — coffee, music, setup). Deep work starts 8:30.
-    //          Wed–Fri closes 5PM → gym. Sat–Sun closes 3PM → afternoon free.
+    // Hideout: arrives 6:30 for prep, open at 7:00 (slow open — coffee, music, setup, plant check, terrace audit). Deep work starts 8:30.
+    //          Wed–Fri closes 5PM → gym. Sat–Sun closes 3PM → afternoon free. (Sun extends to 5PM Week 2 experiment)
     // Base (Mon–Tue): cafe/ops rhythm. Gym at 5PM most days.
-    var hideoutStartHour: Int { 7 }   // slow open — arrive by 7, not rushed
-    var hideoutDeepWorkHour: Int { 8 } // deep work starts 8:30 (shown as "8:30" block)
+    var hideoutArrivalHour: Int { 6 }    // 6:30 AM — 30 min pre-open prep window
+    var hideoutArrivalMinute: Int { 30 } // arrive 6:30 AM
+    var hideoutStartHour: Int { 7 }      // doors open at 7:00 — slow open
+    var hideoutDeepWorkHour: Int { 8 }   // deep work starts 8:30 (shown as "8:30" block)
     var hideoutEndHour: Int {
         let wd = Calendar.current.component(.weekday, from: Date())
-        return (wd == 1 || wd == 7) ? 15 : 17   // 3PM weekends (Sat–Sun), 5PM weekdays (Wed–Fri)
+        if wd == 1 {
+            // Sunday: Week 2 experiment (from May 18, 2026) extends close to 5PM
+            let experimentWeek2Start = Calendar.current.date(
+                from: DateComponents(year: 2026, month: 5, day: 18)) ?? Date()
+            return Date() >= experimentWeek2Start ? 17 : 15
+        }
+        if wd == 7 { return 15 }   // Saturday: 3PM close
+        return 17   // Wed–Fri: 5PM close
     }
     var gymHour: Int { 17 }   // 5:30PM gym anchor — Forge Breechay after hideout
 
@@ -819,7 +838,10 @@ class OperatorProfile {
         case .earlyMorning:
             if isMonday { return "\(address)New week. Base day. Start it right." }
             if dayType == .hideout {
-                return "\(address)Hideout opens at 7. Morning anchor first."
+                let h = Calendar.current.component(.hour, from: Date())
+                if h < 6 { return "\(address)Hideout at 6:30. Morning anchor first." }
+                if h == 6 { return "\(address)Prep window. 30 min before the door opens." }
+                return "\(address)Hideout opens at 7. You're already there."
             }
             return "\(address)4AM. Morning anchor. Full day ahead."
         case .morning:
@@ -846,12 +868,14 @@ class OperatorProfile {
                 let hour = Calendar.current.component(.hour, from: Date())
                 let endHour = DayType.today.hideoutEndHour
                 if hour >= endHour {
-                    // Past closing time
                     if completedToday == 0 { return "\(address)Hideout closed. Log the shift." }
                     return "\(address)Hideout closed. Gym next."
                 }
                 let wd = Calendar.current.component(.weekday, from: Date())
-                let endLabel = (wd == 1 || wd == 7) ? "3pm" : "5pm"
+                let endLabel: String
+                if wd == 7 { endLabel = "3pm" }                                          // Saturday always 3PM
+                else if wd == 1 { endLabel = DayType.today.hideoutEndHour == 17 ? "5pm" : "3pm" }  // Sunday: experiment-aware
+                else { endLabel = "5pm" }                                                 // Wed–Fri
                 return "\(address)Closing window. Until \(endLabel)."
             }
             if isFriday && completedToday == 0 { return "\(address)Friday afternoon." }
@@ -1296,7 +1320,408 @@ class HideoutShiftLog {
     }
 }
 
+// MARK: - FRIDAY SIGNAL LOG
+// Cross-venture weekly signal review — locked Friday protocol.
+// 8–10 min after close. Same questions every week.
+// Source: DISTRIBUTION_OPERATING_SYSTEM.md — six target signals with Week 8 benchmarks.
+// Missing from app entirely prior to this version.
 
+@Model
+class FridaySignalLog {
+    var id: UUID = UUID()
+    var weekEndingDate: Date = Date()
+    var createdAt: Date = Date()
+
+    // ── HIDEOUT SIGNALS ──────────────────────────────────────────────────────
+    var hideoutSourceMentions: Int = 0   // any non-personal reference; target 5+/week by Week 8
+    var boardAttributions: Int = 0       // "saw the sign"; target 1+/week
+    var watermarcRedemptions: Int = 0    // WATERMARC code at register; target 2+/week
+    var gbpAttributions: Int = 0         // "found you online" / Google mention
+    var newRepeatCustomers: Int = 0      // first-timers who returned this week
+
+    // ── RUNCARDS SIGNALS ─────────────────────────────────────────────────────
+    var runcardsOrganicJoins: Int = 0            // joined without personal invite; target 1/week
+    var runcardsDistributionActionTaken: Bool = false  // content post or community DM happened
+
+    // ── FORM / FORGE SIGNALS ─────────────────────────────────────────────────
+    var formOutsideEngagement: Bool = false   // any signal from non-personal reach
+    var forgeV1GatePassed: Bool = false       // v1 acceptance gate status
+    var thresholdTuesdayCount: Int = 0        // athletes coached this week
+
+    // ── WEEKLY QUESTION ──────────────────────────────────────────────────────
+    // "Did anything in distribution surprise you this week?"
+    var distributionSurprise: String = ""    // if yes: what happened
+    var distributionConsistency: String = "" // if no: what held steady
+
+    var operatorNote: String = ""
+
+    init() {
+        self.id = UUID()
+        self.weekEndingDate = Self.nearestFriday()
+        self.createdAt = Date()
+    }
+
+    static func nearestFriday() -> Date {
+        let cal = Calendar.current
+        var d = Date()
+        for _ in 0..<7 {
+            if cal.component(.weekday, from: d) == 6 { return cal.startOfDay(for: d) }
+            d = cal.date(byAdding: .day, value: -1, to: d) ?? d
+        }
+        return cal.startOfDay(for: Date())
+    }
+
+    var weekLabel: String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "MMM d"
+        return "Week of \(fmt.string(from: weekEndingDate))"
+    }
+
+    // How many of the 5 core Hideout signals are non-zero
+    var hideoutSignalScore: Int {
+        [hideoutSourceMentions > 0, boardAttributions > 0,
+         watermarcRedemptions > 0, gbpAttributions > 0, newRepeatCustomers > 0]
+            .filter { $0 }.count
+    }
+
+    var sourcesMeetsTarget: Bool    { hideoutSourceMentions >= 5 }
+    var watermarcMeetsTarget: Bool  { watermarcRedemptions >= 2 }
+    var boardMeetsTarget: Bool      { boardAttributions >= 1 }
+    var runcardsOrganicMeetsTarget: Bool { runcardsOrganicJoins >= 1 }
+}
+
+// MARK: - DISTRIBUTION (Signal tab)
+// Canonical weekly plant/log/adjust — see INCREMENTS_DISTRIBUTION_TAB_SPEC.md v2.3
+
+enum AppContentVenture: String, Codable, CaseIterable {
+    case form, forge
+
+    var label: String {
+        switch self {
+        case .form: return "FORM"
+        case .forge: return "Forge"
+        }
+    }
+}
+
+enum DistributionCalendar {
+    static func mondayStart(of date: Date = Date()) -> Date {
+        var cal = Calendar.current
+        cal.firstWeekday = 2
+        let weekday = cal.component(.weekday, from: date)
+        let daysFromMonday = (weekday + 5) % 7
+        let monday = cal.date(byAdding: .day, value: -daysFromMonday, to: cal.startOfDay(for: date)) ?? date
+        return cal.startOfDay(for: monday)
+    }
+
+    static var isMonday: Bool {
+        Calendar.current.component(.weekday, from: Date()) == 2
+    }
+
+    static var isTuesday: Bool {
+        Calendar.current.component(.weekday, from: Date()) == 3
+    }
+
+    static var isSaturday: Bool {
+        Calendar.current.component(.weekday, from: Date()) == 7
+    }
+
+    /// FORM coached-session reminder for Signal tab — operational, not promotional.
+    static var formCoachingDayLine: String? {
+        if isTuesday {
+            return "FORM track · threshold · Simon / Julien · log one sentence after"
+        }
+        if isSaturday {
+            return "FORM long run · Simon / Julien · log one sentence after"
+        }
+        return nil
+    }
+
+    static func appContentVenture(
+        for weekStart: Date,
+        forgeGateCleared: Bool,
+        forgePostGateMondaysCompleted: Int
+    ) -> AppContentVenture {
+        guard forgeGateCleared else { return .form }
+        if forgePostGateMondaysCompleted < 3 { return .forge }
+        let week = Calendar.current.component(.weekOfYear, from: weekStart)
+        return week.isMultiple(of: 2) ? .form : .forge
+    }
+}
+
+@Model
+final class DistributionWeek {
+    var id: UUID = UUID()
+    var weekStartDate: Date = Date()
+    var createdAt: Date = Date()
+
+    var mondayBlockCompleted: Bool = false
+    var mondayBlockCompletedAt: Date?
+
+    var hideoutFilmed: Bool = false
+    var hideoutEdited: Bool = false
+    var hideoutPostedGBP: Bool = false
+    var hideoutPostedReels: Bool = false
+    var hideoutPostedTikTok: Bool = false
+
+    var appContentVentureRaw: String = AppContentVenture.form.rawValue
+    var appContentDecision: String = ""
+    var appContentRecorded: Bool = false
+    var appContentPosted: Bool = false
+
+    var fridayLogCompleted: Bool = false
+    var fridayLogCompletedAt: Date?
+
+    var hideoutSourceMentions: Int = 0
+    var hideoutBoardAttributions: Int = 0
+    var hideoutWatermarcRedemptions: Int = 0
+    var hideoutGBPAttributions: Int = 0
+
+    var formOutsideEngagement: Bool = false
+    var forgeV1GatePassed: Bool = false
+
+    var oneAdjustment: String = ""
+    var operatorNote: String = ""
+
+    init(weekStartDate: Date) {
+        self.id = UUID()
+        self.weekStartDate = DistributionCalendar.mondayStart(of: weekStartDate)
+        self.createdAt = Date()
+    }
+
+    var appContentVenture: AppContentVenture {
+        get { AppContentVenture(rawValue: appContentVentureRaw) ?? .form }
+        set { appContentVentureRaw = newValue.rawValue }
+    }
+
+    var weekLabel: String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "MMM d"
+        return "Week of \(fmt.string(from: weekStartDate))"
+    }
+
+    var hideoutStepsComplete: Bool {
+        hideoutFilmed && hideoutEdited && hideoutPostedGBP && hideoutPostedReels && hideoutPostedTikTok
+    }
+
+    var appContentStepsComplete: Bool {
+        !appContentDecision.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && appContentRecorded && appContentPosted
+    }
+
+    func mondayBlockComplete(forgeGateCleared: Bool) -> Bool {
+        hideoutStepsComplete && (forgeGateCleared ? appContentStepsComplete : appContentStepsComplete)
+    }
+
+    var mondayStampLine: String {
+        let venture = appContentVenture.label
+        let date = mondayBlockCompletedAt.map {
+            $0.formatted(.dateTime.month(.abbreviated).day())
+        } ?? "—"
+        return "\(date) · Hideout + \(venture)"
+    }
+}
+
+@Model
+final class DecisionLedger {
+    var id: UUID = UUID()
+    var createdAt: Date = Date()
+    var ventureRaw: String = AppContentVenture.form.rawValue
+    var fragment: String = ""
+    var usedInWeekStart: Date?
+
+    init(venture: AppContentVenture, fragment: String) {
+        self.id = UUID()
+        self.createdAt = Date()
+        self.ventureRaw = venture.rawValue
+        self.fragment = fragment
+    }
+
+    var venture: AppContentVenture {
+        get { AppContentVenture(rawValue: ventureRaw) ?? .form }
+        set { ventureRaw = newValue.rawValue }
+    }
+
+    var isUsed: Bool { usedInWeekStart != nil }
+
+    var dateLabel: String {
+        createdAt.formatted(.dateTime.month(.abbreviated).day())
+    }
+}
+
+// MARK: - TIBIA RECOVERY LOG
+// RECOVERY-01 — Weekly signal log for IM nail fixation recovery (April 13, 2026).
+// One entry per week. Enums stored as String rawValues for SwiftData compatibility.
+// Do NOT add @Model to the nested enums — SwiftData cannot persist enums directly.
+// Feed into Wendy LongitudinalContext payload at Phase II (2–3 weeks of data minimum).
+
+@Model
+class TibiaRecoveryLog {
+    var id: UUID = UUID()
+    var weekEndingDate: Date = Date()
+    var createdAt: Date = Date()
+
+    // Week number post-op (April 13 2026 = Week 0)
+    var weekNumber: Int = 0
+
+    // Signal fields — stored as String rawValues for SwiftData compat
+    var ankleROMRaw: String = "improving"     // AnkleROMSignal.rawValue
+    var tibialPainRaw: String = "none"        // TibialPainSignal.rawValue
+
+    // Quantitative
+    var bikeSessionsCompleted: Int = 0        // 0–6
+    var phaseWeek: Int = 0                    // mirrors weekNumber; reserved for phase-aware querying
+
+    // Freeform
+    var notes: String = ""
+
+    init() {
+        self.id = UUID()
+        self.weekEndingDate = Date()
+        self.createdAt = Date()
+    }
+
+    // ── Decoded signal accessors ──────────────────────────────────────────────
+    var ankleROM: AnkleROMSignal {
+        get { AnkleROMSignal(rawValue: ankleROMRaw) ?? .improving }
+        set { ankleROMRaw = newValue.rawValue }
+    }
+
+    var tibialPain: TibialPainSignal {
+        get { TibialPainSignal(rawValue: tibialPainRaw) ?? .none }
+        set { tibialPainRaw = newValue.rawValue }
+    }
+
+    // ── Nested enums ──────────────────────────────────────────────────────────
+    enum AnkleROMSignal: String, CaseIterable {
+        case improving = "improving"
+        case same      = "same"
+        case worse     = "worse"
+
+        var label: String {
+            switch self {
+            case .improving: return "Improving"
+            case .same:      return "Same"
+            case .worse:     return "Worse"
+            }
+        }
+        var color: Color {
+            switch self {
+            case .improving: return .inkTeal
+            case .same:      return .inkAmber
+            case .worse:     return .inkRed
+            }
+        }
+    }
+
+    enum TibialPainSignal: String, CaseIterable {
+        case none     = "none"
+        case mild     = "mild"
+        case moderate = "moderate"
+
+        var label: String {
+            switch self {
+            case .none:     return "None"
+            case .mild:     return "Mild"
+            case .moderate: return "Moderate"
+            }
+        }
+        var color: Color {
+            switch self {
+            case .none:     return .inkTeal
+            case .mild:     return .inkAmber
+            case .moderate: return .inkRed
+            }
+        }
+    }
+}
+
+// MARK: - PARTNER ACCOUNT
+// Recurring Revenue Partnerships — the #1 growth lever per the brief.
+// "First clean recurring pickup account beyond Jimmy changes the economics."
+// Previously tracked only as freeform text in shift sourceNotes. Now structured.
+
+enum PartnerAccountFrequency: String, Codable, CaseIterable {
+    case weekly    = "weekly"
+    case biweekly  = "biweekly"
+    case monthly   = "monthly"
+    case episodic  = "episodic"   // event-dependent (Jimmy archetype)
+
+    var label: String {
+        switch self {
+        case .weekly:   return "Weekly"
+        case .biweekly: return "Bi-weekly"
+        case .monthly:  return "Monthly"
+        case .episodic: return "Episodic"
+        }
+    }
+}
+
+enum PartnerAccountStatus: String, Codable, CaseIterable {
+    case prospect  = "prospect"
+    case contacted = "contacted"
+    case sampling  = "sampling"
+    case active    = "active"
+    case paused    = "paused"
+    case lost      = "lost"
+
+    var label: String { rawValue.capitalized }
+
+    var color: Color {
+        switch self {
+        case .prospect:  return .textMuted
+        case .contacted: return .inkAmber
+        case .sampling:  return .violetLight
+        case .active:    return .inkGreen
+        case .paused:    return .inkAmber
+        case .lost:      return .inkRed
+        }
+    }
+}
+
+@Model
+class PartnerAccount {
+    var id: UUID = UUID()
+    var name: String = ""
+    var contactPerson: String = ""
+    var status: PartnerAccountStatus = PartnerAccountStatus.prospect
+    var frequency: PartnerAccountFrequency = PartnerAccountFrequency.weekly
+    var isPickup: Bool = true          // pickup-first doctrine
+    var primarySKU: String = ""        // e.g. "Cold Brew 3gal"
+    var estimatedRevenue: Double = 0   // per order
+    var firstContactDate: Date? = nil
+    var activatedDate: Date? = nil
+    var lastOrderDate: Date? = nil
+    var createdAt: Date = Date()
+    var notes: String = ""
+
+    init(name: String, status: PartnerAccountStatus = .prospect) {
+        self.id = UUID()
+        self.name = name
+        self.status = status
+        self.createdAt = Date()
+    }
+
+    var daysSinceLastOrder: Int? {
+        guard let last = lastOrderDate else { return nil }
+        return Calendar.current.dateComponents([.day], from: last, to: Date()).day
+    }
+
+    var monthlyRevenueEstimate: Double {
+        switch frequency {
+        case .weekly:   return estimatedRevenue * 4.3
+        case .biweekly: return estimatedRevenue * 2.15
+        case .monthly:  return estimatedRevenue
+        case .episodic: return estimatedRevenue
+        }
+    }
+
+    // Active but no order in 14 days — follow up
+    var needsFollowup: Bool {
+        guard status == .active else { return false }
+        return (daysSinceLastOrder ?? 999) > 14
+    }
+}
 
 enum MaintenanceState {
     case quiet      // within normal interval — no signal

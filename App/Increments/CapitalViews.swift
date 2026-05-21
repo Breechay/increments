@@ -37,20 +37,20 @@ struct CapitalTabView: View {
     }
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: metrics.blockSpacing) {
 
             // ── RESOURCE STATE ───────────────────────────────────────────
             CardView {
-                VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: metrics.blockSpacing) {
                     HStack {
-                        VStack(alignment: .leading, spacing: 3) {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                             MonoLabel(text: "CAPITAL", color: .warm)
                             MonoLabel(text: "RESOURCE ARCHITECTURE", color: .textMuted, size: 10)
                         }
                         Spacer()
                         Button(action: { showEdit = true }) {
                             Image(systemName: "pencil")
-                                .font(.system(size: 12)).foregroundColor(.textMuted)
+                                .font(.system(size: metrics.scaledSize(12))).foregroundColor(.textMuted)
                                 .frame(width: 28, height: 28)
                                 .background(Color.surface)
                                 .clipShape(Circle())
@@ -59,13 +59,13 @@ struct CapitalTabView: View {
                     Divider().background(Color.muted.opacity(0.2))
 
                     // Runway
-                    HStack(spacing: 10) {
+                    HStack(spacing: metrics.cardSpacing) {
                         Circle()
                             .fill(current.runwayState.color)
                             .frame(width: 8, height: 8)
                             .shadow(color: current.runwayState.color.opacity(0.5), radius: 4)
                         Text(current.runwayState.label)
-                            .font(.sora(15, weight: .medium)).foregroundColor(.textPrimary)
+                            .font(metrics.fontSora(15, weight: .medium)).foregroundColor(.textPrimary)
                         Spacer()
                         MonoLabel(text: "RUNWAY", color: .textMuted, size: 10)
                     }
@@ -73,7 +73,7 @@ struct CapitalTabView: View {
                     // Clarity
                     HStack {
                         Text("Picture clarity")
-                            .font(.sora(13, weight: .light)).foregroundColor(.textSecond)
+                            .font(metrics.fontSora(14, weight: .light)).foregroundColor(.textSecond)
                         Spacer()
                         MonoLabel(text: current.capitalClarity.rawValue,
                                   color: current.capitalClarity == .clear ? .inkGreen : current.capitalClarity == .partial ? .inkAmber : .textMuted,
@@ -83,7 +83,7 @@ struct CapitalTabView: View {
                     // Inflow
                     HStack {
                         Text("Income this period")
-                            .font(.sora(13, weight: .light)).foregroundColor(.textSecond)
+                            .font(metrics.fontSora(14, weight: .light)).foregroundColor(.textSecond)
                         Spacer()
                         MonoLabel(text: current.inflowReceived ? "RECEIVED" : "PENDING",
                                   color: current.inflowReceived ? .inkGreen : .textMuted, size: 11)
@@ -94,7 +94,7 @@ struct CapitalTabView: View {
                         let days = Calendar.current.dateComponents([.day], from: Date(), to: date).day ?? 0
                         HStack {
                             Text(current.nextObligationLabel)
-                                .font(.sora(13, weight: .light)).foregroundColor(.textSecond)
+                                .font(metrics.fontSora(14, weight: .light)).foregroundColor(.textSecond)
                             Spacer()
                             MonoLabel(text: days <= 0 ? "DUE" : "IN \(days)D",
                                       color: days <= 3 ? .inkAmber : .textMuted, size: 11)
@@ -106,7 +106,7 @@ struct CapitalTabView: View {
 
             // ── ARCHITECTURE SIGNALS ─────────────────────────────────────
             CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "ARCHITECTURE SIGNALS", color: .textMuted)
                     Divider().background(Color.muted.opacity(0.2))
 
@@ -121,23 +121,23 @@ struct CapitalTabView: View {
                                   note: "Some buffer exists between inflow disruption and crisis.")
 
                     if current.mainLeakCategory != .unknown {
-                        HStack(alignment: .top, spacing: 10) {
+                        HStack(alignment: .top, spacing: metrics.cardSpacing) {
                             Circle().fill(Color.inkAmber.opacity(0.7)).frame(width: 6, height: 6).padding(.top, 5)
-                            VStack(alignment: .leading, spacing: 2) {
+                            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                 MonoLabel(text: "DOMINANT LEAK", color: .inkAmber, size: 10)
                                 Text(current.mainLeakCategory.rawValue)
-                                    .font(.sora(12, weight: .light)).foregroundColor(.textSecond)
+                                    .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond)
                             }
                         }
                     }
 
                     if current.activeFinancialFronts >= 3 {
-                        HStack(alignment: .top, spacing: 10) {
+                        HStack(alignment: .top, spacing: metrics.cardSpacing) {
                             Circle().fill(Color.inkAmber.opacity(0.7)).frame(width: 6, height: 6).padding(.top, 5)
-                            VStack(alignment: .leading, spacing: 2) {
+                            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                 MonoLabel(text: "FRAGMENTATION", color: .inkAmber, size: 10)
                                 Text("\(current.activeFinancialFronts) active financial fronts. Same principles apply as execution.")
-                                    .font(.sora(12, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                                    .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
                             }
                         }
                     }
@@ -147,7 +147,7 @@ struct CapitalTabView: View {
 
             // ── RESOURCE DOCTRINES ───────────────────────────────────────
             CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "OPERATING DOCTRINES", color: .textMuted)
                     Divider().background(Color.muted.opacity(0.2))
 
@@ -164,10 +164,10 @@ struct CapitalTabView: View {
                          "Obligations, buffer, runway. Then experimentation, generosity, and growth. Same architectural principle as environment before cognition."),
                     ]
                     ForEach(doctrines, id: \.0) { doctrine in
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                             MonoLabel(text: doctrine.0, color: .warm, size: 10)
                             Text(doctrine.1)
-                                .font(.sora(12, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                                .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
                         }
                     }
                 }
@@ -212,26 +212,26 @@ struct CapitalTabView: View {
         let actionTotal = actionItems.count
 
         return CardView(style: .secondary) {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: metrics.blockSpacing) {
 
                 HStack {
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "HOUSING OPTIMIZATION", color: .inkAmber, size: 10)
                         Text("Rent offset = Financial Neutrality architecture. Not failure.")
-                            .font(.sora(10, weight: .light))
+                            .font(metrics.fontSora(12, weight: .light))
                             .foregroundColor(.textMuted)
                             .lineSpacing(2)
                     }
                     Spacer()
                     if housingDecisionMade {
                         Text("\(actionDone)/\(actionTotal)")
-                            .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                            .font(.system(size: metrics.scaledSize(12), weight: .semibold, design: .monospaced))
                             .foregroundColor(actionDone == actionTotal ? .inkGreen : .inkAmber)
                     }
                 }
 
                 // Approach selection — brainstorm phase
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                     MonoLabel(text: housingDecisionMade ? "APPROACH — LOCKED" : "APPROACH — SELECT ONE", color: .textMuted, size: 9)
                     VStack(spacing: 0) {
                         ForEach(approaches.indices, id: \.self) { idx in
@@ -242,7 +242,7 @@ struct CapitalTabView: View {
                                     housingDecisionMade = true
                                 }
                             } label: {
-                                HStack(alignment: .top, spacing: 10) {
+                                HStack(alignment: .top, spacing: metrics.cardSpacing) {
                                     ZStack {
                                         Circle()
                                             .fill(housingApproachSelected == ap.0 ? Color.inkAmber.opacity(0.15) : Color.surface)
@@ -254,15 +254,15 @@ struct CapitalTabView: View {
                                             Circle().fill(Color.inkAmber).frame(width: 8, height: 8)
                                         }
                                     }
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        HStack(spacing: 6) {
+                                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                                        HStack(spacing: metrics.rowSpacing) {
                                             Text(ap.1)
                                                 .font(.sora(12, weight: housingApproachSelected == ap.0 ? .medium : .light))
                                                 .foregroundColor(housingApproachSelected == ap.0 ? .textPrimary : .textSecond)
                                             MonoLabel(text: ap.0, color: housingApproachSelected == ap.0 ? .inkAmber : .textMuted, size: 8)
                                         }
                                         Text(ap.2)
-                                            .font(.sora(10, weight: .light))
+                                            .font(metrics.fontSora(12, weight: .light))
                                             .foregroundColor(.textMuted)
                                             .lineSpacing(1.5)
                                     }
@@ -300,7 +300,7 @@ struct CapitalTabView: View {
                             Button {
                                 withAnimation(.spring(response: 0.25)) { item.1.wrappedValue.toggle() }
                             } label: {
-                                HStack(alignment: .top, spacing: 10) {
+                                HStack(alignment: .top, spacing: metrics.cardSpacing) {
                                     ZStack {
                                         RoundedRectangle(cornerRadius: 3)
                                             .fill(item.1.wrappedValue ? Color.inkAmber.opacity(0.15) : Color.surface)
@@ -310,12 +310,12 @@ struct CapitalTabView: View {
                                             .frame(width: 18, height: 18)
                                         if item.1.wrappedValue {
                                             Image(systemName: "checkmark")
-                                                .font(.system(size: 9, weight: .bold))
+                                                .font(.system(size: metrics.scaledSize(10), weight: .bold))
                                                 .foregroundColor(.inkAmber)
                                         }
                                     }
                                     Text(item.0)
-                                        .font(.sora(11, weight: .light))
+                                        .font(metrics.fontSora(13, weight: .light))
                                         .foregroundColor(item.1.wrappedValue ? .textMuted : .textSecond)
                                         .lineSpacing(2)
                                         .strikethrough(item.1.wrappedValue, color: .textMuted.opacity(0.4))
@@ -331,18 +331,18 @@ struct CapitalTabView: View {
                     }
 
                     if actionDone == actionTotal {
-                        HStack(spacing: 6) {
+                        HStack(spacing: metrics.rowSpacing) {
                             Circle().fill(Color.inkGreen).frame(width: 4, height: 4)
                             Text("Housing cost offset active. Pressure reduced. Next: redeploy attention to Hideout + RunCards.")
-                                .font(.system(size: 10, design: .monospaced))
+                                .font(.system(size: metrics.scaledSize(11), design: .monospaced))
                                 .foregroundColor(.inkGreen)
                                 .lineSpacing(2)
                         }
                     } else {
-                        HStack(spacing: 6) {
+                        HStack(spacing: metrics.rowSpacing) {
                             Circle().fill(Color.inkAmber.opacity(0.6)).frame(width: 4, height: 4)
                             Text("Mechanism: lower fixed cost → less background pressure → better decisions on everything else.")
-                                .font(.system(size: 9, design: .monospaced))
+                                .font(.system(size: metrics.scaledSize(10), design: .monospaced))
                                 .foregroundColor(.textMuted)
                                 .lineSpacing(2)
                         }
@@ -353,17 +353,17 @@ struct CapitalTabView: View {
     }
 
     func capitalSignal(_ label: String, state: Bool, note: String) -> some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: metrics.cardSpacing) {
             Circle()
                 .fill(state ? Color.inkGreen : Color.muted.opacity(0.3))
                 .frame(width: 6, height: 6).padding(.top, 5)
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                 Text(label)
                     .font(.sora(13, weight: state ? .medium : .light))
                     .foregroundColor(state ? .textPrimary : .textMuted)
                 if !state {
                     Text(note)
-                        .font(.sora(11, weight: .light)).foregroundColor(.muted).lineSpacing(2)
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.muted).lineSpacing(2)
                 }
             }
         }
@@ -373,6 +373,7 @@ struct CapitalTabView: View {
 // MARK: - EDIT CAPITAL STATE SHEET
 
 struct EditCapitalStateSheet: View {
+    @Environment(\.appMetrics) private var metrics
     @Binding var isPresented: Bool
     var state: FinancialState?
     @Environment(\.modelContext) private var context
@@ -397,25 +398,25 @@ struct EditCapitalStateSheet: View {
         ZStack {
             Color.bgBase.ignoresSafeArea()
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: metrics.sectionGap) {
                     SheetHandle().frame(maxWidth: .infinity, alignment: .center)
                     HStack {
-                        Text("Capital State").font(.sora(20, weight: .semibold)).foregroundColor(.textPrimary)
+                        Text("Capital State").font(metrics.fontSora(20, weight: .semibold)).foregroundColor(.textPrimary)
                         Spacer()
-                        Button("Done") { save(); isPresented = false }.font(.sora(14)).foregroundColor(.violet)
+                        Button("Done") { save(); isPresented = false }.font(metrics.fontSora(15)).foregroundColor(.violet)
                     }
 
                     // Runway
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "RUNWAY")
                         MonoLabel(text: "Categorical — not numerical", color: .muted, size: 10)
-                        HStack(spacing: 8) {
+                        HStack(spacing: metrics.rowSpacing) {
                             ForEach(RunwayState.allCases, id: \.self) { rs in
                                 Button(action: { runwayState = rs }) {
-                                    VStack(spacing: 6) {
+                                    VStack(spacing: metrics.rowSpacing) {
                                         Circle().fill(rs.color.opacity(runwayState == rs ? 0.9 : 0.3))
                                             .frame(width: 8, height: 8)
-                                        Text(rs.rawValue).font(.mono(11)).tracking(0.5)
+                                        Text(rs.rawValue).font(metrics.fontMono(12)).tracking(0.5)
                                             .foregroundColor(runwayState == rs ? .textPrimary : .textMuted)
                                     }
                                     .frame(maxWidth: .infinity).padding(.vertical, 14)
@@ -427,12 +428,12 @@ struct EditCapitalStateSheet: View {
                     }
 
                     // Picture clarity
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "PICTURE CLARITY")
-                        HStack(spacing: 8) {
+                        HStack(spacing: metrics.rowSpacing) {
                             ForEach(CapitalClarity.allCases, id: \.self) { c in
                                 Button(action: { capitalClarity = c }) {
-                                    Text(c.rawValue).font(.mono(11)).tracking(0.5)
+                                    Text(c.rawValue).font(metrics.fontMono(12)).tracking(0.5)
                                         .foregroundColor(capitalClarity == c ? .bgBase : .textMuted)
                                         .frame(maxWidth: .infinity).padding(.vertical, 12)
                                         .background(capitalClarity == c ? Color.warm : Color.surface)
@@ -443,7 +444,7 @@ struct EditCapitalStateSheet: View {
                     }
 
                     // Architecture signals
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                         MonoLabel(text: "ARCHITECTURE SIGNALS")
                         toggleRow("Runway visible", isOn: $hasRunwayVisibility)
                         toggleRow("Generosity budgeted", isOn: $hasBudgetedGenerosity)
@@ -451,12 +452,12 @@ struct EditCapitalStateSheet: View {
                     }
 
                     // Inflow
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "INFLOW THIS PERIOD")
-                        HStack(spacing: 12) {
+                        HStack(spacing: metrics.cardSpacing) {
                             ForEach([true, false], id: \.self) { val in
                                 Button(action: { inflowReceived = val }) {
-                                    Text(val ? "Received" : "Not yet").font(.sora(13))
+                                    Text(val ? "Received" : "Not yet").font(metrics.fontSora(14))
                                         .foregroundColor(inflowReceived == val ? .bgBase : .textSecond)
                                         .frame(maxWidth: .infinity).padding(.vertical, 12)
                                         .background(inflowReceived == val ? Color.inkGreen : Color.surface)
@@ -467,12 +468,12 @@ struct EditCapitalStateSheet: View {
                     }
 
                     // Dominant leak
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "DOMINANT LEAK CATEGORY")
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: metrics.rowSpacing) {
                             ForEach(FinancialLeakType.allCases, id: \.self) { leak in
                                 Button(action: { mainLeak = leak }) {
-                                    Text(leak.rawValue).font(.sora(12))
+                                    Text(leak.rawValue).font(metrics.fontSora(13))
                                         .foregroundColor(mainLeak == leak ? .bgBase : .textSecond)
                                         .frame(maxWidth: .infinity).padding(.vertical, 10)
                                         .background(mainLeak == leak ? Color.inkAmber : Color.surface)
@@ -483,16 +484,16 @@ struct EditCapitalStateSheet: View {
                     }
 
                     // Active financial fronts
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "ACTIVE FINANCIAL FRONTS")
                         MonoLabel(text: "Open money 'projects' running simultaneously", color: .muted, size: 10)
                         Stepper("\(activeFronts)", value: $activeFronts, in: 1...10)
-                            .font(.sora(14)).foregroundColor(.textPrimary)
+                            .font(metrics.fontSora(15)).foregroundColor(.textPrimary)
                             .padding(14).background(Color.surface).clipShape(RoundedRectangle(cornerRadius: 10))
                     }
 
                     // Next obligation
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         HStack {
                             MonoLabel(text: "NEXT OBLIGATION")
                             Spacer()
@@ -502,7 +503,7 @@ struct EditCapitalStateSheet: View {
                             inputField("LABEL", placeholder: "e.g. Rent, Insurance", text: $nextLabel)
                             DatePicker("Date", selection: $nextDate, displayedComponents: .date)
                                 .datePickerStyle(.compact).colorScheme(.dark)
-                                .font(.sora(13)).foregroundColor(.textPrimary)
+                                .font(metrics.fontSora(14)).foregroundColor(.textPrimary)
                                 .padding(14).background(Color.surface).clipShape(RoundedRectangle(cornerRadius: 10))
                         }
                     }
@@ -510,10 +511,10 @@ struct EditCapitalStateSheet: View {
                     inputField("NOTES (OPTIONAL)", placeholder: "Running context", text: $notes)
 
                     CardView(style: .ambient) {
-                        VStack(alignment: .leading, spacing: 6) {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                             MonoLabel(text: "NO AMOUNTS STORED", color: .muted, size: 10)
                             Text("Capital state is categorical. No numbers, no budgets, no targets. Clarity without surveillance.")
-                                .font(.sora(12, weight: .light)).foregroundColor(.textMuted).lineSpacing(3)
+                                .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted).lineSpacing(3)
                         }
                     }
                 }
@@ -528,7 +529,7 @@ struct EditCapitalStateSheet: View {
 
     func toggleRow(_ label: String, isOn: Binding<Bool>) -> some View {
         HStack {
-            Text(label).font(.sora(13)).foregroundColor(.textPrimary)
+            Text(label).font(metrics.fontSora(14)).foregroundColor(.textPrimary)
             Spacer()
             Toggle("", isOn: isOn).tint(Color.inkGreen).labelsHidden()
         }
@@ -579,6 +580,7 @@ struct EditCapitalStateSheet: View {
 
 struct YouView: View {
     @Environment(\.modelContext) private var context
+    @EnvironmentObject private var cloudKitMonitor: CloudKitSyncMonitor
     @Query private var profiles: [OperatorProfile]
     @Query private var actions: [Action]
     @Query(sort: \DailyLog.date, order: .reverse) private var logs: [DailyLog]
@@ -592,30 +594,65 @@ struct YouView: View {
     var body: some View {
         ZStack { AtmosphericBackground()
             VStack(spacing: 0) {
-                HStack(alignment: .bottom) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        MonoLabel(text: "INCREMENTS", color: .violetLight, size: 10)
-                        Text(profile.firstName.isEmpty ? "You" : profile.firstName)
-                            .font(.sora(22, weight: .semibold)).foregroundColor(.textPrimary)
-                    }
-                    Spacer()
+                GlanceTabHeader(
+                    kicker: "INCREMENTS",
+                    title: profile.firstName.isEmpty ? "You" : profile.firstName,
+                    kickerColor: .violetLight
+                ) {
                     Image(systemName: "gearshape")
                         .foregroundColor(.textMuted)
-                        .font(.system(size: 18, weight: .light))
+                        .font(.system(size: metrics.scaledSize(18), weight: .light))
                 }
-                .padding(.horizontal, metrics.hPad).padding(.top, 20).padding(.bottom, 14)
 
-                segmentControl(["Capital", "Brief", "Dossier", "Manual", "Settings"], selected: $selectedSeg)
-                    .padding(.horizontal, metrics.hPad).padding(.bottom, 20)
+                if let line = cloudKitMonitor.health.userLine {
+                    CloudSyncStatusBanner(message: line)
+                        .padding(.horizontal, metrics.hPad)
+                        .padding(.bottom, metrics.cardSpacing)
+                }
 
-                ScrollView(showsIndicators: false) {
-                    switch selectedSeg {
-                    case 0: CapitalTabView()
-                    case 1: BriefTabView(state: state, profile: profile)
-                    case 2: DossierTabView(profile: profile)
-                    case 3: FieldManualTabView()
-                    case 4: SettingsTabView(profile: profile, state: state)
-                    default: EmptyView()
+                if metrics.isIPad {
+                    // iPad: Capital always-left, reference tabs right
+                    IPadMasterDetailLayout(metrics: metrics, leftFraction: metrics.masterDetailLeftFraction) {
+                        ScrollView(showsIndicators: false) {
+                            VStack(alignment: .leading, spacing: 0) {
+                                SectionHeader(text: "CAPITAL · RESOURCE", color: .warm)
+                                    .padding(.horizontal, metrics.hPad)
+                                    .padding(.top, metrics.scaledSize(12))
+                                    .padding(.bottom, metrics.scaledSize(8))
+                                CapitalTabView()
+                            }
+                        }
+                    } right: {
+                        VStack(spacing: 0) {
+                            segmentControl(["Brief", "Dossier", "Manual", "Settings"], selected: $selectedSeg)
+                                .padding(.horizontal, metrics.hPad)
+                                .padding(.vertical, metrics.scaledSize(14))
+                            ScrollView(showsIndicators: false) {
+                                Group {
+                                    switch selectedSeg {
+                                    case 0: BriefTabView(state: state, profile: profile)
+                                    case 1: DossierTabView(profile: profile)
+                                    case 2: FieldManualTabView()
+                                    default: SettingsTabView(profile: profile, state: state)
+                                    }
+                                }
+                                .adaptiveContentWidth(metrics)
+                            }
+                        }
+                    }
+                } else {
+                    segmentControl(["Capital", "Brief", "Dossier", "Manual", "Settings"], selected: $selectedSeg)
+                        .padding(.horizontal, metrics.hPad)
+                        .padding(.bottom, metrics.sectionGap)
+                    ScrollView(showsIndicators: false) {
+                        switch selectedSeg {
+                        case 0: CapitalTabView()
+                        case 1: BriefTabView(state: state, profile: profile)
+                        case 2: DossierTabView(profile: profile)
+                        case 3: FieldManualTabView()
+                        case 4: SettingsTabView(profile: profile, state: state)
+                        default: EmptyView()
+                        }
                     }
                 }
             }
@@ -677,11 +714,11 @@ struct ProfileTabView: View {
     }
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: metrics.sectionGap) {
             // Operator identity card
             CardView {
-                VStack(spacing: 16) {
-                    HStack(spacing: 14) {
+                VStack(spacing: metrics.blockSpacing) {
+                    HStack(spacing: metrics.blockSpacing) {
                         ZStack {
                             Circle()
                                 .fill(LinearGradient(
@@ -694,12 +731,12 @@ struct ProfileTabView: View {
                                 .frame(width: 36, height: 36)
                                 .opacity(0.85)
                         }
-                        VStack(alignment: .leading, spacing: 5) {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                             MonoLabel(text: "OPERATOR", color: .violetLight, size: 11)
                             Text(profile.firstName.isEmpty ? profile.title : profile.firstName)
-                                .font(.sora(16, weight: .semibold)).foregroundColor(.textPrimary)
+                                .font(metrics.fontSora(16, weight: .semibold)).foregroundColor(.textPrimary)
                             Text(profile.phaseLabel.isEmpty ? "Recovery + Operational Restoration" : profile.phaseLabel)
-                                .font(.sora(11, weight: .light)).foregroundColor(.textMuted)
+                                .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted)
                                 .lineLimit(1)
                         }
                         Spacer()
@@ -736,8 +773,8 @@ struct ProfileTabView: View {
     }
 
     func statCell(_ label: String, value: String) -> some View {
-        VStack(spacing: 4) {
-            Text(value).font(.sora(18, weight: .semibold)).foregroundColor(.textPrimary)
+        VStack(spacing: metrics.rowSpacing) {
+            Text(value).font(metrics.fontSora(18, weight: .semibold)).foregroundColor(.textPrimary)
             MonoLabel(text: label, color: .textMuted, size: 11)
         }.frame(maxWidth: .infinity)
     }
@@ -810,7 +847,7 @@ struct FieldManualTabView: View {
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            VStack(spacing: 8) {
+            VStack(spacing: metrics.rowSpacing) {
                 ForEach(entries) { entry in
                     let isExpanded = expandedID == entry.id
                     Button(action: {
@@ -823,24 +860,24 @@ struct FieldManualTabView: View {
                     }) {
                         VStack(alignment: .leading, spacing: 0) {
                             // Always visible — title + trigger
-                            HStack(alignment: .top, spacing: 12) {
+                            HStack(alignment: .top, spacing: metrics.cardSpacing) {
                                 RoundedRectangle(cornerRadius: 2)
                                     .fill(isExpanded ? Color.violetLight : Color.muted.opacity(0.4))
                                     .frame(width: 2, height: 36)
-                                VStack(alignment: .leading, spacing: 5) {
+                                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                     Text(entry.title)
-                                        .font(.mono(11))
+                                        .font(metrics.fontMono(12))
                                         .foregroundColor(isExpanded ? .violetLight : .textSecond)
                                         .tracking(0.5)
                                     Text(entry.usageTrigger)
-                                        .font(.sora(13, weight: .light))
+                                        .font(metrics.fontSora(14, weight: .light))
                                         .foregroundColor(isExpanded ? .textPrimary : .textMuted)
                                         .lineSpacing(2)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
                                 Spacer()
                                 Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                                    .font(.system(size: 9, weight: .light))
+                                    .font(.system(size: metrics.scaledSize(10), weight: .light))
                                     .foregroundColor(.textMuted.opacity(0.5))
                                     .padding(.top, 2)
                             }
@@ -848,25 +885,25 @@ struct FieldManualTabView: View {
 
                             // Expanded — meaning and misread
                             if isExpanded {
-                                VStack(alignment: .leading, spacing: 14) {
+                                VStack(alignment: .leading, spacing: metrics.blockSpacing) {
                                     Rectangle()
                                         .fill(Color.violetLight.opacity(0.12))
                                         .frame(height: 0.5)
                                         .padding(.horizontal, 16)
 
-                                    VStack(alignment: .leading, spacing: 5) {
+                                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                         MonoLabel(text: "MEANING", color: .textMuted, size: 9)
                                         Text(entry.meaning)
-                                            .font(.sora(13, weight: .light))
+                                            .font(metrics.fontSora(14, weight: .light))
                                             .foregroundColor(.textPrimary)
                                             .lineSpacing(4)
                                     }
                                     .padding(.horizontal, 16)
 
-                                    VStack(alignment: .leading, spacing: 5) {
+                                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                         MonoLabel(text: "MISREAD", color: .inkAmber, size: 9)
                                         Text(entry.misread)
-                                            .font(.sora(12, weight: .light))
+                                            .font(metrics.fontSora(13, weight: .light))
                                             .foregroundColor(.textSecond)
                                             .lineSpacing(3)
                                     }
@@ -983,10 +1020,10 @@ struct NutritionProtocolView: View {
         VStack(alignment: .leading, spacing: 0) {
 
             // Header
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                 MonoLabel(text: "NUTRITION + CARDIO PROTOCOL", color: .inkTeal, size: 10)
                 Text("Slow cut · 8–10% BF target · Forge Breechay preserved")
-                    .font(.sora(14, weight: .light))
+                    .font(metrics.fontSora(15, weight: .light))
                     .foregroundColor(.textPrimary)
                 MonoLabel(text: "SYNTHESIZED FROM MULTI-AGENT REVIEW · MAY 2026", color: .textMuted, size: 10)
             }
@@ -994,7 +1031,7 @@ struct NutritionProtocolView: View {
             .padding(.bottom, 16)
 
             // Daily targets row
-            HStack(spacing: 8) {
+            HStack(spacing: metrics.rowSpacing) {
                 NutritionTargetCard(value: "2,200–2,350", unit: "kcal", label: "Workdays")
                 NutritionTargetCard(value: "1,900–2,100", unit: "kcal", label: "Base days")
                 NutritionTargetCard(value: "190–210g", unit: "protein", label: "Every day")
@@ -1004,10 +1041,10 @@ struct NutritionProtocolView: View {
 
             // Rationale blurb
             CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                     MonoLabel(text: "DESIGN RATIONALE", color: .textMuted, size: 10)
                     Text("Estimated maintenance ~2,650 kcal. A 300–450 kcal deficit produces 0.5–0.75 lb/week fat loss — slow enough to protect Forge Breechay performance. Protein at 190–210g (~1g/lb lean mass) is the primary lever against muscle loss on a cut. Fasted Zone 2 cardio adds ~300 kcal deficit without touching training nutrition. Do not cut below 1,900 kcal on any day.")
-                        .font(.sora(12, weight: .light))
+                        .font(metrics.fontSora(13, weight: .light))
                         .foregroundColor(.textSecond)
                         .lineSpacing(3)
                 }
@@ -1016,7 +1053,7 @@ struct NutritionProtocolView: View {
             .padding(.bottom, 16)
 
             // Day toggle
-            HStack(spacing: 6) {
+            HStack(spacing: metrics.rowSpacing) {
                 ForEach(["WORKDAY (Wed–Sun)", "BASE DAY (Mon–Tue)"].indices, id: \.self) { i in
                     Button(action: { dayMode = i }) {
                         MonoLabel(text: ["WORKDAY (Wed–Sun)", "BASE DAY (Mon–Tue)"][i],
@@ -1041,16 +1078,16 @@ struct NutritionProtocolView: View {
 
             // Cardio protocol block
             CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "CARDIO PROTOCOL", color: .textMuted, size: 10)
 
-                    HStack(spacing: 8) {
+                    HStack(spacing: metrics.rowSpacing) {
                         NutritionTagChip(text: "Zone 2 only", color: .inkTeal)
                         NutritionTagChip(text: "Fasted (default)", color: .inkAmber)
                         NutritionTagChip(text: "No intervals this phase", color: .inkRed)
                     }
 
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         NutritionProtoRow(key: "TYPE", value: "Steady-state Zone 2 · bike preferred, elliptical OK")
                         NutritionProtoRow(key: "DURATION", value: "35–40 min · 4:30–5:10 AM window")
                         NutritionProtoRow(key: "HEART RATE", value: "130–145 BPM · conversational pace")
@@ -1060,7 +1097,7 @@ struct NutritionProtocolView: View {
                     }
 
                     Text("Zone 2 maximizes fat oxidation without cortisol load that competes with 5:30 PM hypertrophy. Fasted is the default — it keeps the fat-burn mechanism intact. Override with half a banana if sleep was poor, HRV is off, or legs feel genuinely empty before you start. No intervals during the cut — this phase is leanness + muscle retention. Intervals return when the cut is done.")
-                        .font(.sora(12, weight: .light))
+                        .font(metrics.fontSora(13, weight: .light))
                         .foregroundColor(.textSecond)
                         .lineSpacing(3)
                 }
@@ -1070,7 +1107,7 @@ struct NutritionProtocolView: View {
 
             // Failure modes
             CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "FAILURE MODES", color: .inkRed, size: 10)
 
                     NutritionFailureRow(
@@ -1099,13 +1136,14 @@ struct NutritionProtocolView: View {
 }
 
 struct NutritionTargetCard: View {
+    @Environment(\.appMetrics) private var metrics
     let value: String
     let unit: String
     let label: String
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
             Text(value)
-                .font(.system(size: 15, weight: .medium, design: .monospaced))
+                .font(.system(size: metrics.scaledSize(15), weight: .medium, design: .monospaced))
                 .foregroundColor(.textPrimary)
             MonoLabel(text: unit, color: .textMuted, size: 10)
             MonoLabel(text: label, color: .textMuted, size: 10)
@@ -1118,6 +1156,7 @@ struct NutritionTargetCard: View {
 }
 
 struct NutritionMealRow: View {
+    @Environment(\.appMetrics) private var metrics
     let meal: NutritionMeal
     var tagColor: Color {
         switch meal.tag {
@@ -1129,7 +1168,7 @@ struct NutritionMealRow: View {
         }
     }
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: metrics.cardSpacing) {
             // Timeline dot + line
             VStack(spacing: 0) {
                 Circle()
@@ -1144,18 +1183,18 @@ struct NutritionMealRow: View {
             }
             .frame(width: 7)
 
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                 MonoLabel(text: meal.time, color: .textMuted, size: 10)
                 Text(meal.name)
                     .font(.sora(13, weight: meal.tag == "lift" ? .semibold : .light))
                     .foregroundColor(meal.tag == "lift" ? .violetLight : .textPrimary)
                 Text(meal.foods)
-                    .font(.sora(12, weight: .light))
+                    .font(metrics.fontSora(13, weight: .light))
                     .foregroundColor(.textSecond)
                     .lineSpacing(2)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(meal.rule)
-                    .font(.system(size: 11, design: .monospaced))
+                    .font(.system(size: metrics.scaledSize(12), design: .monospaced))
                     .foregroundColor(tagColor)
                     .padding(.top, 1)
                 MonoLabel(text: meal.kcal, color: .textMuted, size: 10)
@@ -1167,14 +1206,15 @@ struct NutritionMealRow: View {
 }
 
 struct NutritionProtoRow: View {
+    @Environment(\.appMetrics) private var metrics
     let key: String
     let value: String
     var body: some View {
-        HStack(alignment: .top, spacing: 8) {
+        HStack(alignment: .top, spacing: metrics.rowSpacing) {
             MonoLabel(text: key, color: .textMuted, size: 10)
                 .frame(width: 80, alignment: .leading)
             Text(value)
-                .font(.sora(12, weight: .light))
+                .font(metrics.fontSora(13, weight: .light))
                 .foregroundColor(.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer()
@@ -1183,11 +1223,12 @@ struct NutritionProtoRow: View {
 }
 
 struct NutritionTagChip: View {
+    @Environment(\.appMetrics) private var metrics
     let text: String
     let color: Color
     var body: some View {
         Text(text)
-            .font(.system(size: 10, design: .monospaced))
+            .font(.system(size: metrics.scaledSize(11), design: .monospaced))
             .foregroundColor(color)
             .padding(.horizontal, 8).padding(.vertical, 3)
             .background(color.opacity(0.12))
@@ -1196,27 +1237,28 @@ struct NutritionTagChip: View {
 }
 
 struct NutritionFailureRow: View {
+    @Environment(\.appMetrics) private var metrics
     let num: String
     let title: String
     let description: String
     let fix: String
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .top, spacing: 8) {
+        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+            HStack(alignment: .top, spacing: metrics.rowSpacing) {
                 MonoLabel(text: num, color: .inkRed, size: 11)
                 Text(title)
-                    .font(.sora(13, weight: .medium))
+                    .font(metrics.fontSora(14, weight: .medium))
                     .foregroundColor(.textPrimary)
             }
             Text(description)
-                .font(.sora(12, weight: .light))
+                .font(metrics.fontSora(13, weight: .light))
                 .foregroundColor(.textSecond)
                 .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
-            HStack(alignment: .top, spacing: 4) {
+            HStack(alignment: .top, spacing: metrics.rowSpacing) {
                 MonoLabel(text: "→", color: .inkTeal, size: 11)
                 Text(fix)
-                    .font(.sora(12, weight: .light))
+                    .font(metrics.fontSora(13, weight: .light))
                     .foregroundColor(.inkTeal)
                     .lineSpacing(2)
                     .fixedSize(horizontal: false, vertical: true)

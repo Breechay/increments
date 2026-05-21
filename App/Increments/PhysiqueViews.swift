@@ -16,74 +16,114 @@ struct PhysiqueTabView: View {
     var body: some View {
         ZStack {
             AtmosphericBackground()
-            VStack(spacing: 0) {
+            VStack(spacing: metrics.cardSpacing) {
 
-                // Header
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        MonoLabel(text: "PHYSIQUE LAB", color: .inkGreen, size: 10)
-                        Text("Body Architecture")
-                            .font(.sora(22, weight: .semibold))
-                            .foregroundColor(.textPrimary)
-                        HStack(spacing: 6) {
-                            Text("FORGE EXECUTES")
-                                .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                                .foregroundColor(.inkAmber)
-                                .padding(.horizontal, 7).padding(.vertical, 3)
-                                .background(Color.inkAmber.opacity(0.12))
-                                .clipShape(RoundedRectangle(cornerRadius: 4))
-                            Text("PHYSIQUE GOVERNS")
-                                .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                GlanceTabHeader(kicker: "PHYSIQUE LAB", title: "Body Architecture", kickerColor: .inkGreen) {
+                    VStack(alignment: .trailing, spacing: metrics.scaledSize(4)) {
+                        HStack(spacing: metrics.scaledSize(6)) {
+                            MonoLabel(text: "~12–13%", color: .textMuted, size: 9)
+                            Image(systemName: "arrow.down")
+                                .font(.system(size: metrics.scaledSize(8), weight: .light))
                                 .foregroundColor(.inkGreen)
-                                .padding(.horizontal, 7).padding(.vertical, 3)
-                                .background(Color.inkGreen.opacity(0.12))
-                                .clipShape(RoundedRectangle(cornerRadius: 4))
+                            MonoLabel(text: "8–10%", color: .inkGreen, size: 9)
                         }
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: 3) {
-                        MonoLabel(text: "~12–13% BF", color: .textMuted, size: 9)
-                        Image(systemName: "arrow.down")
-                            .font(.system(size: 10, weight: .light))
-                            .foregroundColor(.inkGreen)
-                        MonoLabel(text: "8–10% GOAL", color: .inkGreen, size: 9)
+                        MonoLabel(text: "BODY FAT", color: .textMuted, size: 8)
                     }
                 }
-                .padding(.horizontal, metrics.hPad).padding(.top, 20).padding(.bottom, 12)
 
-                // Scrollable pill tabs
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 6) {
-                        ForEach(sections.indices, id: \.self) { i in
-                            Button(action: { withAnimation(.easeOut(duration: 0.18)) { selectedSection = i } }) {
-                                Text(sections[i])
-                                    .font(.system(size: 10, weight: .medium, design: .monospaced))
-                                    .tracking(0.5)
-                                    .foregroundColor(selectedSection == i ? .bgBase : .textMuted)
-                                    .padding(.horizontal, 12).padding(.vertical, 6)
-                                    .background(selectedSection == i ? Color.inkGreen : Color.surface2)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                if metrics.isIPad {
+                    // iPad: vertical section rail left, content right — no tapping required
+                    IPadMasterDetailLayout(metrics: metrics, leftFraction: 0.28) {
+                        ScrollView(showsIndicators: false) {
+                            VStack(alignment: .leading, spacing: metrics.scaledSize(2)) {
+                                SectionHeader(text: "SECTIONS", color: .textMuted)
+                                    .padding(.horizontal, metrics.hPad)
+                                    .padding(.top, metrics.scaledSize(12))
+                                    .padding(.bottom, metrics.scaledSize(6))
+                                ForEach(sections.indices, id: \.self) { i in
+                                    Button(action: { withAnimation(.easeOut(duration: 0.18)) { selectedSection = i } }) {
+                                        HStack(spacing: metrics.scaledSize(12)) {
+                                            RoundedRectangle(cornerRadius: 2)
+                                                .fill(selectedSection == i ? Color.inkGreen : Color.inkGreen.opacity(0.15))
+                                                .frame(width: metrics.scaledSize(3), height: metrics.scaledSize(28))
+                                            Text(sections[i])
+                                                .font(metrics.fontMono(11))
+                                                .foregroundColor(selectedSection == i ? .textPrimary : .textMuted)
+                                                .tracking(0.8)
+                                            Spacer()
+                                            if selectedSection == i {
+                                                Image(systemName: "chevron.right")
+                                                    .font(.system(size: metrics.scaledSize(10), weight: .medium))
+                                                    .foregroundColor(.inkGreen.opacity(0.6))
+                                            }
+                                        }
+                                        .padding(.vertical, metrics.scaledSize(10))
+                                        .padding(.horizontal, metrics.hPad)
+                                        .background(
+                                            selectedSection == i
+                                                ? Color.inkGreen.opacity(0.07)
+                                                : Color.clear
+                                        )
+                                        .clipShape(RoundedRectangle(cornerRadius: metrics.cardRadius * 0.6))
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .padding(.vertical, metrics.scaledSize(8))
+                            .padding(.bottom, 80)
+                        }
+                    } right: {
+                        ScrollView(showsIndicators: false) {
+                            Group {
+                                switch selectedSection {
+                                case 0: targetSection
+                                case 1: cutSection
+                                case 2: programSection
+                                case 3: cardioSection
+                                case 4: sculptSection
+                                case 5: adherenceSection
+                                case 6: failuresSection
+                                default: adjustSection
+                                }
+                            }
+                            .adaptiveContentWidth(metrics)
+                        }
+                    }
+                } else {
+                    // iPhone: scrollable pill tabs
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: metrics.rowSpacing) {
+                            ForEach(sections.indices, id: \.self) { i in
+                                Button(action: { withAnimation(.easeOut(duration: 0.18)) { selectedSection = i } }) {
+                                    Text(sections[i])
+                                        .font(.system(size: metrics.scaledSize(10), weight: .medium, design: .monospaced))
+                                        .tracking(0.5)
+                                        .foregroundColor(selectedSection == i ? .bgBase : .textMuted)
+                                        .padding(.horizontal, 12).padding(.vertical, 6)
+                                        .background(selectedSection == i ? Color.inkGreen : Color.surface2)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                                }
                             }
                         }
+                        .padding(.horizontal, metrics.hPad)
                     }
-                    .padding(.horizontal, metrics.hPad)
-                }
-                .padding(.bottom, 14)
+                    .padding(.bottom, metrics.sectionGap)
 
-                ScrollView(showsIndicators: false) {
-                    Group {
-                        switch selectedSection {
-                        case 0: targetSection
-                        case 1: cutSection
-                        case 2: programSection
-                        case 3: cardioSection
-                        case 4: sculptSection
-                        case 5: adherenceSection
-                        case 6: failuresSection
-                        default: adjustSection
+                    ScrollView(showsIndicators: false) {
+                        Group {
+                            switch selectedSection {
+                            case 0: targetSection
+                            case 1: cutSection
+                            case 2: programSection
+                            case 3: cardioSection
+                            case 4: sculptSection
+                            case 5: adherenceSection
+                            case 6: failuresSection
+                            default: adjustSection
+                            }
                         }
+                        .adaptiveContentWidth(metrics)
                     }
-                    .adaptiveContentWidth(metrics)
                 }
             }
         }
@@ -92,31 +132,31 @@ struct PhysiqueTabView: View {
     // MARK: - 1. TARGET
 
     var targetSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: metrics.blockSpacing) {
 
             // Governing insight
             CardView {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    HStack(spacing: metrics.cardSpacing) {
                         Rectangle().fill(Color.inkGreen).frame(width: 3, height: 36).clipShape(RoundedRectangle(cornerRadius: 1.5))
-                        VStack(alignment: .leading, spacing: 3) {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                             MonoLabel(text: "GOVERNING INSIGHT — MULTI-AGENT SYNTHESIS", color: .inkGreen, size: 10)
                             Text("Ratio management, not mass acquisition.")
-                                .font(.sora(15, weight: .semibold)).foregroundColor(.textPrimary)
+                                .font(metrics.fontSora(15, weight: .semibold)).foregroundColor(.textPrimary)
                         }
                     }
                     Text("The raw material is already there. The task is: suppress what's wrong, accelerate what's right, let leanness unmask what already exists.")
-                        .font(.sora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                        .font(metrics.fontSora(14, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
                     Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
                     Text("Fastest visual ROI: drop from 12–13% → 9–10% while building lateral delt cap simultaneously. These two levers change perception faster than any other combination.")
-                        .font(.system(size: 10, design: .monospaced)).foregroundColor(.inkGreen).lineSpacing(2.5)
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.inkGreen).lineSpacing(2.5)
                 }
             }
             .padding(.horizontal, metrics.hPad)
 
             // Priority ranking
             CardView {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: metrics.blockSpacing) {
                     MonoLabel(text: "VISUAL LEVERAGE RANKING", color: .textMuted, size: 10)
                     leverageRow(1, "Shoulder width / 3D cap", 0.98, "Fastest ratio shift. Lateral + rear delt.")
                     leverageRow(2, "Leanness (8–10% BF)", 0.90, "Unlocks serratus, abs, sternal line.")
@@ -131,8 +171,8 @@ struct PhysiqueTabView: View {
 
             // Morphology brief
             CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: metrics.blockSpacing) {
+                    HStack(spacing: metrics.cardSpacing) {
                         MonoLabel(text: "MORPHOLOGY BRIEF", color: .textMuted, size: 10)
                         Spacer()
                         MonoLabel(text: "UPPER BODY", color: .inkGreen, size: 9)
@@ -149,8 +189,8 @@ struct PhysiqueTabView: View {
             .padding(.horizontal, metrics.hPad)
 
             CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: metrics.blockSpacing) {
+                    HStack(spacing: metrics.cardSpacing) {
                         MonoLabel(text: "MORPHOLOGY BRIEF", color: .textMuted, size: 10)
                         Spacer()
                         MonoLabel(text: "LOWER BODY", color: .violetLight, size: 9)
@@ -165,11 +205,11 @@ struct PhysiqueTabView: View {
 
             // Intentional suppression
             CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "INTENTIONAL SUPPRESSION LIST", color: .inkAmber, size: 10)
                     Text("These are not neglected — they are actively limited.")
-                        .font(.sora(11, weight: .light)).foregroundColor(.textMuted)
-                    VStack(spacing: 6) {
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted)
+                    VStack(spacing: metrics.rowSpacing) {
                         suppressRow("Anterior delts", "Already overdeveloped. Grows from incline pressing. Zero direct work.")
                         suppressRow("Upper traps", "Compresses shoulder illusion. Widening traps = shorter neck + smaller-looking delts.")
                         suppressRow("Flat pressing volume", "Feeds anterior delt and mid/lower chest at the expense of upper chest priority.")
@@ -188,15 +228,15 @@ struct PhysiqueTabView: View {
     // MARK: - 2. CUT
 
     var cutSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: metrics.blockSpacing) {
 
             CardView {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: metrics.blockSpacing) {
+                    HStack(spacing: metrics.cardSpacing) {
                         Rectangle().fill(Color.inkGreen).frame(width: 3, height: 28).clipShape(RoundedRectangle(cornerRadius: 1.5))
                         MonoLabel(text: "CUT PROTOCOL — ACTIVE", color: .inkGreen, size: 10)
                     }
-                    HStack(spacing: 0) {
+                    HStack(spacing: metrics.cardSpacing) {
                         cutCol("CALORIES\nWORKDAYS", "2,200\n–2,350")
                         divider()
                         cutCol("CALORIES\nBASE DAYS", "1,900\n–2,100")
@@ -207,13 +247,13 @@ struct PhysiqueTabView: View {
                         Spacer()
                     }
                     Text("~2,650 kcal estimated maintenance. Do not cut below 1,900 kcal. Rate above 1 lb/week = muscle loss risk — add 200 kcal. Rate below 0.5 lb/week after 2 weeks of confirmed adherence = reduce by 150 kcal.")
-                        .font(.system(size: 10, design: .monospaced)).foregroundColor(.textMuted).lineSpacing(2.5)
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.textMuted).lineSpacing(2.5)
                 }
             }
             .padding(.horizontal, metrics.hPad)
 
             CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: metrics.blockSpacing) {
                     MonoLabel(text: "MEAL TIMING — WORKDAY (WED–SUN)", color: .textMuted, size: 10)
                     mealRailView()
                 }
@@ -221,7 +261,7 @@ struct PhysiqueTabView: View {
             .padding(.horizontal, metrics.hPad)
 
             CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "CARB TIMING LOGIC", color: .textMuted, size: 10)
                     carbRow2("Fasted cardio 4:30 AM", "Zone 2 fat oxidation peaks when insulin is low. No pre-cardio carbs. Override: half banana if body battery <30 or HRV suppressed.", .good)
                     carbRow2("9:30 AM banana", "First carb of the day. Liver glycogen restoration after fasted cardio without spiking insulin aggressively.", .neutral)
@@ -233,12 +273,12 @@ struct PhysiqueTabView: View {
             .padding(.horizontal, metrics.hPad)
 
             CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "PRE-LIFT CARB — MOST CRITICAL SINGLE ACTION", color: .inkAmber, size: 10)
                     Text("Chronically lifting glycogen-depleted after an 8-hour active shift produces strength regression that looks like 'the cut is working.' You're losing muscle, not fat. The sourdough at 4:45 is what separates fat loss from fat-and-muscle loss.")
-                        .font(.sora(12, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
                     Text("Pack it in the bag every morning. This is not a decision — it is a system.")
-                        .font(.system(size: 10, design: .monospaced)).foregroundColor(.inkAmber).lineSpacing(2)
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.inkAmber).lineSpacing(2)
                 }
             }
             .padding(.horizontal, metrics.hPad)
@@ -251,29 +291,29 @@ struct PhysiqueTabView: View {
     // MARK: - 3. PROGRAM
 
     var programSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: metrics.blockSpacing) {
 
             // Phase status
             CardView {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    HStack(spacing: metrics.cardSpacing) {
                         Rectangle().fill(Color.inkGreen).frame(width: 3, height: 28).clipShape(RoundedRectangle(cornerRadius: 1.5))
                         MonoLabel(text: "PROGRAM ARCHITECTURE — PHASE 1 ACTIVE", color: .inkGreen, size: 10)
                     }
-                    HStack(spacing: 16) {
-                        VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: metrics.sectionGap) {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                             MonoLabel(text: "PHASE", color: .textMuted, size: 9)
-                            Text("1 of 2").font(.system(size: 13, weight: .semibold, design: .monospaced)).foregroundColor(.inkAmber)
+                            Text("1 of 2").font(.system(size: metrics.scaledSize(13), weight: .semibold, design: .monospaced)).foregroundColor(.inkAmber)
                         }
                         Rectangle().fill(Color.muted.opacity(0.2)).frame(width: 0.5, height: 30)
-                        VStack(alignment: .leading, spacing: 3) {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                             MonoLabel(text: "CONSTRAINT", color: .textMuted, size: 9)
-                            Text("Injury-modified").font(.system(size: 13, weight: .semibold, design: .monospaced)).foregroundColor(.textPrimary)
+                            Text("Injury-modified").font(.system(size: metrics.scaledSize(13), weight: .semibold, design: .monospaced)).foregroundColor(.textPrimary)
                         }
                         Rectangle().fill(Color.muted.opacity(0.2)).frame(width: 0.5, height: 30)
-                        VStack(alignment: .leading, spacing: 3) {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                             MonoLabel(text: "DURATION", color: .textMuted, size: 9)
-                            Text("~2–3 wks").font(.system(size: 13, weight: .semibold, design: .monospaced)).foregroundColor(.textPrimary)
+                            Text("~2–3 wks").font(.system(size: metrics.scaledSize(13), weight: .semibold, design: .monospaced)).foregroundColor(.textPrimary)
                         }
                         Spacer()
                     }
@@ -283,11 +323,11 @@ struct PhysiqueTabView: View {
 
             // Daily structure
             CardView {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "DAILY STRUCTURE", color: .inkGreen, size: 10)
                     Text("2.5 exposures per day. Not 3 full sessions. The third slot fires only for a specific purpose — serratus, TVA, or targeted micro-pump. Most days: 2 exposures.")
-                        .font(.sora(12, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
-                    HStack(spacing: 0) {
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                    HStack(spacing: metrics.cardSpacing) {
                         slotCol("AM 4:30–5:10", "Activation\nGlute primer\nLow fatigue")
                         slotCol("PM 5:30+", "Primary\nHypertrophy\nHigh signal")
                         slotCol("Optional 3rd", "Sculpt micro\n10–15 min\nVery low cost")
@@ -299,25 +339,25 @@ struct PhysiqueTabView: View {
 
             // Phase 1 context
             CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     HStack {
                         MonoLabel(text: "PHASE 1 — CURRENT (INJURY-MODIFIED)", color: .inkAmber, size: 10)
                         Spacer()
                         MonoLabel(text: "~3 WEEKS", color: .textMuted, size: 9)
                     }
                     Text("Aggressive upper body. Protected lower body. This is a specialization block — forced prioritization is actually favorable for shoulder and upper chest development. Lower body is preserved, not abandoned.")
-                        .font(.sora(11, weight: .light)).foregroundColor(.textSecond).lineSpacing(2.5)
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(2.5)
                 }
             }
             .padding(.horizontal, metrics.hPad)
 
             // Forge boundary
             CardView {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 10) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    HStack(spacing: metrics.cardSpacing) {
                         Rectangle().fill(Color.inkAmber).frame(width: 3, height: 52).clipShape(RoundedRectangle(cornerRadius: 1.5))
-                        VStack(alignment: .leading, spacing: 6) {
-                            HStack(spacing: 6) {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                            HStack(spacing: metrics.rowSpacing) {
                                 MonoLabel(text: "FORGE EXECUTES", color: .inkAmber, size: 9)
                                     .padding(.horizontal, 6).padding(.vertical, 2)
                                     .background(Color.inkAmber.opacity(0.12))
@@ -328,7 +368,7 @@ struct PhysiqueTabView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 4))
                             }
                             Text("Sets, reps, load, and session history live in Forge. Tap any session below to see the full exercise list. This tab governs intent — why each session exists, what it must accomplish, what it must never do.")
-                                .font(.sora(11, weight: .light)).foregroundColor(.textSecond).lineSpacing(2.5)
+                                .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(2.5)
                         }
                     }
                 }
@@ -449,31 +489,31 @@ struct PhysiqueTabView: View {
 
             // AM Activation
             CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "AM SLOT — 4:30–5:10 AM", color: .textMuted, size: 10)
                     Text("Not a workout. A stimulus tier. Fires glute med and preserves posterior chain patterns while PM lower loading is suppressed. Daily or 4–5× per week. 15–20 min max. If it doesn't feel easy, it's too much.")
-                        .font(.sora(11, weight: .light)).foregroundColor(.textMuted).lineSpacing(2.5)
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted).lineSpacing(2.5)
                     Rectangle().fill(Color.muted.opacity(0.15)).frame(height: 0.5)
                     Text("Glute bridge (BW) · Clamshell (band) · Lateral band walk · Donkey kick · Single-leg hip hinge")
-                        .font(.system(size: 10, design: .monospaced)).foregroundColor(.textSecond).lineSpacing(2.5)
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.textSecond).lineSpacing(2.5)
                     Text("Zero fatigue cost to PM session — that is the design constraint.")
-                        .font(.system(size: 10, design: .monospaced)).foregroundColor(.inkGreen).lineSpacing(2)
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.inkGreen).lineSpacing(2)
                 }
             }
             .padding(.horizontal, metrics.hPad)
 
             // Phase 2 shift
             CardView {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     HStack {
                         MonoLabel(text: "PHASE 2 — ARCHITECTURAL SHIFT", color: .inkGreen, size: 10)
                         Spacer()
                         MonoLabel(text: "CLINICAL GATE · NOT CALENDAR", color: .inkAmber, size: 9)
                     }
                     Text("Posterior chain earns a primary session slot. Lower body transitions from activation-only to loaded compound. Shoulder and upper chest priority locks in permanently — those gains do not trade away for glute work.")
-                        .font(.sora(12, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
                     Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         archShiftRow("Gate", "Pain-free single-leg loading + stable RDL tolerance. Not elapsed time.")
                         archShiftRow("Lower", "Hip thrust, RDL, B-stance RDL, cable abduction replace bridge-only work.")
                         archShiftRow("Stairmaster", "Unlocks as a glute tool — Wednesday AM or Friday AM only.")
@@ -485,10 +525,10 @@ struct PhysiqueTabView: View {
 
             // Volume — honest framing
             CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "WEEKLY VOLUME — SPECIALIZATION BLOCK", color: .textMuted, size: 10)
                     Text("This is not balanced hypertrophy volume. These are specialization-level numbers for an advanced operator with a specific morphology target. Recovery signal: Thursday shoulder freshness — not set arithmetic.")
-                        .font(.system(size: 10, design: .monospaced)).foregroundColor(.textMuted).lineSpacing(2.5)
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.textMuted).lineSpacing(2.5)
                     Rectangle().fill(Color.muted.opacity(0.1)).frame(height: 0.5)
                     volumeTableRow("Lateral delts", "18–22 sets", "3× weekly · primary morphology driver", .inkGreen)
                     Rectangle().fill(Color.muted.opacity(0.1)).frame(height: 0.5)
@@ -527,7 +567,7 @@ struct PhysiqueTabView: View {
     ) -> some View {
         let isExpanded = expandedDay == day
         return CardView(style: .secondary) {
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: metrics.cardSpacing) {
 
                 // Tappable header row
                 Button(action: {
@@ -535,14 +575,14 @@ struct PhysiqueTabView: View {
                         expandedDay = isExpanded ? nil : day
                     }
                 }) {
-                    HStack(alignment: .top, spacing: 8) {
+                    HStack(alignment: .top, spacing: metrics.cardSpacing) {
                         MonoLabel(text: day, color: color, size: 11)
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack(spacing: 6) {
-                                Text(title).font(.sora(13, weight: .semibold)).foregroundColor(.textPrimary)
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                            HStack(spacing: metrics.rowSpacing) {
+                                Text(title).font(metrics.fontSora(14, weight: .semibold)).foregroundColor(.textPrimary)
                                 if let st = sessionType {
                                     Text(st)
-                                        .font(.system(size: 8, weight: .medium, design: .monospaced))
+                                        .font(.system(size: metrics.scaledSize(9), weight: .medium, design: .monospaced))
                                         .foregroundColor(.textMuted)
                                         .padding(.horizontal, 5).padding(.vertical, 2)
                                         .background(Color.muted.opacity(0.12))
@@ -553,62 +593,62 @@ struct PhysiqueTabView: View {
                         }
                         Spacer()
                         Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                            .font(.system(size: 11, weight: .light))
+                            .font(.system(size: metrics.scaledSize(13), weight: .light))
                             .foregroundColor(.textMuted)
                     }
                 }
                 .buttonStyle(.plain)
 
                 // Always-visible intent block
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     Rectangle().fill(Color.muted.opacity(0.15)).frame(height: 0.5).padding(.top, 10)
-                    HStack(alignment: .top, spacing: 8) {
+                    HStack(alignment: .top, spacing: metrics.cardSpacing) {
                         MonoLabel(text: "PRIORITY", color: .textMuted, size: 9).frame(width: 60, alignment: .leading)
-                        Text(priority).font(.sora(11, weight: .light)).foregroundColor(.textSecond).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
+                        Text(priority).font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
                     }
-                    HStack(alignment: .top, spacing: 8) {
+                    HStack(alignment: .top, spacing: metrics.cardSpacing) {
                         MonoLabel(text: "INTENT", color: .textMuted, size: 9).frame(width: 60, alignment: .leading)
-                        Text(intent).font(.sora(11, weight: .light)).foregroundColor(.textSecond).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
+                        Text(intent).font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
                     }
-                    HStack(alignment: .top, spacing: 8) {
+                    HStack(alignment: .top, spacing: metrics.cardSpacing) {
                         MonoLabel(text: "SUPPRESS", color: .inkRed, size: 9).frame(width: 60, alignment: .leading)
-                        Text(suppressed).font(.system(size: 10, design: .monospaced)).foregroundColor(.inkRed.opacity(0.8)).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
+                        Text(suppressed).font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.inkRed.opacity(0.8)).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
                     }
                 }
 
                 // Expandable exercise catalog
                 if isExpanded {
-                    VStack(alignment: .leading, spacing: 0) {
+                    VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                         Rectangle().fill(Color.muted.opacity(0.15)).frame(height: 0.5).padding(.top, 12)
-                        HStack(spacing: 6) {
+                        HStack(spacing: metrics.rowSpacing) {
                             MonoLabel(text: "EXERCISES", color: .inkGreen, size: 9)
                             Text("tap to collapse")
-                                .font(.system(size: 8, design: .monospaced))
+                                .font(.system(size: metrics.scaledSize(9), design: .monospaced))
                                 .foregroundColor(.textMuted)
                         }
                         .padding(.top, 10).padding(.bottom, 8)
 
-                        VStack(alignment: .leading, spacing: 0) {
+                        VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                             ForEach(Array(exercises.enumerated()), id: \.offset) { idx, ex in
-                                HStack(alignment: .top, spacing: 10) {
+                                HStack(alignment: .top, spacing: metrics.cardSpacing) {
                                     Text("\(idx + 1)")
-                                        .font(.system(size: 9, weight: .medium, design: .monospaced))
+                                        .font(.system(size: metrics.scaledSize(10), weight: .medium, design: .monospaced))
                                         .foregroundColor(.textMuted)
                                         .frame(width: 14, alignment: .leading)
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                                        HStack(alignment: .firstTextBaseline, spacing: metrics.cardSpacing) {
                                             Text(ex.0)
-                                                .font(.sora(12, weight: .medium))
+                                                .font(metrics.fontSora(13, weight: .medium))
                                                 .foregroundColor(.textPrimary)
                                                 .fixedSize(horizontal: false, vertical: true)
                                             Spacer()
                                             Text(ex.1)
-                                                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                                                .font(.system(size: metrics.scaledSize(11), weight: .semibold, design: .monospaced))
                                                 .foregroundColor(.inkGreen)
                                                 .fixedSize(horizontal: false, vertical: true)
                                         }
                                         Text(ex.2)
-                                            .font(.system(size: 10, design: .monospaced))
+                                            .font(.system(size: metrics.scaledSize(11), design: .monospaced))
                                             .foregroundColor(.textMuted)
                                             .lineSpacing(1.5)
                                             .fixedSize(horizontal: false, vertical: true)
@@ -631,16 +671,16 @@ struct PhysiqueTabView: View {
     // MARK: - 4. CARDIO
 
     var cardioSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: metrics.blockSpacing) {
 
             CardView {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    HStack(spacing: metrics.cardSpacing) {
                         Rectangle().fill(Color.violetLight).frame(width: 3, height: 28).clipShape(RoundedRectangle(cornerRadius: 1.5))
                         MonoLabel(text: "CARDIO LAB — SCULPTING TOOLS", color: .inkGreen, size: 10)
                     }
                     Text("Cardio selection determines morphology outcomes, not just caloric expenditure. Each tool has a different sculpting profile. Choose based on what the session needs to accomplish.")
-                        .font(.sora(12, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
                 }
             }
             .padding(.horizontal, metrics.hPad)
@@ -702,7 +742,7 @@ struct PhysiqueTabView: View {
 
             // Placement rules
             CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "CARDIO PLACEMENT RULES", color: .textMuted, size: 10)
                     placementRow("Stairmaster", "Wed (no PM lower body) or Fri (PM is low-CNS). Never before Phase 2 posterior chain session.")
                     placementRow("Bike", "Flexible. Default AM tool. 10 min pre-PM as warm-up or 20 min post-PM.")
@@ -710,7 +750,7 @@ struct PhysiqueTabView: View {
                     placementRow("Rowing", "Non-pull days only, low intensity. Not a deliberate slot.")
                     Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
                     Text("Total deliberate cardio: 3–4 sessions/week, 20–35 min. Hideout standing contributes to total energy expenditure — factor it into recovery budget.")
-                        .font(.system(size: 10, design: .monospaced)).foregroundColor(.textMuted).lineSpacing(2.5)
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.textMuted).lineSpacing(2.5)
                 }
             }
             .padding(.horizontal, metrics.hPad)
@@ -723,16 +763,16 @@ struct PhysiqueTabView: View {
     // MARK: - 5. SCULPT
 
     var sculptSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: metrics.blockSpacing) {
 
             CardView {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    HStack(spacing: metrics.cardSpacing) {
                         Rectangle().fill(Color.inkAmber).frame(width: 3, height: 28).clipShape(RoundedRectangle(cornerRadius: 1.5))
                         MonoLabel(text: "SCULPT PRIORITIES — SELECTIVE HYPERTROPHY", color: .inkGreen, size: 10)
                     }
                     Text("Forge is the base. These are the specific areas requiring deliberate emphasis and active suppression. 10 years of training = diminishing returns everywhere except targeted weak points.")
-                        .font(.sora(12, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
                 }
             }
             .padding(.horizontal, metrics.hPad)
@@ -794,23 +834,23 @@ struct PhysiqueTabView: View {
     // MARK: - 6. SIGNALS
 
     var adherenceSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: metrics.blockSpacing) {
 
             CardView {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    HStack(spacing: metrics.cardSpacing) {
                         Rectangle().fill(Color.inkGreen).frame(width: 3, height: 28).clipShape(RoundedRectangle(cornerRadius: 1.5))
                         MonoLabel(text: "ARCHITECTURE SIGNALS — BODY READOUT", color: .inkGreen, size: 10)
                     }
                     Text("Not adherence checkboxes. Sensory and visual signals that tell you whether the architecture is executing correctly. Forge tracks what you did. This reads what it's producing.")
-                        .font(.sora(12, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
                 }
             }
             .padding(.horizontal, metrics.hPad)
 
             // Positive signals
             CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "GREEN SIGNALS — ARCHITECTURE ON TRACK", color: .inkGreen, size: 10)
                     signalRow("Shoulders look wider in photos than 4 weeks ago", "Lateral delt stimulus is landing. Continue.", .inkGreen)
                     signalRow("Rear of shoulder visible from side view", "Rear delt volume is cumulative. Don't stop.", .inkGreen)
@@ -824,7 +864,7 @@ struct PhysiqueTabView: View {
 
             // Warning signals
             CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "AMBER SIGNALS — ARCHITECTURE DRIFT", color: .inkAmber, size: 10)
                     signalRow("Front of shoulder sore after chest day", "Incline angle has crept above 45°. Press is becoming shoulder press.", .inkAmber)
                     signalRow("Shoulder sessions feel like chest sessions", "Exercise order is wrong. Lateral isolation must come before pressing.", .inkAmber)
@@ -838,28 +878,28 @@ struct PhysiqueTabView: View {
 
             // TVA — kept as zero-cost non-negotiable
             CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     HStack {
                         MonoLabel(text: "TVA VACUUM — ZERO FATIGUE COST", color: .inkAmber, size: 10)
                         Spacer()
                         MonoLabel(text: "START IMMEDIATELY", color: .inkGreen, size: 9)
                     }
                     Text("TVA resting tone is trainable without adding oblique circumference. Daily practice compresses the waist from inside. Measurable circumference reduction within 4–6 weeks. This is the highest-ROI non-session action in the entire protocol.")
-                        .font(.sora(12, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
                     Text("Stomach vacuum 3×30–60s · Exhale fully · Navel to spine · Hold · Breathe lightly · Morning fasted window")
-                        .font(.system(size: 10, design: .monospaced)).foregroundColor(.inkAmber).lineSpacing(2.5)
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.inkAmber).lineSpacing(2.5)
                 }
             }
             .padding(.horizontal, metrics.hPad)
 
             // Forge future note
             CardView(style: .secondary) {
-                HStack(alignment: .top, spacing: 12) {
+                HStack(alignment: .top, spacing: metrics.blockSpacing) {
                     Rectangle().fill(Color.textMuted.opacity(0.3)).frame(width: 2)
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "FUTURE — FORGE × PHYSIQUE INTEGRATION", color: .textMuted, size: 10)
                         Text("Eventually Forge will send completed training data to Physique. Physique will interpret whether the architecture is being executed — not just whether sessions happened, but whether the right muscles are being prioritized in the right order at the right frequency. When that pipeline exists, this section becomes the interpretation layer.")
-                            .font(.sora(11, weight: .light)).foregroundColor(.textMuted).lineSpacing(2.5)
+                            .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted).lineSpacing(2.5)
                     }
                 }
             }
@@ -873,16 +913,16 @@ struct PhysiqueTabView: View {
     // MARK: - 7. FAILURES
 
     var failuresSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: metrics.blockSpacing) {
 
             CardView {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    HStack(spacing: metrics.cardSpacing) {
                         Rectangle().fill(Color.inkAmber).frame(width: 3, height: 28).clipShape(RoundedRectangle(cornerRadius: 1.5))
                         MonoLabel(text: "FAILURE MODES — ARCHITECTURE COLLAPSE", color: .inkAmber, size: 10)
                     }
                     Text("These are the specific ways this architecture fails. Not generic fitness mistakes — the exact failure signatures of this schedule, this body, this protocol.")
-                        .font(.sora(12, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
                 }
             }
             .padding(.horizontal, metrics.hPad)
@@ -919,16 +959,16 @@ struct PhysiqueTabView: View {
     // MARK: - 8. ADJUSTMENTS
 
     var adjustSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: metrics.blockSpacing) {
 
             CardView {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    HStack(spacing: metrics.cardSpacing) {
                         Rectangle().fill(Color.inkAmber).frame(width: 3, height: 28).clipShape(RoundedRectangle(cornerRadius: 1.5))
                         MonoLabel(text: "DECISION TREES — WHEN RESULTS STALL", color: .inkGreen, size: 10)
                     }
                     Text("Answer in order. Do not change the plan until execution is confirmed as the variable. Data-driven correction only.")
-                        .font(.sora(12, weight: .light)).foregroundColor(.textMuted).lineSpacing(2)
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted).lineSpacing(2)
                 }
             }
             .padding(.horizontal, metrics.hPad)
@@ -976,54 +1016,61 @@ struct PhysiqueTabView: View {
     // MARK: - Helpers
 
     func leverageRow(_ num: Int, _ label: String, _ value: Double, _ note: String) -> some View {
-        HStack(spacing: 10) {
+        let barH: CGFloat = metrics.isIPad ? 8 : 4
+        let labelW: CGFloat = metrics.isIPad ? 200 : 160
+        return HStack(spacing: metrics.rowSpacing) {
             Text("\(num)")
-                .font(.system(size: 10, design: .monospaced))
+                .font(metrics.fontMono(11))
                 .foregroundColor(.textMuted)
-                .frame(width: 14)
+                .frame(width: metrics.scaledSize(18))
             Text(label)
-                .font(.sora(12, weight: .medium))
+                .font(metrics.fontSora(14, weight: .medium))
                 .foregroundColor(.textPrimary)
-                .frame(width: 160, alignment: .leading)
+                .frame(width: labelW, alignment: .leading)
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 2).fill(Color.surface2).frame(height: 4)
-                    RoundedRectangle(cornerRadius: 2).fill(Color.inkGreen).frame(width: geo.size.width * CGFloat(value), height: 4)
+                    RoundedRectangle(cornerRadius: 2).fill(Color.surface2).frame(height: barH)
+                    RoundedRectangle(cornerRadius: 2).fill(Color.inkGreen)
+                        .frame(width: geo.size.width * CGFloat(value), height: barH)
                 }
             }
-            .frame(height: 4)
-            Text(note).font(.sora(10, weight: .light)).foregroundColor(.textMuted).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+            .frame(height: barH)
+            Text(note)
+                .font(metrics.fontSora(12, weight: .light))
+                .foregroundColor(.textMuted)
+                .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, metrics.isIPad ? 6 : 4)
     }
 
     func morphRow(_ key: String, _ value: String) -> some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: metrics.cardSpacing) {
             Text(key)
-                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                .font(.system(size: metrics.scaledSize(11), weight: .semibold, design: .monospaced))
                 .foregroundColor(.inkGreen)
                 .frame(width: 100, alignment: .leading)
             Rectangle().fill(Color.muted.opacity(0.25)).frame(width: 0.5).padding(.top, 3)
-            Text(value).font(.sora(12, weight: .light)).foregroundColor(.textSecond).lineSpacing(2.5).fixedSize(horizontal: false, vertical: true)
+            Text(value).font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(2.5).fixedSize(horizontal: false, vertical: true)
             Spacer()
         }
     }
 
     func suppressRow(_ title: String, _ reason: String) -> some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: metrics.cardSpacing) {
             RoundedRectangle(cornerRadius: 1.5).fill(Color.inkRed.opacity(0.7)).frame(width: 3, height: 32)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.sora(12, weight: .semibold)).foregroundColor(.textPrimary)
-                Text(reason).font(.sora(11, weight: .light)).foregroundColor(.textMuted).lineSpacing(2)
+            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                Text(title).font(metrics.fontSora(13, weight: .semibold)).foregroundColor(.textPrimary)
+                Text(reason).font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted).lineSpacing(2)
             }
         }
         .padding(.vertical, 2)
     }
 
     func cutCol(_ label: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(label).font(.system(size: 9, design: .monospaced)).foregroundColor(.textMuted).tracking(0.3).lineSpacing(2)
-            Text(value).font(.system(size: 13, weight: .semibold, design: .monospaced)).foregroundColor(.textPrimary).lineSpacing(2)
+        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+            Text(label).font(.system(size: metrics.scaledSize(10), design: .monospaced)).foregroundColor(.textMuted).tracking(0.3).lineSpacing(2)
+            Text(value).font(.system(size: metrics.scaledSize(13), weight: .semibold, design: .monospaced)).foregroundColor(.textPrimary).lineSpacing(2)
         }
     }
 
@@ -1032,15 +1079,15 @@ struct PhysiqueTabView: View {
     }
 
     func slotCol(_ label: String, _ desc: String) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
             MonoLabel(text: label, color: .textMuted, size: 9)
-            Text(desc).font(.sora(10, weight: .light)).foregroundColor(.textSecond).lineSpacing(2.5)
+            Text(desc).font(metrics.fontSora(12, weight: .light)).foregroundColor(.textSecond).lineSpacing(2.5)
         }
         .frame(width: 90, alignment: .leading)
     }
 
     func mealRailView() -> some View {
-        VStack(spacing: 0) {
+        VStack(spacing: metrics.cardSpacing) {
             mealRailRow2("4:05", "Wake + creatine", "Water only. Fasted.", false)
             mealRailRow2("5:15", "Post-cardio", "Protein shake in oat milk.", false)
             mealRailRow2("9:30", "First solid meal", "Chicken · eggs · banana · greens.", false)
@@ -1052,16 +1099,16 @@ struct PhysiqueTabView: View {
     }
 
     func mealRailRow2(_ time: String, _ name: String, _ detail: String, _ critical: Bool) -> some View {
-        HStack(alignment: .top, spacing: 10) {
-            VStack(spacing: 0) {
+        HStack(alignment: .top, spacing: metrics.cardSpacing) {
+            VStack(spacing: metrics.cardSpacing) {
                 Circle().fill(critical ? Color.inkAmber : Color.inkGreen.opacity(0.5)).frame(width: 5, height: 5).padding(.top, 5)
                 Rectangle().fill(Color.surface2).frame(width: 1).frame(maxHeight: .infinity)
             }.frame(width: 5)
             HStack(alignment: .top) {
                 MonoLabel(text: time, color: critical ? .inkAmber : .textMuted, size: 9).frame(width: 32, alignment: .leading)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(name).font(.sora(12, weight: critical ? .semibold : .medium)).foregroundColor(critical ? .inkAmber : .textPrimary)
-                    Text(detail).font(.sora(11, weight: .light)).foregroundColor(.textSecond)
+                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                    Text(name).font(metrics.fontSora(13, weight: critical ? .semibold : .medium)).foregroundColor(critical ? .inkAmber : .textPrimary)
+                    Text(detail).font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond)
                 }
             }.padding(.bottom, 10)
             Spacer()
@@ -1072,38 +1119,38 @@ struct PhysiqueTabView: View {
 
     func carbRow2(_ label: String, _ text: String, _ sig: CarbSig) -> some View {
         let c: Color = sig == .critical ? .inkAmber : sig == .good ? .inkGreen : .textMuted
-        return HStack(alignment: .top, spacing: 8) {
+        return HStack(alignment: .top, spacing: metrics.cardSpacing) {
             Circle().fill(c.opacity(0.7)).frame(width: 5, height: 5).padding(.top, 5)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(label).font(.sora(12, weight: .medium)).foregroundColor(.textPrimary)
-                Text(text).font(.sora(11, weight: .light)).foregroundColor(.textSecond).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                Text(label).font(metrics.fontSora(13, weight: .medium)).foregroundColor(.textPrimary)
+                Text(text).font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
             }
         }
     }
 
     func archShiftRow(_ label: String, _ description: String) -> some View {
-        HStack(alignment: .top, spacing: 8) {
+        HStack(alignment: .top, spacing: metrics.cardSpacing) {
             MonoLabel(text: label, color: .inkGreen, size: 9).frame(width: 80, alignment: .leading)
-            Text(description).font(.sora(11, weight: .light)).foregroundColor(.textSecond).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
+            Text(description).font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
         }
     }
 
     func signalRow(_ label: String, _ interpretation: String, _ color: Color) -> some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: metrics.cardSpacing) {
             RoundedRectangle(cornerRadius: 1.5).fill(color.opacity(0.7)).frame(width: 3, height: 32)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(label).font(.sora(12, weight: .medium)).foregroundColor(.textPrimary).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
-                Text(interpretation).font(.system(size: 10, design: .monospaced)).foregroundColor(.textMuted).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                Text(label).font(metrics.fontSora(13, weight: .medium)).foregroundColor(.textPrimary).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+                Text(interpretation).font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.textMuted).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(.vertical, 2)
     }
 
     func volumeTableRow(_ muscle: String, _ sets: String, _ note: String, _ color: Color) -> some View {
-        HStack(spacing: 8) {
-            Text(muscle).font(.sora(12, weight: .light)).foregroundColor(.textSecond).frame(width: 130, alignment: .leading)
-            Text(sets).font(.system(size: 12, weight: .semibold, design: .monospaced)).foregroundColor(color).frame(width: 80, alignment: .leading)
-            Text(note).font(.sora(10, weight: .light)).foregroundColor(.textMuted).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
+        HStack(spacing: metrics.cardSpacing) {
+            Text(muscle).font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).frame(width: 130, alignment: .leading)
+            Text(sets).font(.system(size: metrics.scaledSize(12), weight: .semibold, design: .monospaced)).foregroundColor(color).frame(width: 80, alignment: .leading)
+            Text(note).font(metrics.fontSora(12, weight: .light)).foregroundColor(.textMuted).lineSpacing(1.5).fixedSize(horizontal: false, vertical: true)
             Spacer()
         }
         .padding(.vertical, 4)
@@ -1111,68 +1158,68 @@ struct PhysiqueTabView: View {
 
     func cardioTool(_ name: String, _ timing: String, chips: [(String, Color)], strengths: [String], weaknesses: [String], technique: String) -> some View {
         CardView(style: .secondary) {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                 MonoLabel(text: name, color: .textPrimary, size: 10)
                 MonoLabel(text: timing, color: .textMuted, size: 9)
-                HStack(spacing: 6) {
+                HStack(spacing: metrics.rowSpacing) {
                     ForEach(chips, id: \.0) { label, color in
-                        Text(label).font(.system(size: 9, design: .monospaced)).foregroundColor(color)
+                        Text(label).font(.system(size: metrics.scaledSize(10), design: .monospaced)).foregroundColor(color)
                             .padding(.horizontal, 7).padding(.vertical, 3).background(color.opacity(0.12)).clipShape(RoundedRectangle(cornerRadius: 4))
                     }
                 }
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                     MonoLabel(text: "STRENGTHS", color: .inkGreen, size: 9)
                     ForEach(strengths, id: \.self) { s in
-                        HStack(alignment: .top, spacing: 6) {
-                            Text("+").font(.system(size: 10, design: .monospaced)).foregroundColor(.inkGreen)
-                            Text(s).font(.sora(11, weight: .light)).foregroundColor(.textSecond).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
+                        HStack(alignment: .top, spacing: metrics.rowSpacing) {
+                            Text("+").font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.inkGreen)
+                            Text(s).font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
                         }
                     }
                 }
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                     MonoLabel(text: "WEAKNESSES / RISKS", color: .inkAmber, size: 9)
                     ForEach(weaknesses, id: \.self) { w in
-                        HStack(alignment: .top, spacing: 6) {
-                            Text("−").font(.system(size: 10, design: .monospaced)).foregroundColor(.inkAmber)
-                            Text(w).font(.sora(11, weight: .light)).foregroundColor(.textSecond).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
+                        HStack(alignment: .top, spacing: metrics.rowSpacing) {
+                            Text("−").font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.inkAmber)
+                            Text(w).font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
                         }
                     }
                 }
                 Rectangle().fill(Color.muted.opacity(0.15)).frame(height: 0.5)
-                Text(technique).font(.system(size: 10, design: .monospaced)).foregroundColor(.textMuted).lineSpacing(2.5)
+                Text(technique).font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.textMuted).lineSpacing(2.5)
             }
         }
         .padding(.horizontal, metrics.hPad)
     }
 
     func placementRow(_ tool: String, _ rule: String) -> some View {
-        HStack(alignment: .top, spacing: 8) {
+        HStack(alignment: .top, spacing: metrics.cardSpacing) {
             MonoLabel(text: tool, color: .textMuted, size: 9).frame(width: 70, alignment: .leading)
-            Text(rule).font(.sora(11, weight: .light)).foregroundColor(.textSecond).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
+            Text(rule).font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
         }
     }
 
     func sculptCard2(_ priority: String, _ muscle: String, why: String, movements: String, frequency: String, mechanism: String, color: Color) -> some View {
         CardView(style: .secondary) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(alignment: .top, spacing: 8) {
+            VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                HStack(alignment: .top, spacing: metrics.cardSpacing) {
                     MonoLabel(text: priority, color: color, size: 11)
-                    Text(muscle).font(.sora(14, weight: .semibold)).foregroundColor(.textPrimary)
+                    Text(muscle).font(metrics.fontSora(15, weight: .semibold)).foregroundColor(.textPrimary)
                     Spacer()
                 }
-                Text(why).font(.sora(12, weight: .light)).foregroundColor(.textSecond).lineSpacing(3).fixedSize(horizontal: false, vertical: true)
+                Text(why).font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3).fixedSize(horizontal: false, vertical: true)
                 Rectangle().fill(Color.muted.opacity(0.15)).frame(height: 0.5)
-                HStack(alignment: .top, spacing: 8) {
+                HStack(alignment: .top, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "MOVEMENTS", color: .textMuted, size: 9).frame(width: 72, alignment: .leading)
-                    Text(movements).font(.sora(11, weight: .light)).foregroundColor(.textSecond).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
+                    Text(movements).font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
                 }
-                HStack(alignment: .top, spacing: 8) {
+                HStack(alignment: .top, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "FREQUENCY", color: .textMuted, size: 9).frame(width: 72, alignment: .leading)
-                    Text(frequency).font(.sora(11, weight: .light)).foregroundColor(color).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
+                    Text(frequency).font(metrics.fontSora(13, weight: .light)).foregroundColor(color).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
                 }
-                HStack(alignment: .top, spacing: 8) {
+                HStack(alignment: .top, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "MECHANISM", color: .textMuted, size: 9).frame(width: 72, alignment: .leading)
-                    Text(mechanism).font(.system(size: 10, design: .monospaced)).foregroundColor(.textMuted).lineSpacing(2.5).fixedSize(horizontal: false, vertical: true)
+                    Text(mechanism).font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.textMuted).lineSpacing(2.5).fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
@@ -1181,17 +1228,17 @@ struct PhysiqueTabView: View {
 
     func failCard2(_ num: String, _ title: String, _ mechanism: String, _ correction: String, _ critical: Bool) -> some View {
         CardView(style: .secondary) {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .top, spacing: 8) {
+            VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                HStack(alignment: .top, spacing: metrics.cardSpacing) {
                     MonoLabel(text: num, color: critical ? .inkAmber : .textMuted, size: 11)
-                    Text(title).font(.sora(13, weight: .semibold)).foregroundColor(.textPrimary)
+                    Text(title).font(metrics.fontSora(14, weight: .semibold)).foregroundColor(.textPrimary)
                     Spacer()
                     if critical { MonoLabel(text: "HIGH RISK", color: .inkAmber, size: 8) }
                 }
-                Text(mechanism).font(.sora(11, weight: .light)).foregroundColor(.textSecond).lineSpacing(3).fixedSize(horizontal: false, vertical: true)
-                HStack(alignment: .top, spacing: 6) {
+                Text(mechanism).font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3).fixedSize(horizontal: false, vertical: true)
+                HStack(alignment: .top, spacing: metrics.rowSpacing) {
                     MonoLabel(text: "→", color: .inkGreen, size: 11)
-                    Text(correction).font(.sora(11, weight: .light)).foregroundColor(.inkGreen).lineSpacing(2.5).fixedSize(horizontal: false, vertical: true)
+                    Text(correction).font(metrics.fontSora(13, weight: .light)).foregroundColor(.inkGreen).lineSpacing(2.5).fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(8).background(Color.inkGreen.opacity(0.07)).clipShape(RoundedRectangle(cornerRadius: 7))
             }
@@ -1201,16 +1248,16 @@ struct PhysiqueTabView: View {
 
     func adjustCard2(_ title: String, _ questions: [(String, String, Bool)] = [], _ questionsNoFlag: [(String, String)] = []) -> some View {
         CardView(style: .secondary) {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: metrics.blockSpacing) {
                 MonoLabel(text: title, color: .inkAmber, size: 10)
                 ForEach(questions.indices, id: \.self) { i in
                     let (q, a, isConclusion) = questions[i]
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(alignment: .top, spacing: 6) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                        HStack(alignment: .top, spacing: metrics.rowSpacing) {
                             MonoLabel(text: "\(i+1).", color: isConclusion ? .inkGreen : .textMuted, size: 10)
-                            Text(q).font(.sora(12, weight: .light)).foregroundColor(.textPrimary).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
+                            Text(q).font(metrics.fontSora(13, weight: .light)).foregroundColor(.textPrimary).lineSpacing(2).fixedSize(horizontal: false, vertical: true)
                         }
-                        Text(a).font(.system(size: 10, design: .monospaced)).foregroundColor(isConclusion ? .inkGreen : .textMuted)
+                        Text(a).font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(isConclusion ? .inkGreen : .textMuted)
                             .lineSpacing(2.5).padding(.leading, 18).fixedSize(horizontal: false, vertical: true)
                     }
                 }

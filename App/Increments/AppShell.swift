@@ -16,18 +16,20 @@ struct CustomTabBar: View {
             ("list.bullet.indent", "Protocols"),
             ("figure.run",         "Physique"),
             ("building.2",         "Hideout"),
+            ("antenna.radiowaves.left.and.right", "Signal"),
             ("person",             "You"),
+            ("staroflife",         "Recovery"),
         ]
     }
 
-    // iPad: icon + label scale up; touch targets expand
-    var iconSizeActive:   CGFloat { metrics.isIPad ? 22 : 19 }
-    var iconSizeInactive: CGFloat { metrics.isIPad ? 20 : 17 }
-    var labelSize:        CGFloat { metrics.isIPad ? 11 : 10 }
-    var bubbleSize:       CGFloat { metrics.isIPad ? 44 : 36 }
-    var iconFrameH:       CGFloat { metrics.isIPad ? 34 : 28 }
-    var topPad:           CGFloat { metrics.isIPad ? 14 : 10 }
-    var bottomPad:        CGFloat { metrics.isIPad ? 8  : 4  }
+    // Tab bar: compact on iPad — content scales up, chrome stays down.
+    var iconSizeActive:   CGFloat { metrics.isIPad ? 17 : 19 }
+    var iconSizeInactive: CGFloat { metrics.isIPad ? 15 : 17 }
+    var labelSize:        CGFloat { metrics.isIPad ? 9 : 10 }
+    var bubbleSize:       CGFloat { metrics.isIPad ? 30 : 36 }
+    var iconFrameH:       CGFloat { metrics.isIPad ? 24 : 28 }
+    var topPad:           CGFloat { metrics.isIPad ? 5 : 10 }
+    var bottomPad:        CGFloat { metrics.isIPad ? 2 : 4 }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -285,7 +287,48 @@ func seedWeek1Shifts(context: ModelContext) {
     }
 }
 
-// MARK: - SEED: MAINTENANCE ITEMS
+// MARK: - SEED: PARTNER ACCOUNTS
+// Seeds Jimmy (active, episodic) + 5 pipeline prospects from the strategic brief priority list.
+// Only runs when partnerAccounts.isEmpty — fresh install or data wipe.
+
+func seedDefaultPartnerAccounts(context: ModelContext) {
+    // Jimmy — the proof of concept
+    let jimmy = PartnerAccount(name: "Jimmy Holmquist", status: .active)
+    jimmy.contactPerson = "Jimmy"
+    jimmy.frequency = .episodic
+    jimmy.isPickup = true
+    jimmy.primarySKU = "Cold Brew — 3 gallons"
+    jimmy.estimatedRevenue = 144.45
+    jimmy.activatedDate = Calendar.current.date(from: DateComponents(year: 2026, month: 5, day: 7))
+    jimmy.lastOrderDate  = Calendar.current.date(from: DateComponents(year: 2026, month: 5, day: 7))
+    jimmy.notes = "Invoice 10045. Monthly trail events. Former running partner. Event partner archetype — proves the model. Episodic, not weekly recurring. Pickup only — he collects before events."
+    context.insert(jimmy)
+
+    // Pipeline prospects from brief priority order
+    struct ProspectSeed {
+        let name: String; let contact: String
+        let freq: PartnerAccountFrequency; let sku: String; let rev: Double
+    }
+    let prospects: [ProspectSeed] = [
+        ProspectSeed(name: "A Better You — Style Creations", contact: "Salon staff",    freq: .weekly,   sku: "Coffee / matcha daily supply",        rev: 45.0),
+        ProspectSeed(name: "SkyView 22 — concierge",         contact: "Concierge",      freq: .weekly,   sku: "Cold Brew 1 gal + batch coffee",       rev: 60.0),
+        ProspectSeed(name: "Expansive Biscayne",              contact: "Office manager", freq: .weekly,   sku: "Cold Brew 2–3 gal weekly",             rev: 90.0),
+        ProspectSeed(name: "Watermarc leasing office",        contact: "Leasing",        freq: .monthly,  sku: "Office Fuel 15 bundle",                rev: 240.0),
+        ProspectSeed(name: "Aria on the Bay",                 contact: "Concierge",      freq: .episodic, sku: "Pastry box + coffee drop",             rev: 80.0),
+    ]
+    for s in prospects {
+        let p = PartnerAccount(name: s.name, status: .prospect)
+        p.contactPerson = s.contact
+        p.frequency = s.freq
+        p.primarySKU = s.sku
+        p.estimatedRevenue = s.rev
+        p.isPickup = true
+        context.insert(p)
+    }
+    print("INCREMENTS: seeded partner accounts (Jimmy active + \(prospects.count) prospects)")
+}
+
+
 
 func seedDefaultMaintenance(context: ModelContext) {
     let defaults: [(String, SystemTag, Int)] = [
@@ -393,14 +436,15 @@ func resetDailyActionsIfNeeded(context: ModelContext, profile: OperatorProfile, 
 
 // MARK: - SEED DATA
 
-// PRESCRIBED WEEK SCHEDULE (v2.4):
+// PRESCRIBED WEEK SCHEDULE (v2.4 + 6:30 arrival update):
 // Add these manually if already seeded. Time blocks show on action cards.
-// DayType "hideout" = Wed–Fri 7AM–5PM, Sat–Sun 7AM–3PM. "base" = Mon–Tue cafe/ops days.
+// DayType "hideout" = Wed–Fri 7AM–5PM, Sat–Sun 7AM–3PM (Sun 5PM from Week 2). "base" = Mon–Tue.
 //
 // EVERY DAY:  6:00 No phone · 6:05 Light · 6:15 Hydrate · 6:20 Creatine
 //             6:30 Move · 6:45 Cold shower · 7:00 Protein · 7:30 Journal
 //             21:00 No screens · 21:15 Evening Shutdown · 22:00 Read
-// HIDEOUT:    7:00 slow open · 7:15 Pre-shift behaviors · 7:30 Priorities · 8:30 Deep work · 12:00 Protein + outside
+// HIDEOUT:    6:30 arrive + prep → 6:45 terrace audit → 7:00 slow open → 7:15 Pre-shift behaviors
+//             → 7:30 Priorities → 8:30 Deep work → 12:00 Protein + outside
 // BASE:       8:00 Mon: Close loop · 8:15 Messages · 8:30 Reset one area
 // WEEKLY:     Sun 14:00 Read long · Sun 15:00 Inbox physical · Mon 8:00 Close loop
 
@@ -416,6 +460,7 @@ func seedMissingCoreActions(context: ModelContext, existing: [Action]) {
         "Stage tomorrow", "Red light — 10 min", "Scalp massage — 4 min",
         "Collagen + vitamin C", "Derma roller — Wednesday", "Derma roller — Sunday",
         "Review priorities", "Deep work block — 90 min", "Journal — 3 sentences",
+        "Content block \u{2014} Monday",
     ]
     let missing = want.subtracting(have)
     guard !missing.isEmpty else { return }
@@ -430,6 +475,48 @@ func seedMissingSessions(context: ModelContext, existing: [Session]) {
     let missing = want.subtracting(have)
     guard !missing.isEmpty else { return }
     seedDefaultSessions(context: context, onlyTitles: missing)
+}
+
+/// Removes duplicate protocol rows (same title) — common after CloudKit partial sync.
+func dedupeSessionsByTitle(context: ModelContext, sessions: [Session]) {
+    var keeperByTitle: [String: Session] = [:]
+    var toDelete: [Session] = []
+    for session in sessions {
+        if let keeper = keeperByTitle[session.title] {
+            let keepSession = keeper.steps.count >= session.steps.count ? keeper : session
+            let dropSession = keepSession === keeper ? session : keeper
+            keeperByTitle[session.title] = keepSession
+            toDelete.append(dropSession)
+        } else {
+            keeperByTitle[session.title] = session
+        }
+    }
+    guard !toDelete.isEmpty else { return }
+    print("INCREMENTS: removing \(toDelete.count) duplicate protocol(s)")
+    for session in toDelete { context.delete(session) }
+    try? context.save()
+}
+
+/// Removes duplicate action rows (same title) — common after CloudKit partial sync.
+/// Keeps the action with the most completion history; deletes the other.
+func dedupeActionsByTitle(context: ModelContext, actions: [Action]) {
+    var keeperByTitle: [String: Action] = [:]
+    var toDelete: [Action] = []
+    for action in actions {
+        if let keeper = keeperByTitle[action.title] {
+            // Prefer the one with more completion history
+            let keepAction = keeper.completionDates.count >= action.completionDates.count ? keeper : action
+            let dropAction = keepAction === keeper ? action : keeper
+            keeperByTitle[action.title] = keepAction
+            toDelete.append(dropAction)
+        } else {
+            keeperByTitle[action.title] = action
+        }
+    }
+    guard !toDelete.isEmpty else { return }
+    print("INCREMENTS: removing \(toDelete.count) duplicate action(s)")
+    for action in toDelete { context.delete(action) }
+    try? context.save()
 }
 
 func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
@@ -495,7 +582,7 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
                 // ── HIDEOUT DAYS — Wed–Fri 7AM–5PM, Sat–Sun 7AM–3PM ─────────────────────────
         ("Review priorities",          .operations,   10,
          "5 min. What are the 3 things? Write them down before anything else.",
-         "When arriving at hideout — 7AM slow open, before the work starts",
+         "7:30 — after the door opens and the first rush settles. You arrived at 6:30, the prep is done, now orient.",
          .daily,   "7:30",  "hideout", "anchor", nil),
 
         ("Deep work block — 90 min",   .cognition,    20,
@@ -562,7 +649,7 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
         // ── HIDEOUT OPERATIONS — behavioral science stack ─────────────────────
         ("Pre-shift: load the 4 behaviors",  .operations,   10,
          "1. Primacy — acknowledge every walk-in within 3 seconds.\n2. Choice Architecture — 'Want me to warm a croissant with that?'\n3. Familiarity — which regulars might come in? Know their usual.\n4. Peak-End — '[Name]. Have a great [day]. See you next time.'",
-         "Before opening — while prepping",              .daily,   "7:15",  "hideout", nil, nil),
+         "7:15 — after terrace is set, before first customer arrives",              .daily,   "7:15",  "hideout", nil, nil),
 
         ("Watermarc relationship touch",     .participation,15,
          "Bring coffee to leasing office. Introduce Hideout. Ask if they'll mention us on tours. Leave cards with concierge. One relationship = potentially dozens of high-value regulars.",
@@ -636,8 +723,8 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
 
         // ── SUNLIGHT ON SKIN — at Hideout open ───────────────────────────────
         ("Sunlight — face + arms",     .health,        5,
-         "5–10 min direct sun on face and forearms at Hideout open. You're on an outdoor terrace — this is free. Vitamin D synthesis, circadian signal reinforcement, mood. Not through glass. Miami sunrise is ~6:32–7:11 depending on month — by 7AM you have direct light. Don't wear SPF for this window; apply after.",
-         "First 5–10 min at Hideout open — outdoor terrace",  .daily, "7:05", "hideout", "amplifier", nil),
+         "5–10 min direct sun on face and forearms at Hideout open. You're on an outdoor terrace — this is free. Vitamin D synthesis, circadian signal reinforcement, mood. You arrive at 6:30 and you're outdoors during the whole prep window — this is passive during setup. Miami sunrise is ~6:32–7:11 depending on month. Don't wear SPF for this window; apply after.",
+         "During 6:30–7:00 prep window — you're already outside on the terrace",  .daily, "6:40", "hideout", "amplifier", nil),
 
         // ── MAGNESIUM GLYCINATE — nightly ────────────────────────────────────
         ("Magnesium glycinate",        .health,       10,
@@ -659,6 +746,16 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
          "Sunday. 15 min. Answer: What moved this week? What didn't? What's the one structural change that would make next week better? Not a retrospective — a routing correction. Write 3 sentences max. This is the highest-leverage 15 minutes of the week if you actually do it.",
          "Sunday — after Hideout close",            .weekly, "15:30", "hideout", nil, nil),
 
+        // ── MONDAY CONTENT BLOCK — distribution protocol ─────────────────────
+        // The one fixed weekly distribution action. 20 min before Hideout opens on base day.
+        // Same footage → GBP post + Reels/TikTok + RunCards post + FORM/Forge screen capture.
+        // Source: DISTRIBUTION_OPERATING_SYSTEM.md — Monday Block section.
+        ("Content block — Monday",     .operations,   15,
+         "20 min. Fixed shot list — no decisions at execution. Sequence:\\n1. Hideout: fixed 7-shot sequence (wide patio → entrance → espresso → plate → patio+skyline → coffee on table → seated POV). Film before anything else.\\n2. Edit: cut to 20–30 sec vertical, natural audio only.\\n3. Upload to GBP first (primary channel) → same file to Reels → same to TikTok. No captions beyond 2 lines.\\n4. RunCards: one run card from the database, one city, one post.\\n5. FORM/Forge: one real decision from the training week. Screen recording + one context line.\\nPost and leave. No feed. No browsing. No engagement. Done.",
+         "Monday AM — before Hideout prep. Before you open anything else.",
+         .weekly, "6:00", "base", "anchor",
+         "Fixed protocol beats inspiration. This 20-min block is the entire distribution system for the week across all four ventures. Skipping one week = zero distribution surface contact that week. Over 8 weeks of consistent execution, this produces legible signal data. Without it, there is no data — only noise and guessing."),
+
         // ══ ORAL HEALTH ═══════════════════════════════════════════════════════
         ("Derma roller — Sunday",      .health,       10,
          "Same as Wednesday. 0.5mm. Clean before use. Apply minoxidil after within 30 min. The Wed/Sun schedule gives 3–4 days between sessions — sufficient healing time for 0.5mm depth.",
@@ -674,8 +771,8 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
          "Thursday PM — after cleanse, before moisturizer",  .weekly, nil,  nil, nil, nil),
 
         ("Body SPF — exposed areas",   .health,       10,
-         "Arms, back of neck, any exposed skin. SPF 30 minimum. You're on an outdoor terrace Wed–Sun, sweeping and setting up in direct morning sun. UVA causes cumulative skin aging regardless of burn — and Miami UVI is high year-round. Apply after the sunlight-on-skin window (don't block that). Spray SPF is fine for body. Reapply at noon if you're still in direct sun.",
-         "After 7AM sunlight window — before opening rush", .daily, "7:20", "hideout", nil, nil),
+         "Arms, back of neck, any exposed skin. SPF 30 minimum. You're on an outdoor terrace Wed–Sun, arriving at 6:30 in direct morning sun. UVA causes cumulative skin aging regardless of burn — and Miami UVI is high year-round. Apply after the sunlight-on-skin window (6:40 passively during prep) — don't block that first 10 min. Spray SPF is fine for body. Reapply at noon if you're still in direct sun.",
+         "6:50 AM — after sunlight window, still in prep, before first customer", .daily, "6:50", "hideout", nil, nil),
 
         // ══ BODY CARE ═════════════════════════════════════════════════════════
         ("Body scan — 30 sec",         .health,        5,
@@ -734,12 +831,12 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
 
         // ══ ENVIRONMENT — ADVANCED ════════════════════════════════════════════
         ("Plant check — water + prune", .environment,   5,
-         "Quick pass: any dry soil, any dead leaves, any yellowing. You're already at Hideout pruning and setting up — this folds into the 6AM open routine. Living plants in the terrace environment directly affect: air quality (marginal but real), visual appeal for customers (significant), and your own state entering the shift. A dead or struggling plant is an environmental disorder signal.",
-         "During 6AM Hideout open routine",          .daily,  "6:10",  "hideout", nil, nil),
+         "Quick pass: any dry soil, any dead leaves, any yellowing. You arrive at 6:30 — this is the first 5 min of the prep window before opening. Living plants in the terrace environment directly affect: air quality (marginal but real), visual appeal for customers (significant), and your own state entering the shift. A dead or struggling plant is an environmental disorder signal.",
+         "6:30 AM arrival — first 5 min of Hideout prep",          .daily,  "6:35",  "hideout", nil, nil),
 
         ("Terrace audit — opening",    .environment,  10,
-         "5 min before open: chairs aligned, table surfaces clean, any debris from wind or overnight, plants upright, signage correct. You're already doing this — the action cue makes it explicit and consistent. Environmental coherence is the gateway system: a well-set terrace changes customer perception within seconds of arrival, before they've tasted anything.",
-         "6:45 AM — before first customer",         .daily,  "6:45",  "hideout", nil, nil),
+         "Final 15 min of the prep window: chairs aligned, table surfaces clean, any debris from wind or overnight, plants upright, signage correct, music on. You arrive at 6:30 — you have 30 min before the door opens. This is the last thing in that window. Environmental coherence is the gateway system: a well-set terrace changes customer perception within seconds of arrival, before they've tasted anything.",
+         "6:45 AM — 15 min before open. Last prep window item.",         .daily,  "6:45",  "hideout", nil, nil),
 
         ("Condo 26th floor — balcony reset", .environment, 5,
          "Weekly: sweep balcony, wipe rail, remove any items that drifted there. The 26th floor has different environmental conditions — wind-driven particulates, salt air, higher UV exposure on furniture. Monthly: check any outdoor items for corrosion or wear. Your home environment starts from the moment you step outside — keep it clean.",
@@ -1432,17 +1529,19 @@ struct OnboardingView: View {
 
 struct RootView: View {
     @EnvironmentObject private var cloudSync: CloudSyncPreferences
+    @EnvironmentObject private var cloudKitMonitor: CloudKitSyncMonitor
     @State private var state = AppState()
     @Query private var profiles: [OperatorProfile]
     @Query private var actions: [Action]
     @Query private var hideoutShifts: [HideoutShiftLog]
+    @Query private var partnerAccounts: [PartnerAccount]
     @Environment(\.modelContext) private var context
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     var profile: OperatorProfile { profiles.first ?? OperatorProfile() }
 
-    // 6-tab nav: Now / Today / Protocols / Physique / Hideout / You
+    // 8-tab nav: Now / Today / Protocols / Physique / Hideout / Signal / You / Recovery
     // Manual moved into You sub-tabs. Physique = active body-comp cut operating domain.
     var showTimeline: Bool { true }   // kept for CustomTabBar compat
 
@@ -1454,7 +1553,9 @@ struct RootView: View {
         case 2: ProtocolsTabView()
         case 3: PhysiqueTabView()
         case 4: HideoutTabView()
-        case 5: YouView(state: state)
+        case 5: SignalTabView()
+        case 6: YouView(state: state)
+        case 7: RecoveryTabView()
         default: HomeView(state: state)
         }
     }
@@ -1484,11 +1585,13 @@ struct RootView: View {
             if actions.isEmpty {
                 seedDefaultActions(context: context)
             } else {
+                dedupeActionsByTitle(context: context, actions: actions)
                 seedMissingCoreActions(context: context, existing: actions)
             }
             if sessions.isEmpty {
                 seedDefaultSessions(context: context)
             } else {
+                dedupeSessionsByTitle(context: context, sessions: sessions)
                 seedMissingSessions(context: context, existing: sessions)
             }
             if maintenanceItems.isEmpty { seedDefaultMaintenance(context: context) }
@@ -1496,6 +1599,8 @@ struct RootView: View {
             // Seed Week 1 solo experiment data (May 13–17, 2026) if no shifts exist.
             // Gated on hideoutShifts.isEmpty — only runs on fresh install or after data wipe.
             if hideoutShifts.isEmpty { seedWeek1Shifts(context: context) }
+            // Seed partner accounts — Jimmy (active) + pipeline prospects from brief.
+            if partnerAccounts.isEmpty { seedDefaultPartnerAccounts(context: context) }
             if let p = profiles.first {
                 // BUG FIX: reset recurring actions each new calendar day
                 resetDailyActionsIfNeeded(context: context, profile: p, actions: actions, sessions: sessions)
@@ -1622,12 +1727,54 @@ enum SchemaV6: VersionedSchema {
     }
 }
 
+enum SchemaV7: VersionedSchema {
+    static var versionIdentifier = Schema.Version(7, 0, 0)
+    // V7 adds FridaySignalLog + PartnerAccount models.
+    static var models: [any PersistentModel.Type] {
+        [Action.self, Habit.self, OperatorProfile.self,
+         DailyLog.self, WorkTrack.self, RecoveryPhase.self, CognitionLog.self,
+         Session.self, MaintenanceItem.self, HydrationLog.self, FinancialState.self,
+         ConsultReceipt.self, HideoutShiftLog.self, FridaySignalLog.self,
+         PartnerAccount.self]
+    }
+}
+
+enum SchemaV8: VersionedSchema {
+    static var versionIdentifier = Schema.Version(8, 0, 0)
+    // V8 adds TibiaRecoveryLog for tibia IM nail recovery signal tracking.
+    static var models: [any PersistentModel.Type] {
+        [Action.self, Habit.self, OperatorProfile.self,
+         DailyLog.self, WorkTrack.self, RecoveryPhase.self, CognitionLog.self,
+         Session.self, MaintenanceItem.self, HydrationLog.self, FinancialState.self,
+         ConsultReceipt.self, HideoutShiftLog.self, FridaySignalLog.self,
+         PartnerAccount.self, TibiaRecoveryLog.self]
+    }
+}
+
+enum SchemaV9: VersionedSchema {
+    static var versionIdentifier = Schema.Version(9, 0, 0)
+    // V9 adds Signal tab models: DistributionWeek + DecisionLedger.
+    static var models: [any PersistentModel.Type] {
+        [Action.self, Habit.self, OperatorProfile.self,
+         DailyLog.self, WorkTrack.self, RecoveryPhase.self, CognitionLog.self,
+         Session.self, MaintenanceItem.self, HydrationLog.self, FinancialState.self,
+         ConsultReceipt.self, HideoutShiftLog.self, FridaySignalLog.self,
+         PartnerAccount.self, TibiaRecoveryLog.self,
+         DistributionWeek.self, DecisionLedger.self]
+    }
+}
+
 enum INCREMENTSMigrationPlan: SchemaMigrationPlan {
-    static var schemas: [any VersionedSchema.Type] { [SchemaV1.self, SchemaV4.self, SchemaV6.self] }
+    static var schemas: [any VersionedSchema.Type] {
+        [SchemaV1.self, SchemaV4.self, SchemaV6.self, SchemaV7.self, SchemaV8.self, SchemaV9.self]
+    }
     static var stages: [MigrationStage] {
         [
             .lightweight(fromVersion: SchemaV1.self, toVersion: SchemaV4.self),
             .lightweight(fromVersion: SchemaV4.self, toVersion: SchemaV6.self),
+            .lightweight(fromVersion: SchemaV6.self, toVersion: SchemaV7.self),
+            .lightweight(fromVersion: SchemaV7.self, toVersion: SchemaV8.self),
+            .lightweight(fromVersion: SchemaV8.self, toVersion: SchemaV9.self),
         ]
     }
 }
@@ -1635,6 +1782,7 @@ enum INCREMENTSMigrationPlan: SchemaMigrationPlan {
 @main
 struct INCREMENTSApp: App {
     @StateObject private var cloudSync = CloudSyncPreferences.shared
+    @StateObject private var cloudKitMonitor = CloudKitSyncMonitor.shared
     @State private var launchComplete = false
     // Prevents tappable elements rendering before SwiftData @Query results settle.
     // RootView stays invisible until both the launch animation finishes AND the store
@@ -1649,9 +1797,11 @@ struct INCREMENTSApp: App {
             Action.self, Habit.self, OperatorProfile.self,
             DailyLog.self, WorkTrack.self, RecoveryPhase.self, CognitionLog.self,
             Session.self, MaintenanceItem.self, HydrationLog.self, FinancialState.self,
-            ConsultReceipt.self, HideoutShiftLog.self
+            ConsultReceipt.self, HideoutShiftLog.self, FridaySignalLog.self,
+            PartnerAccount.self, TibiaRecoveryLog.self,
+            DistributionWeek.self, DecisionLedger.self
         ])
-        let config = ModelConfiguration(
+        let cloudConfig = ModelConfiguration(
             schema: schema,
             cloudKitDatabase: .private("iCloud.com.brice.Increments")
         )
@@ -1659,11 +1809,21 @@ struct INCREMENTSApp: App {
             return try ModelContainer(
                 for: schema,
                 migrationPlan: INCREMENTSMigrationPlan.self,
-                configurations: [config]
+                configurations: [cloudConfig]
             )
         } catch {
-            // With iCloud enabled, do not wipe the store — data may exist in CloudKit.
-            fatalError("INCREMENTS: Could not open SwiftData store (\(error.localizedDescription)). Check iCloud sign-in and schema migration.")
+            // CloudKit container missing, quota exceeded, or offline — run local-only so UI stays responsive.
+            print("INCREMENTS: CloudKit store unavailable (\(error.localizedDescription)); using local-only SwiftData.")
+            let localConfig = ModelConfiguration(schema: schema)
+            do {
+                return try ModelContainer(
+                    for: schema,
+                    migrationPlan: INCREMENTSMigrationPlan.self,
+                    configurations: [localConfig]
+                )
+            } catch {
+                fatalError("INCREMENTS: Could not open SwiftData store (\(error.localizedDescription)).")
+            }
         }
     }()
 
@@ -1672,6 +1832,7 @@ struct INCREMENTSApp: App {
             ZStack {
                 RootView()
                     .environmentObject(cloudSync)
+                    .environmentObject(cloudKitMonitor)
                     .preferredColorScheme(.dark)
                     // Only become visible once both the launch animation is done AND the
                     // SwiftData store has settled. Eliminates the window where tappable rows
@@ -1679,6 +1840,7 @@ struct INCREMENTSApp: App {
                     .opacity(launchComplete && dataReady ? 1 : 0)
                     .onAppear {
                         cloudSync.bootstrap()
+                        cloudKitMonitor.startObserving()
                         // Poll briefly for store readiness. On a real device the container is
                         // open well before the 2.25s animation ends, so this loop typically
                         // fires on the first or second tick and adds no perceptible delay.

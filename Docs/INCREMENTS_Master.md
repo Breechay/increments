@@ -174,6 +174,8 @@ The mechanism of action:
 - CTA label: START DAY / CONTINUE / OPEN TODAY. "RETURN TO IT" removed — it signaled nothing.
 - Wendy fires from Operator > Brief. Not from Today.
 
+**Signal tab (planned — 6th tab, after Hideout):** Spec v2.3 at `Docs/INCREMENTS_DISTRIBUTION_TAB_SPEC.md` — `DecisionLedger`, 8-step Monday block, HOLD/8-week rules. **Plant / log / adjust** — Monday block dominant; mid-week `trainingDecisionCapture` (Monday selects, not reconstructs); 8-week ADJUST session on calendar (doctrine). Forge gate: `FORM-iOS/docs/FORGE_V1_GATE_QA.md` (8 device checks). Post-gate: 3 consecutive Forge Mondays. Hideout shift log Friday fields stay parallel. Interim: Today door `Content block — Monday`.
+
 ---
 
 ## The Two-Surface Split

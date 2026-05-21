@@ -11,40 +11,86 @@ import Foundation
 // "arm's distance" iPad mode: bigger type, more breathing room, same information density.
 
 struct AppMetrics {
+    /// iPad landscape at ~3 ft: larger type scale for arm's-distance reading.
+    static let iPadContentScale: CGFloat = 1.58
+    /// Extra vertical rhythm between rows, cards, and sections on iPad.
+    static let iPadVerticalScale: CGFloat = 1.44
+
     let isIPad: Bool
     let isLandscape: Bool
 
+    private var typeScale: CGFloat { isIPad ? Self.iPadContentScale : 1 }
+    private var vScale: CGFloat { isIPad ? Self.iPadVerticalScale : 1 }
+
+    /// Scale an arbitrary point size on iPad (MonoLabel, one-off literals).
+    func scaledSize(_ base: CGFloat) -> CGFloat { base * typeScale }
+
+    func fontSora(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
+        .sora(scaledSize(size), weight: weight)
+    }
+
+    func fontMono(_ size: CGFloat, weight: Font.Weight = .light) -> Font {
+        .mono(scaledSize(size), weight: weight)
+    }
+
     // ── Typography ──────────────────────────────────────────────────────────
-    var displaySize:   CGFloat { isIPad ? 38 : 28 }   // Day counter, hero numbers
-    var titleSize:     CGFloat { isIPad ? 26 : 20 }   // Section headers, sheet titles
-    var headlineSize:  CGFloat { isIPad ? 18 : 15 }   // Card titles, action names
-    var bodySize:      CGFloat { isIPad ? 15 : 12 }   // Body text, descriptions
-    var captionSize:   CGFloat { isIPad ? 13 : 11 }   // Supporting detail
-    var monoSize:      CGFloat { isIPad ? 12 : 10 }   // Mono labels (standard)
-    var monoSmall:     CGFloat { isIPad ? 11 : 9  }   // Mono labels (small)
-    var bigNum:        CGFloat { isIPad ? 48 : 36 }   // Revenue numbers, large stats
+    var displaySize:   CGFloat { (isIPad ? 40 : 28) * typeScale }
+    var titleSize:     CGFloat { (isIPad ? 28 : 20) * typeScale }
+    var headlineSize:  CGFloat { (isIPad ? 20 : 15) * typeScale }
+    var bodySize:      CGFloat { (isIPad ? 17 : 12) * typeScale }
+    var captionSize:   CGFloat { (isIPad ? 15 : 11) * typeScale }
+    var monoSize:      CGFloat { (isIPad ? 14 : 10) * typeScale }
+    var monoSmall:     CGFloat { (isIPad ? 12 : 9) * typeScale }
+    var bigNum:        CGFloat { (isIPad ? 52 : 36) * typeScale }
 
     // ── Spacing ─────────────────────────────────────────────────────────────
-    var hPad:          CGFloat { isIPad ? 36 : 24 }   // Horizontal screen padding
-    var cardPad:       CGFloat { isIPad ? 22 : 16 }   // Card internal padding
-    var cardRadius:    CGFloat { isIPad ? 18 : 14 }   // Card corner radius
-    var cardSpacing:   CGFloat { isIPad ? 16 : 10 }   // Gap between cards
-    var sectionGap:    CGFloat { isIPad ? 28 : 16 }   // Gap between sections
-    var touchTarget:   CGFloat { isIPad ? 56 : 44 }   // Min tappable height
-    var tabBarHeight:  CGFloat { isIPad ? 72 : 50 }   // Bottom tab bar height
+    var hPad:          CGFloat { (isIPad ? 44 : 24) * typeScale }
+    var cardPad:       CGFloat { (isIPad ? 28 : 16) * typeScale }
+    var cardRadius:    CGFloat { (isIPad ? 22 : 14) * typeScale }
+    var cardSpacing:   CGFloat { (isIPad ? 22 : 10) * vScale }
+    var sectionGap:    CGFloat { (isIPad ? 36 : 16) * vScale }
+    var rowSpacing:    CGFloat { (isIPad ? 20 : 10) * vScale }
+    var blockSpacing:  CGFloat { (isIPad ? 26 : 14) * vScale }
+    var touchTarget:   CGFloat { (isIPad ? 64 : 44) * typeScale }
+    /// Tab bar stays compact on iPad — do not scale up with content.
+    var tabBarHeight:  CGFloat { isIPad ? 48 : 50 }
+
+    var screenTopPadding: CGFloat { (isIPad ? 32 : 20) * vScale }
+    var headerBottomPadding: CGFloat { (isIPad ? 24 : 12) * vScale }
+    var headerStackSpacing: CGFloat { (isIPad ? 12 : 4) * vScale }
 
     // ── Content width ────────────────────────────────────────────────────────
-    // On iPad we cap content width so long lines don't stretch the full screen.
-    // Centred in the available space via .frame(maxWidth:).
-    var maxContentWidth: CGFloat { isIPad ? 720 : .infinity }
+    // iPad: wide left-aligned column (Hideout dashboard feel), not a narrow centered strip.
+    var maxContentWidth: CGFloat { isIPad ? 1280 : .infinity }
 
-    // No two-column split outside Hideout — all other tabs are
-    // single-column reference/execution surfaces that work better wide.
     var useWideColumn: Bool { isIPad }
 
-    // Hideout-specific: two-column only in Hideout tab, iPad landscape only
-    var useTwoColumn:  Bool   { isIPad && isLandscape }
-    var leftColWidth:  CGFloat { 340 }  // Left panel (dashboard) width in landscape
+    // Hideout: iPad split — dashboard column narrower so scorecard/playbook breathe.
+    var useTwoColumn: Bool { isIPad }
+    var hideoutLeftColumnFraction: CGFloat { 0.40 }
+
+    // Hideout header numbers — these are large display figures, capped so they don't
+    // over-scale and wrap on iPad. Body content uses typeScale; headers use fixed pt.
+    var hideoutDisplaySize: CGFloat { isIPad ? 42 : 28 }
+    var hideoutDaysSize:    CGFloat { isIPad ? 22 : 16 }
+
+    /// iPad: rail / list left, reflection or detail right (Today, Protocols, Physique).
+    var useMasterDetail: Bool { isIPad }
+    /// Today rail: 46% left — enough for two-line subtitle rows without crowding right pane.
+    var todayRailLeftFraction: CGFloat { 0.46 }
+    var masterDetailLeftFraction: CGFloat { 0.44 }
+
+    var glanceRingSize: CGFloat { isIPad ? scaledSize(56) : 44 }
+    var glanceHeroSize: CGFloat { isIPad ? scaledSize(30) : 22 }
+
+    /// Readable width for a given container (e.g. Hideout right pane).
+    func readableWidth(in totalWidth: CGFloat) -> CGFloat {
+        guard isIPad else { return totalWidth }
+        return min(maxContentWidth, totalWidth - hPad * 2)
+    }
+
+    /// @deprecated — use hideoutLeftColumnFraction + GeometryReader in HideoutTwoColumnLayout
+    var leftColWidth: CGFloat { 340 * typeScale }
 
     // bigNumberSize — maps old HideoutLayoutMetrics name
     var bigNumberSize: CGFloat { bigNum }
@@ -89,10 +135,451 @@ struct AppMetricsProvider<Content: View>: View {
 // On iPad: centres content and caps width at 720pt for readability.
 // On iPhone: no change — full width as before.
 extension View {
+    /// iPad: wide, left-aligned glance column (Hideout dashboard density). iPhone: unchanged.
     func adaptiveContentWidth(_ metrics: AppMetrics) -> some View {
-        self
-            .frame(maxWidth: metrics.maxContentWidth)
-            .frame(maxWidth: .infinity)  // outer frame still fills screen (centers the inner cap)
+        Group {
+            if metrics.isIPad {
+                self
+                    .frame(maxWidth: metrics.maxContentWidth, alignment: .leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                self.frame(maxWidth: .infinity)
+            }
+        }
+    }
+}
+
+// MARK: - GLANCE TAB HEADER (iPad-forward; matches Hideout left-column hierarchy)
+
+struct GlanceTabHeader<Trailing: View>: View {
+    let kicker: String
+    let title: String
+    var kickerColor: Color = .violet
+    @ViewBuilder var trailing: () -> Trailing
+    @Environment(\.appMetrics) private var metrics
+
+    init(
+        kicker: String,
+        title: String,
+        kickerColor: Color = .violet,
+        @ViewBuilder trailing: @escaping () -> Trailing = { EmptyView() }
+    ) {
+        self.kicker = kicker
+        self.title = title
+        self.kickerColor = kickerColor
+        self.trailing = trailing
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: metrics.scaledSize(3)) {
+                    MonoLabel(text: kicker, color: kickerColor, size: 10)
+                    Text(title)
+                        .font(metrics.fontSora(metrics.isIPad ? 20 : 24, weight: .semibold))
+                        .foregroundColor(.textPrimary)
+                }
+                Spacer()
+                trailing()
+            }
+            .padding(.horizontal, metrics.hPad)
+            .padding(.top, metrics.screenTopPadding)
+            .padding(.bottom, metrics.headerBottomPadding)
+
+            // Dashboard divider — consistent with Today tab
+            if metrics.isIPad {
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.clear, Color.muted.opacity(0.22), Color.clear],
+                            startPoint: .leading, endPoint: .trailing
+                        )
+                    )
+                    .frame(height: 0.5)
+                    .padding(.horizontal, metrics.hPad)
+                    .padding(.bottom, metrics.scaledSize(2))
+            }
+        }
+    }
+}
+
+// MARK: - IPAD MASTER–DETAIL (iPad only; iPhone unchanged)
+
+struct IPadMasterDetailLayout<Left: View, Right: View>: View {
+    let metrics: AppMetrics
+    var leftFraction: CGFloat
+    let left: Left
+    let right: Right
+
+    init(
+        metrics: AppMetrics,
+        leftFraction: CGFloat? = nil,
+        @ViewBuilder left: () -> Left,
+        @ViewBuilder right: () -> Right
+    ) {
+        self.metrics = metrics
+        self.leftFraction = leftFraction ?? metrics.masterDetailLeftFraction
+        self.left = left()
+        self.right = right()
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            HStack(alignment: .top, spacing: 0) {
+                left
+                    .frame(width: geo.size.width * leftFraction)
+
+                // Gradient divider — more refined than a flat line
+                LinearGradient(
+                    colors: [
+                        Color.violet.opacity(0.0),
+                        Color.violet.opacity(0.18),
+                        Color.violet.opacity(0.08),
+                        Color.violet.opacity(0.0)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(width: 1)
+
+                right
+                    .frame(maxWidth: .infinity)
+            }
+        }
+    }
+}
+
+/// Large next-action card for iPad reflection pane — the visual hero.
+struct GlanceNextActionCard: View {
+    let action: Action
+    var subtitle: String? = nil
+    var onComplete: () -> Void
+    @Environment(\.appMetrics) private var metrics
+
+    var body: some View {
+        CardView {
+            VStack(alignment: .leading, spacing: metrics.blockSpacing) {
+                // System kicker + status pill
+                HStack {
+                    HStack(spacing: metrics.scaledSize(8)) {
+                        Circle()
+                            .fill(action.system.color)
+                            .frame(width: metrics.scaledSize(7), height: metrics.scaledSize(7))
+                            .shadow(color: action.system.color.opacity(0.7), radius: 6)
+                        MonoLabel(text: subtitle ?? "NEXT", color: action.system.color, size: 10)
+                    }
+                    Spacer()
+                    // System tag pill
+                    Text(action.system.rawValue.uppercased())
+                        .font(metrics.fontMono(9))
+                        .foregroundColor(action.system.color.opacity(0.8))
+                        .tracking(1.2)
+                        .padding(.horizontal, metrics.scaledSize(10))
+                        .padding(.vertical, metrics.scaledSize(5))
+                        .background(action.system.color.opacity(0.12))
+                        .clipShape(Capsule())
+                        .overlay(Capsule().strokeBorder(action.system.color.opacity(0.2), lineWidth: 0.5))
+                }
+
+                // Action title — the hero
+                HStack(alignment: .top, spacing: metrics.scaledSize(14)) {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(
+                            LinearGradient(
+                                colors: [action.system.color, action.system.color.opacity(0.2)],
+                                startPoint: .top, endPoint: .bottom
+                            )
+                        )
+                        .frame(width: metrics.scaledSize(4))
+                        .frame(minHeight: metrics.scaledSize(52))
+                    VStack(alignment: .leading, spacing: metrics.scaledSize(8)) {
+                        Text(action.title)
+                            .font(metrics.fontSora(26, weight: .semibold))
+                            .foregroundColor(.textPrimary)
+                            .lineSpacing(5)
+                            .fixedSize(horizontal: false, vertical: true)
+                        if let block = action.scheduledBlock, !block.isEmpty {
+                            Text(block)
+                                .font(metrics.fontMono(12))
+                                .foregroundColor(.textMuted)
+                        }
+                    }
+                }
+
+                if let note = action.note, !note.isEmpty {
+                    Text(note)
+                        .font(metrics.fontSora(15, weight: .light))
+                        .foregroundColor(.textSecond)
+                        .lineSpacing(5)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.top, metrics.scaledSize(2))
+                }
+                if let cue = action.cue, !cue.isEmpty {
+                    HStack(spacing: metrics.scaledSize(8)) {
+                        Rectangle()
+                            .fill(action.system.color.opacity(0.35))
+                            .frame(width: 2, height: metrics.scaledSize(16))
+                        Text(cue)
+                            .font(metrics.fontMono(12))
+                            .foregroundColor(action.system.color.opacity(0.9))
+                            .tracking(0.2)
+                            .lineLimit(2)
+                    }
+                }
+
+                Button(action: onComplete) {
+                    HStack(spacing: metrics.scaledSize(10)) {
+                        if action.isCompleted {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: metrics.scaledSize(16), weight: .medium))
+                        }
+                        Text(action.isCompleted ? "Undo" : "Mark Done")
+                            .font(metrics.fontSora(15, weight: .semibold))
+                            .tracking(0.5)
+                        if !action.isCompleted {
+                            Spacer()
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: metrics.scaledSize(13), weight: .medium))
+                        }
+                    }
+                    .foregroundColor(action.isCompleted ? .textMuted : .bgBase)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: metrics.touchTarget)
+                    .background(
+                        Group {
+                            if action.isCompleted {
+                                Color.surface2
+                            } else {
+                                LinearGradient(
+                                    colors: [action.system.color, action.system.color.opacity(0.75)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            }
+                        }
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: metrics.cardRadius * 0.8))
+                    .shadow(
+                        color: action.isCompleted ? .clear : action.system.color.opacity(0.3),
+                        radius: 12, x: 0, y: 6
+                    )
+                }
+                .padding(.top, metrics.scaledSize(4))
+            }
+        }
+    }
+}
+
+/// Compact selectable row for iPad rail column — optimised for 3ft landscape reading.
+struct CompactRailRow: View {
+    let action: Action
+    let isSelected: Bool
+    var onSelect: () -> Void
+    @Environment(\.appMetrics) private var metrics
+
+    var body: some View {
+        Button(action: onSelect) {
+            HStack(spacing: metrics.rowSpacing) {
+                // System colour accent bar
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(action.isCompleted
+                          ? AnyShapeStyle(action.system.color.opacity(0.35))
+                          : AnyShapeStyle(LinearGradient(colors: [action.system.color, action.system.color.opacity(0.6)],
+                                           startPoint: .top, endPoint: .bottom)))
+                    .frame(width: metrics.scaledSize(3))
+                    .frame(minHeight: metrics.scaledSize(36))
+
+                VStack(alignment: .leading, spacing: metrics.scaledSize(4)) {
+                    if let block = action.scheduledBlock {
+                        Text(block)
+                            .font(metrics.fontMono(10))
+                            .foregroundColor(.textMuted)
+                            .tracking(0.3)
+                    }
+                    Text(action.title)
+                        .font(metrics.fontSora(14, weight: isSelected ? .semibold : .regular))
+                        .foregroundColor(action.isCompleted ? .textMuted : (isSelected ? .textPrimary : .textSecond))
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.88)
+                        .multilineTextAlignment(.leading)
+                }
+                Spacer(minLength: 0)
+                if action.isCompleted {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: metrics.scaledSize(14), weight: .medium))
+                        .foregroundColor(.inkGreen.opacity(0.8))
+                } else if isSelected {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: metrics.scaledSize(10), weight: .medium))
+                        .foregroundColor(action.system.color.opacity(0.6))
+                }
+            }
+            .padding(.vertical, metrics.scaledSize(13))
+            .padding(.horizontal, metrics.scaledSize(16))
+            .background(
+                Group {
+                    if isSelected {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: metrics.cardRadius)
+                                .fill(action.system.color.opacity(0.08))
+                            RoundedRectangle(cornerRadius: metrics.cardRadius)
+                                .fill(Color.surface.opacity(0.5))
+                        }
+                    } else {
+                        RoundedRectangle(cornerRadius: metrics.cardRadius)
+                            .fill(Color.surface.opacity(0.6))
+                    }
+                }
+            )
+            .clipShape(RoundedRectangle(cornerRadius: metrics.cardRadius))
+            .overlay(
+                RoundedRectangle(cornerRadius: metrics.cardRadius)
+                    .strokeBorder(
+                        isSelected ? action.system.color.opacity(0.3) : Color.white.opacity(0.04),
+                        lineWidth: isSelected ? 1 : 0.5
+                    )
+            )
+            .shadow(
+                color: isSelected ? action.system.color.opacity(0.08) : .clear,
+                radius: 8, x: 0, y: 2
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+/// iPad-optimised action row for the Today rail — the primary execution surface.
+/// Shows time + title + note first line so you never need to tap to know what to do.
+/// Completion circle left, system icon corner right, subtitle underneath.
+struct iPadActionRow: View {
+    let action: Action
+    var onComplete: () -> Void
+    var onSelect: () -> Void
+    var isSelected: Bool = false
+    @Environment(\.appMetrics) private var metrics
+    @State private var glowing = false
+
+    var subtitle: String {
+        if let note = action.note, !note.isEmpty {
+            let first = note.components(separatedBy: "\n").first ?? note
+            return first.count > 72 ? String(first.prefix(72)) + "…" : first
+        }
+        if let cue = action.cue, !cue.isEmpty {
+            return cue.count > 72 ? String(cue.prefix(72)) + "…" : cue
+        }
+        return ""
+    }
+
+    var body: some View {
+        HStack(alignment: .top, spacing: metrics.scaledSize(12)) {
+
+            // ── Completion circle ─────────────────────────────────────────────
+            Button(action: {
+                withAnimation(.spring(response: 0.28)) { glowing = true; onComplete() }
+            }) {
+                ZStack {
+                    Circle()
+                        .fill(action.isCompleted
+                              ? Color.inkGreen.opacity(0.15)
+                              : action.priorityTier == .anchor
+                                ? action.system.color.opacity(0.12)
+                                : action.system.color.opacity(0.06))
+                        .frame(width: metrics.scaledSize(24), height: metrics.scaledSize(24))
+                    Circle()
+                        .stroke(
+                            action.isCompleted ? Color.inkGreen :
+                            action.priorityTier == .anchor ? action.system.color.opacity(0.9) :
+                            action.system.color.opacity(0.45),
+                            lineWidth: action.priorityTier == .anchor ? 2 : 1.5
+                        )
+                        .frame(width: metrics.scaledSize(24), height: metrics.scaledSize(24))
+                    if action.isCompleted {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: metrics.scaledSize(9), weight: .semibold))
+                            .foregroundColor(.inkGreen)
+                    }
+                }
+            }
+            .shadow(color: action.isCompleted ? Color.inkGreen.opacity(glowing ? 0.5 : 0.12) : .clear, radius: 6)
+            .buttonStyle(.plain)
+            .padding(.top, metrics.scaledSize(4))
+
+            // ── Content ───────────────────────────────────────────────────────
+            VStack(alignment: .leading, spacing: metrics.scaledSize(4)) {                HStack(alignment: .center, spacing: metrics.scaledSize(7)) {
+                    if let block = action.scheduledBlock, !action.isCompleted {
+                        Text(formatBlockTime(block))
+                            .font(metrics.fontMono(10))
+                            .foregroundColor(action.system.color.opacity(0.8))
+                            .tracking(0.2)
+                            .fixedSize()
+                    }
+                    Text(action.title)
+                        .font(metrics.fontSora(13, weight: action.priorityTier == .anchor ? .semibold : .regular))
+                        .foregroundColor(action.isCompleted ? .textMuted : .textPrimary)
+                        .strikethrough(action.isCompleted, color: .textMuted.opacity(0.5))
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let mode = action.cognitionMode, !action.isCompleted {
+                        Image(systemName: mode.icon)
+                            .font(.system(size: metrics.scaledSize(9), weight: .light))
+                            .foregroundColor(mode == .creative ? .warm : mode == .analytical ? .violetLight : .textMuted)
+                    }
+                }
+                if !action.isCompleted && !subtitle.isEmpty {
+                    Text(subtitle)
+                        .font(metrics.fontSora(11, weight: .light))
+                        .foregroundColor(.textMuted.opacity(0.65))
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .lineSpacing(2)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .onTapGesture { onSelect() }
+        }
+        .padding(.vertical, metrics.scaledSize(10))
+        .padding(.horizontal, metrics.scaledSize(12))
+        .background(
+            RoundedRectangle(cornerRadius: metrics.cardRadius * 0.65)
+                .fill(isSelected ? action.system.color.opacity(0.05) : Color.clear)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: metrics.cardRadius * 0.65)
+                .strokeBorder(
+                    isSelected ? action.system.color.opacity(0.18) : Color.clear,
+                    lineWidth: 0.5
+                )
+        )
+        .onChange(of: glowing) { _, new in
+            if new { DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { glowing = false } }
+        }
+    }
+}
+
+struct CloudSyncStatusBanner: View {
+    let message: String
+    @Environment(\.appMetrics) private var metrics
+
+    var body: some View {
+        HStack(alignment: .top, spacing: metrics.rowSpacing) {
+            Image(systemName: "icloud.slash")
+                .font(.system(size: metrics.scaledSize(14), weight: .medium))
+                .foregroundColor(.inkAmber)
+            Text(message)
+                .font(metrics.fontSora(13, weight: .medium))
+                .foregroundColor(.textSecond)
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(metrics.cardPad)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.inkAmber.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: metrics.cardRadius))
+        .overlay(
+            RoundedRectangle(cornerRadius: metrics.cardRadius)
+                .strokeBorder(Color.inkAmber.opacity(0.25), lineWidth: 0.5)
+        )
     }
 }
 
@@ -170,32 +657,33 @@ struct MonoLabel: View {
     @Environment(\.appMetrics) private var metrics
 
     var body: some View {
-        // Scale up by 2pt on iPad — keeps the same visual weight at arm's distance
-        let effectiveSize = size + (metrics.isIPad ? 2 : 0)
+        let effectiveSize = metrics.scaledSize(size)
         Text(text).font(.mono(effectiveSize)).foregroundColor(color).tracking(2.0).textCase(.uppercase)
     }
 }
 
-// Section headers with subtle warm accent dot — more presence than plain MonoLabel
+// Section headers — scale-aware, always legible at 3ft on iPad
 struct SectionHeader: View {
     let text: String
     var color: Color = .textMuted
+    @Environment(\.appMetrics) private var metrics
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: metrics.scaledSize(10)) {
             Rectangle()
-                .fill(color.opacity(0.35))
-                .frame(width: 16, height: 0.5)
+                .fill(color.opacity(0.4))
+                .frame(width: metrics.scaledSize(16), height: 0.5)
             MonoLabel(text: text, color: color, size: 10)
         }
     }
 }
 
 struct SystemBadge: View {
+    @Environment(\.appMetrics) private var metrics
     let system: SystemTag
     var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: system.icon).font(.system(size: 10))
-            Text(system.label).font(.mono(11)).tracking(1.0)   // FIX V03 — 9pt → 11pt, tracking reduced
+        HStack(spacing: metrics.rowSpacing) {
+            Image(systemName: system.icon).font(.system(size: metrics.scaledSize(11)))
+            Text(system.label).font(metrics.fontMono(12)).tracking(1.0)   // FIX V03 — 9pt → 11pt, tracking reduced
         }
         .foregroundColor(system.color)
         .padding(.horizontal, 8).padding(.vertical, 4)
@@ -209,15 +697,19 @@ struct CircularProgress: View {
     let size: CGFloat
     var color: Color = .violet
     var lineWidth: CGFloat = 3
+    @Environment(\.appMetrics) private var metrics
+
+    private var effectiveLine: CGFloat { metrics.isIPad ? max(lineWidth, 3.5) : lineWidth }
+
     var body: some View {
         ZStack {
-            Circle().stroke(Color.surface2, lineWidth: lineWidth)
+            Circle().stroke(Color.surface2, lineWidth: effectiveLine)
             Circle()
                 .trim(from: 0, to: value)
                 .stroke(
                     LinearGradient(colors: [color, color.opacity(0.6)],
                                    startPoint: .topLeading, endPoint: .bottomTrailing),
-                    style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
+                    style: StrokeStyle(lineWidth: effectiveLine, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
                 .animation(.easeInOut(duration: 0.6), value: value)
@@ -231,6 +723,7 @@ struct CircularProgress: View {
 // This is the "how do I actually do this" view — not editing, just following.
 
 struct ActionDetailSheet: View {
+    @Environment(\.appMetrics) private var metrics
     let action: Action
     @Binding var isPresented: Bool
     var onComplete: () -> Void
@@ -271,13 +764,13 @@ struct ActionDetailSheet: View {
         ZStack {
             Color.bgBase.ignoresSafeArea()
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: metrics.sectionGap) {
                     SheetHandle().frame(maxWidth: .infinity, alignment: .center)
 
                     // Header
                     HStack(alignment: .top) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack(spacing: 8) {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                            HStack(spacing: metrics.rowSpacing) {
                                 // System color dot
                                 Circle()
                                     .fill(action.system.color)
@@ -288,7 +781,7 @@ struct ActionDetailSheet: View {
                                 }
                             }
                             Text(action.title)
-                                .font(.sora(20, weight: .semibold))
+                                .font(metrics.fontSora(20, weight: .semibold))
                                 .foregroundColor(.textPrimary)
                                 .lineSpacing(2)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -296,7 +789,7 @@ struct ActionDetailSheet: View {
                         Spacer()
                         Button(action: { isPresented = false }) {
                             Image(systemName: "xmark")
-                                .font(.system(size: 11, weight: .light))
+                                .font(.system(size: metrics.scaledSize(12), weight: .light))
                                 .foregroundColor(.textMuted)
                                 .frame(width: 28, height: 28)
                                 .background(Color.surface2)
@@ -306,10 +799,10 @@ struct ActionDetailSheet: View {
 
                     // The note — execution cue — short and actionable
                     if let note = action.note, !note.isEmpty {
-                        VStack(alignment: .leading, spacing: 10) {
+                        VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                             MonoLabel(text: "EXECUTE", color: action.system.color, size: 9)
                             Text(note)
-                                .font(.sora(14, weight: .light))
+                                .font(metrics.fontSora(15, weight: .light))
                                 .foregroundColor(.textPrimary)
                                 .lineSpacing(5)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -330,10 +823,10 @@ struct ActionDetailSheet: View {
 
                     // Cue
                     if let cue = action.cue, !cue.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                             MonoLabel(text: "CUE", color: .textMuted, size: 10)
                             Text(cue)
-                                .font(.mono(13))
+                                .font(metrics.fontMono(13))
                                 .foregroundColor(.textSecond)
                                 .tracking(0.3)
                         }
@@ -342,24 +835,24 @@ struct ActionDetailSheet: View {
                     // Stats — only if there's real data
                     if action.daysSinceCreated >= 3 {
                         Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
-                        HStack(spacing: 24) {
-                            VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: metrics.sectionGap) {
+                            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                 MonoLabel(text: "COMPLETION", color: .textMuted, size: 10)
                                 Text(completionPct)
-                                    .font(.sora(18, weight: .semibold))
+                                    .font(metrics.fontSora(18, weight: .semibold))
                                     .foregroundColor(action.completionRate >= 0.7 ? .inkGreen :
                                                      action.completionRate >= 0.4 ? .inkAmber : .textSecond)
                             }
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                 MonoLabel(text: "SKIPPED", color: .textMuted, size: 10)
                                 Text("\(action.skipCount)×")
-                                    .font(.sora(18, weight: .semibold))
+                                    .font(metrics.fontSora(18, weight: .semibold))
                                     .foregroundColor(action.skipCount >= 4 ? .inkAmber : .textSecond)
                             }
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                 MonoLabel(text: "DAYS", color: .textMuted, size: 10)
                                 Text("\(action.daysSinceCreated)")
-                                    .font(.sora(18, weight: .semibold))
+                                    .font(metrics.fontSora(18, weight: .semibold))
                                     .foregroundColor(.textSecond)
                             }
                         }
@@ -371,11 +864,11 @@ struct ActionDetailSheet: View {
                             onComplete()
                             isPresented = false
                         }) {
-                            HStack(spacing: 8) {
+                            HStack(spacing: metrics.rowSpacing) {
                                 Image(systemName: "checkmark.circle")
-                                    .font(.system(size: 14, weight: .light))
+                                    .font(.system(size: metrics.scaledSize(14), weight: .light))
                                 Text("Mark done")
-                                    .font(.sora(13, weight: .medium)).tracking(0.3)
+                                    .font(metrics.fontSora(14, weight: .medium)).tracking(0.3)
                             }
                             .foregroundColor(action.system.color)
                             .frame(maxWidth: .infinity).frame(height: 46)
@@ -387,12 +880,12 @@ struct ActionDetailSheet: View {
                             )
                         }
                     } else {
-                        HStack(spacing: 8) {
+                        HStack(spacing: metrics.rowSpacing) {
                             Image(systemName: "checkmark.circle.fill")
-                                .font(.system(size: 14))
+                                .font(.system(size: metrics.scaledSize(14)))
                                 .foregroundColor(.inkGreen)
                             Text("Done today")
-                                .font(.mono(11))
+                                .font(metrics.fontMono(12))
                                 .foregroundColor(.textMuted)
                                 .tracking(0.5)
                         }
@@ -402,22 +895,22 @@ struct ActionDetailSheet: View {
 
                     // Related protocols — same system, tap to open
                     if !relatedSessions.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                             Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
                             MonoLabel(text: "RELATED PROTOCOLS", color: .textMuted, size: 10)
                             ForEach(relatedSessions) { session in
                                 Button(action: { selectedSession = session; isPresented = false }) {
-                                    HStack(spacing: 10) {
+                                    HStack(spacing: metrics.cardSpacing) {
                                         RoundedRectangle(cornerRadius: 2)
                                             .fill(session.system.color.opacity(0.6))
                                             .frame(width: 2, height: 28)
-                                        VStack(alignment: .leading, spacing: 2) {
+                                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                             Text(session.title)
-                                                .font(.sora(13, weight: .medium))
+                                                .font(metrics.fontSora(14, weight: .medium))
                                                 .foregroundColor(.textPrimary)
                                             if !session.cue.isEmpty {
                                                 Text(session.cue)
-                                                    .font(.mono(10))
+                                                    .font(metrics.fontMono(11))
                                                     .foregroundColor(.textMuted)
                                                     .tracking(0.3)
                                             }
@@ -425,7 +918,7 @@ struct ActionDetailSheet: View {
                                         Spacer()
                                         MonoLabel(text: "\(session.steps.count) STEPS", color: .textMuted, size: 10)
                                         Image(systemName: "chevron.right")
-                                            .font(.system(size: 10, weight: .light))
+                                            .font(.system(size: metrics.scaledSize(11), weight: .light))
                                             .foregroundColor(.textMuted)
                                     }
                                     .padding(12)
@@ -450,6 +943,7 @@ struct ActionDetailSheet: View {
 
 
 struct ActionRow: View {
+    @Environment(\.appMetrics) private var metrics
     let action: Action
     var onComplete: () -> Void
     @State private var glowing = false
@@ -458,7 +952,7 @@ struct ActionRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 12) {
+            HStack(spacing: metrics.cardSpacing) {
                 // Completion circle — tap to complete
                 Button(action: {
                     withAnimation(.spring(response: 0.28)) { glowing = true; onComplete() }
@@ -478,18 +972,18 @@ struct ActionRow: View {
                                     lineWidth: action.priorityTier == .anchor ? 2 : 1.5)
                             .frame(width: 22, height: 22)
                         if action.isCompleted {
-                            Image(systemName: "checkmark").font(.system(size: 9, weight: .semibold)).foregroundColor(.inkGreen)
+                            Image(systemName: "checkmark").font(.system(size: metrics.scaledSize(10), weight: .semibold)).foregroundColor(.inkGreen)
                         }
                     }
                 }
                 .shadow(color: action.isCompleted ? Color.inkGreen.opacity(glowing ? 0.5 : 0.15) : .clear, radius: 8)
 
                 // Text area
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
+                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                    HStack(spacing: metrics.rowSpacing) {
                         if let block = action.scheduledBlock, !action.isCompleted {
                             Text(formatBlockTime(block))
-                                .font(.mono(10))
+                                .font(metrics.fontMono(11))
                                 .foregroundColor(action.system.color.opacity(0.8))
                                 .tracking(0.5)
                                 .fixedSize()
@@ -503,7 +997,7 @@ struct ActionRow: View {
                             .truncationMode(.tail)
                         if let mode = action.cognitionMode, !action.isCompleted {
                             Image(systemName: mode.icon)
-                                .font(.system(size: 10, weight: .light))
+                                .font(.system(size: metrics.scaledSize(11), weight: .light))
                                 .foregroundColor(mode == .creative ? .warm :
                                                  mode == .analytical ? .violetLight : .textMuted)
                                 .fixedSize()
@@ -522,7 +1016,7 @@ struct ActionRow: View {
                         }()
                         if !subtitle.isEmpty {
                             Text(subtitle)
-                                .font(.sora(11, weight: .light))
+                                .font(metrics.fontSora(13, weight: .light))
                                 .foregroundColor(.textMuted.opacity(0.7))
                                 .lineLimit(1)
                         }
@@ -535,7 +1029,7 @@ struct ActionRow: View {
                 if action.isHighFriction && !action.isCompleted {
                     Button(action: { withAnimation(.easeOut(duration: 0.2)) { showFrictionNudge.toggle() } }) {
                         Image(systemName: "exclamationmark.circle")
-                            .font(.system(size: 12, weight: .light))
+                            .font(.system(size: metrics.scaledSize(12), weight: .light))
                             .foregroundColor(.inkAmber.opacity(0.7))
                     }
                 }
@@ -545,14 +1039,14 @@ struct ActionRow: View {
             .onTapGesture { showDetail = true }
 
             if showFrictionNudge && !action.isCompleted {
-                HStack(spacing: 8) {
+                HStack(spacing: metrics.rowSpacing) {
                     Rectangle().fill(Color.inkAmber.opacity(0.3)).frame(width: 1)
                         .padding(.leading, 35)
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         Text("Skipped \(action.skipCount)×")
-                            .font(.mono(11)).foregroundColor(.inkAmber).tracking(0.3)
+                            .font(metrics.fontMono(12)).foregroundColor(.inkAmber).tracking(0.3)
                         Text("Topology mismatch — check time, cue, or sequence.")
-                            .font(.mono(10)).foregroundColor(.textMuted).tracking(0.2)
+                            .font(metrics.fontMono(11)).foregroundColor(.textMuted).tracking(0.2)
                     }
                     Spacer()
                 }
@@ -599,6 +1093,7 @@ struct AtmosphericBackground: View {
 // Causal mechanism that turns arbitrary compliance into intelligent buy-in
 
 struct MechanismNoteView: View {
+    @Environment(\.appMetrics) private var metrics
     let mechanism: String
     let systemColor: Color
     @State private var expanded: Bool = false
@@ -606,14 +1101,14 @@ struct MechanismNoteView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Button(action: { withAnimation(.easeOut(duration: 0.2)) { expanded.toggle() } }) {
-                HStack(spacing: 8) {
+                HStack(spacing: metrics.rowSpacing) {
                     Image(systemName: "atom")
-                        .font(.system(size: 10, weight: .light))
+                        .font(.system(size: metrics.scaledSize(11), weight: .light))
                         .foregroundColor(systemColor.opacity(0.7))
                     MonoLabel(text: "WHY THIS WORKS", color: systemColor.opacity(0.8), size: 10)
                     Spacer()
                     Image(systemName: expanded ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 10, weight: .light))
+                        .font(.system(size: metrics.scaledSize(11), weight: .light))
                         .foregroundColor(.textMuted)
                 }
                 .padding(.horizontal, 18)
@@ -625,7 +1120,7 @@ struct MechanismNoteView: View {
 
             if expanded {
                 Text(mechanism)
-                    .font(.sora(13, weight: .light))
+                    .font(metrics.fontSora(14, weight: .light))
                     .foregroundColor(.textSecond)
                     .lineSpacing(4)
                     .fixedSize(horizontal: false, vertical: true)
@@ -648,30 +1143,31 @@ struct MechanismNoteView: View {
 
 // Inline row for Home tab — opens ActionDetailSheet on tap
 struct ActionDetailInlineRow: View {
+    @Environment(\.appMetrics) private var metrics
     let action: Action
     @State private var showDetail = false
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: metrics.blockSpacing) {
             ZStack {
                 Circle().fill(Color.warm.opacity(0.15)).frame(width: 28, height: 28)
                 Circle().fill(Color.warm).frame(width: 8, height: 8)
                     .shadow(color: Color.warm.opacity(0.5), radius: 4)
             }
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                 Text(action.title)
-                    .font(.sora(15, weight: .medium)).foregroundColor(.textPrimary)
+                    .font(metrics.fontSora(15, weight: .medium)).foregroundColor(.textPrimary)
                 if let cue = action.cue, !cue.isEmpty {
                     Text("When: \(cue)")
-                        .font(.mono(11)).foregroundColor(.textMuted).tracking(0.3)
+                        .font(metrics.fontMono(12)).foregroundColor(.textMuted).tracking(0.3)
                 } else if let note = action.note, !note.isEmpty {
                     Text(note.count > 55 ? String(note.prefix(55)) + "…" : note)
-                        .font(.sora(12, weight: .light)).foregroundColor(.textSecond).lineLimit(1)
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineLimit(1)
                 }
             }
             Spacer()
-            Text("View").font(.sora(11, weight: .light)).foregroundColor(.textMuted)
-            Image(systemName: "chevron.right").font(.system(size: 12)).foregroundColor(.textMuted)
+            Text("View").font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted)
+            Image(systemName: "chevron.right").font(.system(size: metrics.scaledSize(12))).foregroundColor(.textMuted)
         }
         .contentShape(Rectangle())
         .onTapGesture { showDetail = true }
@@ -684,6 +1180,7 @@ struct ActionDetailInlineRow: View {
 
 
 struct SessionCard: View {
+    @Environment(\.appMetrics) private var metrics
     let session: Session
     var onTap: () -> Void                      // opens execution view
     var onQuickDone: () -> Void                // marks done without opening steps
@@ -701,18 +1198,18 @@ struct SessionCard: View {
 
             // Main content — tappable to open execution view
             Button(action: onTap) {
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                    HStack(spacing: metrics.rowSpacing) {
                         MonoLabel(text: "PROTOCOL", color: session.system.color, size: 11)
                         MonoLabel(text: "· \(session.steps.count) STEPS", color: .textMuted, size: 11)
                         Spacer()
                     }
                     Text(session.title)
-                        .font(.sora(16, weight: .semibold))
+                        .font(metrics.fontSora(16, weight: .semibold))
                         .foregroundColor(.textPrimary)
                     if !session.cue.isEmpty {
                         Text("When: \(session.cue)")
-                            .font(.mono(11)).foregroundColor(.textMuted).tracking(0.3)
+                            .font(metrics.fontMono(12)).foregroundColor(.textMuted).tracking(0.3)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -722,7 +1219,7 @@ struct SessionCard: View {
             Spacer(minLength: 12)
 
             // Right side — quick-mark done + skip
-            VStack(spacing: 10) {
+            VStack(spacing: metrics.cardSpacing) {
                 // Quick-mark done — single tap, no steps needed
                 Button(action: {
                     #if os(iOS)
@@ -738,7 +1235,7 @@ struct SessionCard: View {
                             .stroke(session.system.color.opacity(0.4), lineWidth: 1.5)
                             .frame(width: 36, height: 36)
                         Image(systemName: "checkmark")
-                            .font(.system(size: 13, weight: .medium))
+                            .font(.system(size: metrics.scaledSize(13), weight: .medium))
                             .foregroundColor(session.system.color)
                     }
                 }
@@ -748,7 +1245,7 @@ struct SessionCard: View {
                     withAnimation(.easeOut(duration: 0.15)) { showSkipOptions.toggle() }
                 }) {
                     Text("skip")
-                        .font(.sora(11, weight: .light))
+                        .font(metrics.fontSora(13, weight: .light))
                         .foregroundColor(.textMuted)
                         .frame(width: 36, height: 20)
                         .contentShape(Rectangle())
@@ -759,11 +1256,11 @@ struct SessionCard: View {
         if showSkipOptions {
             VStack(alignment: .leading, spacing: 0) {
                 Rectangle().fill(Color.muted.opacity(0.15)).frame(height: 0.5).padding(.horizontal, 16)
-                HStack(spacing: 8) {
+                HStack(spacing: metrics.rowSpacing) {
                     skipOption("Rest day", reason: .rest)
                     skipOption("Something came up", reason: .disruption)
                     Button(action: { withAnimation { showSkipOptions = false } }) {
-                        Text("cancel").font(.sora(11, weight: .light)).foregroundColor(.textMuted.opacity(0.6))
+                        Text("cancel").font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted.opacity(0.6))
                     }
                 }
                 .padding(.horizontal, 16)
@@ -782,7 +1279,7 @@ struct SessionCard: View {
             onSkip(reason)
         }) {
             Text(label)
-                .font(.sora(11, weight: .light))
+                .font(metrics.fontSora(13, weight: .light))
                 .foregroundColor(.textSecond)
                 .padding(.horizontal, 10).padding(.vertical, 5)
                 .background(Color.surface)
@@ -815,7 +1312,7 @@ struct SessionExecutionView: View {
                 HStack {
                     Button(action: onClose) {
                         Image(systemName: "xmark")
-                            .font(.system(size: 14, weight: .light))
+                            .font(.system(size: metrics.scaledSize(14), weight: .light))
                             .foregroundColor(.textMuted)
                             .frame(width: 36, height: 36)
                             .background(Color.surface)
@@ -827,14 +1324,14 @@ struct SessionExecutionView: View {
                 .padding(.horizontal, metrics.hPad).padding(.top, 20).padding(.bottom, 32)
 
                 // Session title
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                     MonoLabel(text: "PROTOCOL · \(session.steps.count) STEPS", color: session.system.color)
                     Text(session.title)
-                        .font(.sora(26, weight: .semibold))
+                        .font(metrics.fontSora(26, weight: .semibold))
                         .foregroundColor(.textPrimary)
                     if !session.cue.isEmpty {
                         Text("When: \(session.cue)")
-                            .font(.mono(11)).foregroundColor(.textMuted).tracking(0.3)
+                            .font(metrics.fontMono(12)).foregroundColor(.textMuted).tracking(0.3)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -844,10 +1341,10 @@ struct SessionExecutionView: View {
                 // Step list — read-along, not independently checkable
                 VStack(spacing: 0) {
                     ForEach(Array(session.steps.enumerated()), id: \.offset) { i, step in
-                        HStack(spacing: 16) {
+                        HStack(spacing: metrics.blockSpacing) {
                             // Step index — mono, right-aligned in fixed column
                             Text("\(i + 1)")
-                                .font(.mono(13))
+                                .font(metrics.fontMono(13))
                                 .foregroundColor(i == currentStep ? session.system.color : .textMuted)
                                 .frame(width: 20, alignment: .trailing)
 
@@ -894,7 +1391,7 @@ struct SessionExecutionView: View {
                 Spacer()
 
                 // CTA — changes based on position in protocol
-                VStack(spacing: 12) {
+                VStack(spacing: metrics.cardSpacing) {
                     if currentStep < session.steps.count - 1 {
                         // Advance step
                         Button(action: {
@@ -904,7 +1401,7 @@ struct SessionExecutionView: View {
                             #endif
                         }) {
                             Text("Next step")
-                                .font(.sora(14, weight: .semibold)).foregroundColor(.bgBase).tracking(1.5)
+                                .font(metrics.fontSora(15, weight: .semibold)).foregroundColor(.bgBase).tracking(1.5)
                                 .frame(maxWidth: .infinity).frame(height: 50)
                                 .background(session.system.color)
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -914,13 +1411,13 @@ struct SessionExecutionView: View {
                         // Skip to close — understated, always available
                         Button(action: { closeSession() }) {
                             Text("Protocol closed.")
-                                .font(.mono(11)).foregroundColor(.textMuted).tracking(1)
+                                .font(metrics.fontMono(12)).foregroundColor(.textMuted).tracking(1)
                         }
                     } else {
                         // Final step — primary CTA
                         Button(action: { closeSession() }) {
                             Text("Protocol closed.")
-                                .font(.sora(14, weight: .semibold)).tracking(1.8)
+                                .font(metrics.fontSora(15, weight: .semibold)).tracking(1.8)
                                 .foregroundColor(.bgBase)
                                 .frame(maxWidth: .infinity).frame(height: 50)
                                 .background(
@@ -986,26 +1483,26 @@ struct AddSessionSheet: View {
         ZStack {
             Color.bgBase.ignoresSafeArea()
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: metrics.sectionGap) {
                     SheetHandle().frame(maxWidth: .infinity, alignment: .center)
 
                     HStack {
-                        Text("New Protocol").font(.sora(20, weight: .semibold)).foregroundColor(.textPrimary)
+                        Text("New Protocol").font(metrics.fontSora(20, weight: .semibold)).foregroundColor(.textPrimary)
                         Spacer()
-                        Button("Cancel") { isPresented = false }.font(.sora(14)).foregroundColor(.textMuted)
+                        Button("Cancel") { isPresented = false }.font(metrics.fontSora(15)).foregroundColor(.textMuted)
                     }
 
                     inputField("PROTOCOL NAME", placeholder: "Evening Shutdown", text: $title)
 
                     // System picker
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "SYSTEM")
-                        HStack(spacing: 8) {
+                        HStack(spacing: metrics.rowSpacing) {
                             ForEach(SystemTag.allCases, id: \.self) { tag in
                                 Button(action: { system = tag }) {
-                                    VStack(spacing: 4) {
-                                        Image(systemName: tag.icon).font(.system(size: 14))
-                                        Text(tag.rawValue.prefix(3).uppercased()).font(.mono(9)).tracking(1)
+                                    VStack(spacing: metrics.rowSpacing) {
+                                        Image(systemName: tag.icon).font(.system(size: metrics.scaledSize(14)))
+                                        Text(tag.rawValue.prefix(3).uppercased()).font(metrics.fontMono(10)).tracking(1)
                                     }
                                     .foregroundColor(system == tag ? tag.color : .textMuted)
                                     .frame(maxWidth: .infinity).padding(.vertical, 10)
@@ -1021,7 +1518,7 @@ struct AddSessionSheet: View {
                     inputField("CUE", placeholder: "After shower / Before bed", text: $cue)
 
                     // Steps — max 6
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         HStack {
                             MonoLabel(text: "STEPS")
                             Spacer()
@@ -1030,11 +1527,11 @@ struct AddSessionSheet: View {
                         MonoLabel(text: "Steps are navigation — they guide, not score", color: .muted, size: 10)
 
                         ForEach(steps.indices, id: \.self) { i in
-                            HStack(spacing: 10) {
-                                Text("\(i + 1)").font(.mono(11)).foregroundColor(.textMuted).frame(width: 16)
+                            HStack(spacing: metrics.cardSpacing) {
+                                Text("\(i + 1)").font(metrics.fontMono(12)).foregroundColor(.textMuted).frame(width: 16)
                                 TextField("", text: $steps[i],
                                           prompt: Text("Step \(i + 1)").foregroundColor(.textMuted))
-                                    .font(.sora(14)).foregroundColor(.textPrimary)
+                                    .font(metrics.fontSora(15)).foregroundColor(.textPrimary)
                                     .padding(12).background(Color.surface)
                                     .clipShape(RoundedRectangle(cornerRadius: 8))
                                     .tint(.warm)
@@ -1048,9 +1545,9 @@ struct AddSessionSheet: View {
 
                         if steps.count < 6 {
                             Button(action: { steps.append("") }) {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "plus").font(.system(size: 12))
-                                    Text("Add step").font(.sora(13))
+                                HStack(spacing: metrics.rowSpacing) {
+                                    Image(systemName: "plus").font(.system(size: metrics.scaledSize(12)))
+                                    Text("Add step").font(metrics.fontSora(14))
                                 }
                                 .foregroundColor(.violet)
                                 .frame(maxWidth: .infinity).padding(.vertical, 10)
@@ -1059,23 +1556,23 @@ struct AddSessionSheet: View {
                             }
                         } else {
                             // Cap indicator
-                            HStack(spacing: 6) {
-                                Image(systemName: "equal").font(.system(size: 11)).foregroundColor(.inkAmber)
+                            HStack(spacing: metrics.rowSpacing) {
+                                Image(systemName: "equal").font(.system(size: metrics.scaledSize(12))).foregroundColor(.inkAmber)
                                 Text("Protocols cap at 6 steps.")
-                                    .font(.mono(11)).foregroundColor(.inkAmber).tracking(0.5)
+                                    .font(metrics.fontMono(12)).foregroundColor(.inkAmber).tracking(0.5)
                             }
                             .padding(.top, 4)
                         }
                     }
 
                     // Recurrence
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "FREQUENCY")
-                        HStack(spacing: 6) {
+                        HStack(spacing: metrics.rowSpacing) {
                             ForEach([RecurrenceType.daily, .weekdays, .weekly, .none], id: \.self) { r in
                                 Button(action: { recurrence = r }) {
                                     Text(r == .none ? "Once" : r.rawValue.capitalized)
-                                        .font(.sora(12)).foregroundColor(recurrence == r ? .violet : .textMuted)
+                                        .font(metrics.fontSora(13)).foregroundColor(recurrence == r ? .violet : .textMuted)
                                         .padding(.horizontal, 12).padding(.vertical, 8)
                                         .background(recurrence == r ? Color.violetDim.opacity(0.3) : Color.surface)
                                         .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -1184,15 +1681,15 @@ struct SystemStatusRow: View {
                             .fill(sys.color.opacity(0.7))
                             .frame(width: 2)
                             .padding(.trailing, 14)
-                        HStack(spacing: 10) {
-                            Image(systemName: sys.icon).font(.system(size: 14))
+                        HStack(spacing: metrics.cardSpacing) {
+                            Image(systemName: sys.icon).font(.system(size: metrics.scaledSize(14)))
                                 .foregroundColor(sys.color).frame(width: 20)
                             Text(sys.rawValue.capitalized)
-                                .font(.sora(13, weight: .medium)).foregroundColor(.textPrimary)
+                                .font(metrics.fontSora(14, weight: .medium)).foregroundColor(.textPrimary)
                                 .lineLimit(1)
                             Spacer()
                             Text(state.scoreLabel(score))
-                                .font(.mono(10)).foregroundColor(state.scoreColor(score)).tracking(0.5)
+                                .font(metrics.fontMono(11)).foregroundColor(state.scoreColor(score)).tracking(0.5)
                                 .lineLimit(1).fixedSize()
                             ZStack(alignment: .leading) {
                                 RoundedRectangle(cornerRadius: 2).fill(Color.surface2).frame(width: 44, height: 3)
@@ -1202,7 +1699,7 @@ struct SystemStatusRow: View {
                             // Score number removed — bar + label is sufficient.
                             // Raw integer becomes a Competition-strength tracking target.
                             Image(systemName: expanded ? "chevron.up" : "chevron.down")
-                                .font(.system(size: 10, weight: .light))
+                                .font(.system(size: metrics.scaledSize(11), weight: .light))
                                 .foregroundColor(.textMuted)
                                 .padding(.leading, 2)
                         }
@@ -1212,7 +1709,7 @@ struct SystemStatusRow: View {
 
                 // Expanded content — science note + pending actions
                 if expanded {
-                    VStack(alignment: .leading, spacing: 14) {
+                    VStack(alignment: .leading, spacing: metrics.blockSpacing) {
                         Rectangle()
                             .fill(Color.muted.opacity(0.2))
                             .frame(height: 0.5)
@@ -1220,16 +1717,16 @@ struct SystemStatusRow: View {
 
                         // Science context
                         Text(sys.scienceNote)
-                            .font(.sora(13, weight: .light))
+                            .font(metrics.fontSora(14, weight: .light))
                             .foregroundColor(.textSecond)
                             .lineSpacing(4)
                             .fixedSize(horizontal: false, vertical: true)
 
                         // What moves it
-                        VStack(alignment: .leading, spacing: 6) {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                             MonoLabel(text: "WHAT MOVES IT", color: sys.color, size: 10)
                             Text(sys.whatMovesIt)
-                                .font(.sora(12, weight: .light))
+                                .font(metrics.fontSora(13, weight: .light))
                                 .foregroundColor(.textMuted)
                                 .lineSpacing(3)
                         }
@@ -1237,10 +1734,10 @@ struct SystemStatusRow: View {
                         // Trajectory signal — training-log style direction reading
                         // Not a score. Not praise. A pattern observation.
                         if let trajectory = trajectorySignal {
-                            VStack(alignment: .leading, spacing: 6) {
+                            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                 MonoLabel(text: "PATTERN", color: .textMuted, size: 10)
                                 Text(trajectory)
-                                    .font(.sora(12, weight: .light))
+                                    .font(metrics.fontSora(13, weight: .light))
                                     .foregroundColor(.textSecond)
                                     .lineSpacing(3)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -1251,16 +1748,16 @@ struct SystemStatusRow: View {
                         // Only shows after 14 days of data. Not a grade — a diagnostic.
                         let highFrictionActions = systemPending.filter { $0.isHighFriction }
                         if !highFrictionActions.isEmpty {
-                            VStack(alignment: .leading, spacing: 8) {
+                            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                 MonoLabel(text: "FRICTION DETECTED", color: .inkAmber, size: 10)
                                 ForEach(highFrictionActions.prefix(2), id: \.id) { action in
-                                    HStack(alignment: .top, spacing: 8) {
+                                    HStack(alignment: .top, spacing: metrics.rowSpacing) {
                                         Circle().fill(Color.inkAmber.opacity(0.5)).frame(width: 5, height: 5).padding(.top, 5)
-                                        VStack(alignment: .leading, spacing: 2) {
+                                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                             Text(action.title)
-                                                .font(.sora(12, weight: .medium)).foregroundColor(.textPrimary)
+                                                .font(metrics.fontSora(13, weight: .medium)).foregroundColor(.textPrimary)
                                             Text("Skipped \(action.skipCount)×.")
-                                                .font(.sora(11, weight: .light)).foregroundColor(.textMuted).lineSpacing(2)
+                                                .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted).lineSpacing(2)
                                         }
                                     }
                                 }
@@ -1270,27 +1767,27 @@ struct SystemStatusRow: View {
                         // Pending in this system — single next action, not a list
                         let nextAction = systemPending.first
                         if let action = nextAction {
-                            VStack(alignment: .leading, spacing: 6) {
+                            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                                 MonoLabel(text: "NEXT IN THIS SYSTEM", color: .textMuted, size: 10)
-                                HStack(spacing: 10) {
+                                HStack(spacing: metrics.cardSpacing) {
                                     Circle()
                                         .stroke(sys.color.opacity(0.5), lineWidth: 1.5)
                                         .frame(width: 8, height: 8)
                                     Text(action.title)
-                                        .font(.sora(13, weight: .medium))
+                                        .font(metrics.fontSora(14, weight: .medium))
                                         .foregroundColor(.textPrimary)
                                     Spacer()
                                     if systemPending.count > 1 {
                                         Text("+\(systemPending.count - 1) more")
-                                            .font(.mono(10)).foregroundColor(.textMuted)
+                                            .font(metrics.fontMono(11)).foregroundColor(.textMuted)
                                     }
                                 }
                             }
                         } else {
-                            HStack(spacing: 8) {
+                            HStack(spacing: metrics.rowSpacing) {
                                 Circle().fill(sys.color.opacity(0.4)).frame(width: 7, height: 7)
                                 Text("No pending actions in this system.")
-                                    .font(.sora(12, weight: .light)).foregroundColor(.textMuted)
+                                    .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted)
                             }
                         }
                     }

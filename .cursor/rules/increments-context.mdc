@@ -18,6 +18,8 @@ Core job: remove **execution drag** (ambiguity, fragmentation, bad sequencing, s
 | Xcode project | `App/Increments.xcodeproj` |
 | Swift sources (8-file architecture) | `App/Increments/*.swift` |
 | Master brief | `Docs/INCREMENTS_Master.md` |
+| Signal tab (planned, after Hideout) | `Docs/INCREMENTS_DISTRIBUTION_TAB_SPEC.md` (v2.3 — implementation-ready) |
+| Cross-venture distribution doctrine | `FORM-iOS/docs/BRICE_OS/DISTRIBUTION_OPERATING_SYSTEM.md` |
 | Voice / design doctrine | `Docs/INCREMENTS_Voice_Doctrine.md`, `Docs/INCREMENTS_Design_Decisions_v1.2.md` |
 | Psych / profile references | `Psych/` (PDFs — not app code) |
 | Historical docs | `Archive/Past-Docs/` |
@@ -29,6 +31,13 @@ Do **not** open `INCREMENTS New Top Folder`, duplicate Xcode projects, or `Archi
 1. `Docs/INCREMENTS_Master.md` — architecture, behavioral model, tab/system ownership
 2. `Docs/INCREMENTS_Voice_Doctrine.md` — presence layer (Jarvis/Alfred register; observed evidence only)
 3. `Docs/INCREMENTS_Design_Decisions_v1.2.md` — visual/type constraints when touching UI
+
+**Signal tab work:** `Docs/INCREMENTS_DISTRIBUTION_TAB_SPEC.md` (v2.3) + `DISTRIBUTION_OPERATING_SYSTEM.md`. Models: `DistributionWeek`, `DecisionLedger`. Monday step 6 = confirm ledger. Forge gate: `FORM-iOS/docs/FORGE_V1_GATE_QA.md` (9 checks). HOLD max 6 weeks. No rep-counter / validation UI.
+
+**FORM distribution copy:** `DISTRIBUTION_OPERATING_SYSTEM.md` §FORM product truth + §Threshold Tuesdays + §Saturday Long Runs (Simon/Speed Emergence, Julien/Hyrox). Sony = scene; phone = one athlete per clip; ledger after sessions.
+
+**Cross-repo orientation (not INCREMENTS implementation detail):** `FORM-iOS/docs/BRICE_OS/BRICE_OPERATOR_KERNEL.md`  
+**INCREMENTS in FORM_FORGE_ARCHITECTURE.md:** temporary embed in `FORM-iOS/docs/FORM_FORGE_ARCHITECTURE.md` — future extract to `INCREMENTS/docs/INCREMENTS_ARCHITECTURE.md` when requested.
 
 When **FORM-iOS** is in the same workspace: borrow **layout restraint and hierarchy** from `FORM-iOS/docs/form_system_doctrine.md` only — never FORM athlete voice, Forge copy, or training-session patterns.
 
