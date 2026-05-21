@@ -50,18 +50,32 @@ struct YouView: View {
     @Query(sort: \DailyLog.date, order: .reverse) private var logs: [DailyLog]
     @Bindable var state: AppState
     @State private var selectedSeg = 0
+    @State private var showSettings = false
     @Environment(\.appMetrics) private var metrics
 
     var profile: OperatorProfile { profiles.first ?? OperatorProfile() }
+
+    private var iPadRightColumnTitle: String {
+        switch selectedSeg {
+        case 0: return "Brief"
+        case 1: return "Doctrine"
+        case 2: return "Ventures"
+        case 3: return "Intel"
+        case 4: return "Manual"
+        default: return "You"
+        }
+    }
 
     var body: some View {
         ZStack {
             YouTabAmbience()
             VStack(spacing: 0) {
                 GlanceTabHeader(kicker: "INCREMENTS", title: profile.firstName.isEmpty ? "You" : profile.firstName, kickerColor: .violetLight) {
-                    Image(systemName: "gearshape")
-                        .foregroundColor(.textMuted)
-                        .font(.system(size: metrics.scaledSize(18), weight: .light))
+                    Button(action: { showSettings = true }) {
+                        Image(systemName: "gearshape")
+                            .foregroundColor(.textMuted)
+                            .font(.system(size: metrics.scaledSize(18), weight: .light))
+                    }
                 }
 
                 if let line = cloudKitMonitor.health.userLine {
@@ -76,16 +90,38 @@ struct YouView: View {
                             VStack(alignment: .leading, spacing: 0) {
                                 SectionHeader(text: "CAPITAL · RESOURCE", color: .warm)
                                     .padding(.horizontal, metrics.hPad)
-                                    .padding(.top, metrics.scaledSize(12))
                                     .padding(.bottom, metrics.scaledSize(8))
                                 CapitalTabView()
                             }
+                            .padding(.top, metrics.screenTopPadding)
                         }
                     } right: {
                         VStack(spacing: 0) {
-                            segmentControl(["Brief", "Doctrine", "Ventures", "Intel", "Manual", "Settings"], selected: $selectedSeg)
+                            HStack {
+                                VStack(alignment: .leading, spacing: metrics.scaledSize(3)) {
+                                    MonoLabel(text: "YOU", color: .violetLight, size: 9)
+                                    Text(iPadRightColumnTitle)
+                                        .font(.sora(metrics.headlineSize, weight: .semibold))
+                                        .foregroundColor(.textPrimary)
+                                        .animation(.easeOut(duration: 0.2), value: selectedSeg)
+                                }
+                                Spacer()
+                                Button(action: { showSettings = true }) {
+                                    Image(systemName: "gearshape")
+                                        .font(.system(size: metrics.scaledSize(15), weight: .light))
+                                        .foregroundColor(.textMuted)
+                                        .frame(width: metrics.scaledSize(34), height: metrics.scaledSize(34))
+                                        .background(Color.surface2)
+                                        .clipShape(Circle())
+                                }
+                            }
+                            .padding(.horizontal, metrics.hPad)
+                            .padding(.top, metrics.screenTopPadding)
+                            .padding(.bottom, metrics.scaledSize(8))
+
+                            segmentControl(["Brief", "Doctrine", "Ventures", "Intel", "Manual"], selected: $selectedSeg)
                                 .padding(.horizontal, metrics.hPad)
-                                .padding(.vertical, metrics.scaledSize(14))
+                                .padding(.bottom, metrics.scaledSize(14))
                             ScrollView(showsIndicators: false) {
                                 Group {
                                     switch selectedSeg {
@@ -94,7 +130,7 @@ struct YouView: View {
                                     case 2: VenturesTabView()
                                     case 3: IntelTabView(profile: profile)
                                     case 4: YouFieldManualView()
-                                    default: SettingsTabView(profile: profile, state: state)
+                                    default: EmptyView()
                                     }
                                 }
                                 .adaptiveContentWidth(metrics)
@@ -102,7 +138,7 @@ struct YouView: View {
                         }
                     }
                 } else {
-                    segmentControl(["Capital", "Brief", "Doctrine", "Ventures", "Intel", "Manual", "Settings"], selected: $selectedSeg)
+                    segmentControl(["Capital", "Brief", "Doctrine", "Ventures", "Intel", "Manual"], selected: $selectedSeg)
                         .padding(.horizontal, metrics.hPad)
                         .padding(.bottom, metrics.sectionGap)
                     ScrollView(showsIndicators: false) {
@@ -113,12 +149,14 @@ struct YouView: View {
                         case 3: VenturesTabView()
                         case 4: IntelTabView(profile: profile)
                         case 5: YouFieldManualView()
-                        case 6: SettingsTabView(profile: profile, state: state)
                         default: EmptyView()
                         }
                     }
                 }
             }
+        }
+        .sheet(isPresented: $showSettings) {
+            SettingsTabView(profile: profile, state: state)
         }
     }
 }
@@ -133,7 +171,7 @@ struct VenturesTabView: View {
     @AppStorage("forge_v1_gate_passed") private var forgeGateCleared = true
     @Query(sort: \DistributionWeek.weekStartDate, order: .reverse) private var weeks: [DistributionWeek]
 
-    @State private var expandedVenture: String? = "hideout"
+    @State private var expandedVentures: Set<String> = []
 
     var body: some View {
         VStack(spacing: metrics.blockSpacing) {
@@ -165,13 +203,22 @@ struct VenturesTabView: View {
                 kickerColor: .violetLight,
                 status: forgeGateCleared ? "Active · Beta · Gate cleared" : "Beta · Gate pending",
                 headline: "Strength execution. The session lives in the app, not in your head.",
-                body: "Forge removes cognitive load from strength training. The plan anchor knows where you are. The session starts in under five seconds. Draft restores after a force-close. The rest timer fires correctly whether the screen is locked, another app is open, or a call came in mid-set.\n\nThe v1 acceptance gate is a real-use standard: five weeks across three athletes with zero moments requiring a workaround. Tim, Tinius, and Cole have been running Forge for five weeks. Gate is cleared.\n\nDistribution unlocks after the gate. The content approach is the same as FORM — product truth only, one real decision or execution observation per week, no performance, no tutorials.",
+                body: forgeGateCleared
+                    ? "Forge removes cognitive load from strength training. The plan anchor knows where you are. The session starts in under five seconds. Draft restores after a force-close. The rest timer fires correctly whether the screen is locked, another app is open, or a call came in mid-set.\n\nThe v1 acceptance gate has cleared: five weeks across three athletes with zero moments requiring a workaround. Tim, Tinius, and Cole completed the real-use standard.\n\nDistribution is now allowed. The content approach is the same as FORM — product truth only, one real decision or execution observation per week, no performance, no tutorials."
+                    : "Forge removes cognitive load from strength training. The plan anchor knows where you are. The session starts in under five seconds. Draft restores after a force-close. The rest timer fires correctly whether the screen is locked, another app is open, or a call came in mid-set.\n\nThe v1 acceptance gate is still pending. Distribution stays paused until real-use confirms five weeks across three athletes with zero moments requiring a workaround.\n\nUntil then, Forge is not a content surface. It remains a product-readiness surface.",
                 distributionSection: forgeDistribution,
                 signalSummary: forgeSignalSummary
             )
         }
         .padding(.horizontal, metrics.hPad)
         .padding(.bottom, 80)
+        .onAppear {
+            if expandedVentures.isEmpty {
+                expandedVentures = metrics.isIPad
+                    ? ["hideout", "form", "forge"]
+                    : ["hideout"]
+            }
+        }
     }
 
     private func ventureCard(
@@ -184,13 +231,17 @@ struct VenturesTabView: View {
         distributionSection: some View,
         signalSummary: some View
     ) -> some View {
-        let isExpanded = expandedVenture == id
+        let isExpanded = expandedVentures.contains(id)
 
         return CardView(style: isExpanded ? .primary : .secondary) {
             VStack(alignment: .leading, spacing: 0) {
                 Button(action: {
                     withAnimation(.spring(response: 0.36, dampingFraction: 0.82)) {
-                        expandedVenture = isExpanded ? nil : id
+                        if isExpanded {
+                            expandedVentures.remove(id)
+                        } else {
+                            expandedVentures.insert(id)
+                        }
                     }
                 }) {
                     HStack(alignment: .top) {
@@ -255,6 +306,7 @@ struct VenturesTabView: View {
                     .frame(width: 2)
             }
         }
+        .clipShape(RoundedRectangle(cornerRadius: metrics.cardRadius))
         .overlay(
             RoundedRectangle(cornerRadius: metrics.cardRadius)
                 .strokeBorder(
@@ -272,32 +324,17 @@ struct VenturesTabView: View {
             MonoLabel(text: "NIGHT READ · DISTRIBUTION", color: .warm, size: 9)
 
             ventureProseBlock(
-                "Hideout operates as four businesses depending on the day and season. Neighborhood café: daily anchor, regulars, six-year reputation. Distribution vehicle: every Monday block, every card in a lobby. Recovery asset: the solo experiment tests the floor without staff. Brand: the name that makes the other ventures legible. Which mode is running changes what decisions are correct.",
+                "Current job: convert nearby awareness into first visits, then first visits into clean recurring pickups. Boards, GBP, cards, and warm partnerships all serve that mechanism.",
                 color: .warm
             )
 
             ventureProseBlock(
-                "Nervous system economics: every interaction costs something from your nervous system and produces something. High-volume throughput days generate revenue but draw from the same pool as coaching, building, and thinking. Without staff, every transaction is a direct exchange. The question is not only whether you hit the revenue target but what that cost, and whether it was worth it.",
+                "The solo experiment is also a floor test: what Hideout can produce without staff, and what that production costs from the same nervous-system pool used for coaching, building, and thinking.",
                 color: .warm
             )
 
             ventureProseBlock(
-                "Two true levers: threshold conversion — the gap between walk-past and walk-in. First clean recurring pickup — a first-timer returns without being prompted. Both compound. Neither is fast. Seeds planted now build the memory that produces the second visit in three weeks.",
-                color: .warm
-            )
-
-            ventureProseBlock(
-                "Column boards are a threshold decision surface, not signage. The person at the corridor has already noticed the café. FIRST TIME? START HERE removes the barrier — it does not sell. Most effort belongs on aware-and-hesitant states, not unaware.",
-                color: .warm
-            )
-
-            ventureProseBlock(
-                "Partnership sequence: Expansive Biscayne first — professional audience, one warm introduction. Salon next door second — warm relationship, script running. Watermarc pacing — slow seed over months. Different time horizons, not interchangeable.",
-                color: .warm
-            )
-
-            ventureProseBlock(
-                "Monday block before open — 7-shot sequence, assembly edit, GBP, Reels, TikTok, no decisions at execution time. Friday log after close. Full economics and signal doctrine: You → Doctrine → Hideout. Crash course: Manual.",
+                "Execution stays simple: Monday block before open. Friday signal log after close. Full economics and signal doctrine live in You → Doctrine → Hideout.",
                 color: .warm
             )
         }
@@ -330,27 +367,17 @@ struct VenturesTabView: View {
             MonoLabel(text: "NIGHT READ · DISTRIBUTION", color: .inkGreen, size: 9)
 
             ventureProseBlock(
-                "Ghost Protocol is a 6-week run-form curriculum — mechanics, metronome, S01 through S36. Not a live pace adjuster. Early sessions establish metronome discipline. Middle sessions integrate mechanics under load. Late sessions test form retention under fatigue. Form degradation under fatigue is the most common injury mechanism in distance running; most programs do not address it directly.",
+                "Current job: show product truth while the operator is injured. Tuesday threshold and Saturday long run are the live surfaces; Simon and Julien provide two programs, two phones, one coaching context.",
                 color: .inkGreen
             )
 
             ventureProseBlock(
-                "Effort governs all FORM distribution copy. The app surface is the authority. One screen, one decision, one sentence. The moment copy explains the product instead of showing it, it is a tutorial. Tutorials are not distribution.",
+                "FORM content should show what the app actually routes: one screen, one decision, one sentence. Not tutorials. Not claims. Not a fake coach dashboard.",
                 color: .inkGreen
             )
 
             ventureProseBlock(
-                "Simon: Speed Emergence, time-based threshold — easy plus steady on Today. Julien: Hyrox Running, structure shaped by program periodization. Same session type, Tuesday morning, two architectures on two phones. Individualization in practice — not a multi-athlete console, not live pace adjustment.",
-                color: .inkGreen
-            )
-
-            ventureProseBlock(
-                "Threshold Tuesdays and Saturday long runs: Sony for scene, phone for one athlete's Today or Ledger, one ledger sentence after. Problem-space participation: one observation per week in runner communities — interpretation, not promotion.",
-                color: .inkGreen
-            )
-
-            ventureProseBlock(
-                "While injured: what FORM does when the athlete cannot run is the story — sequence intact, ledger receiving data, Ghost continuing. Distribution gap and four frictions: You → Doctrine → Operator.",
+                "Ghost Protocol and per-athlete sequencing belong in the full Doctrine read. Ventures should stay current-state and execution-facing.",
                 color: .inkGreen
             )
         }
@@ -453,11 +480,11 @@ struct OperatorSeasonIntelCard: View {
                 MonoLabel(text: "OPERATOR · THIS SEASON", color: .violetLight, size: 10)
 
                 intelProse(
-                    "Injured — running suspended. That is the operating condition, not a disruption. Tuesday track and Saturday long runs shape FORM content while you pace from the bike. Reserve is real capacity limits; Compressed is a reduced window — diagnose inside vs outside before you stand down or push through."
+                    "Running is suspended. FORM content now comes through coaching, pacing, and the intelligence layer: Tuesday threshold, Saturday long run, Sony, one ledger sentence."
                 )
 
                 intelProse(
-                    "Tuesday 6AM is sacred: two athletes, two programs, Sony, one ledger sentence. Trust is briefing and diagnostic — accurate observations, silence when there is nothing to say. Mechanism produces buy-in; monitoring counters do not."
+                    "Key diagnostic: Reserve is internal capacity. Compressed is external window. Do not treat one as the other."
                 )
 
                 HStack(spacing: 6) {
@@ -753,14 +780,12 @@ struct YouFieldManualView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Section label
             VStack(alignment: .leading, spacing: metrics.scaledSize(4)) {
                 MonoLabel(text: "FIELD MANUAL", color: .textMuted, size: 10)
                 Text("Principles when stuck · crash course when learning.")
                     .font(.sora(metrics.captionSize, weight: .light))
                     .foregroundColor(.textMuted)
             }
-            .padding(.horizontal, metrics.hPad)
             .padding(.bottom, metrics.sectionGap)
 
             VStack(spacing: metrics.scaledSize(2)) {
@@ -768,16 +793,15 @@ struct YouFieldManualView: View {
                     manualEntry(entry)
                 }
             }
-            .padding(.horizontal, metrics.hPad)
 
             Rectangle()
                 .fill(Color.muted.opacity(0.15))
                 .frame(height: 0.5)
-                .padding(.horizontal, metrics.hPad)
                 .padding(.vertical, metrics.sectionGap)
 
             DistributionCrashCourseReading()
         }
+        .padding(.horizontal, metrics.hPad)
         .padding(.bottom, 80)
     }
 

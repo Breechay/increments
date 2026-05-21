@@ -13,20 +13,23 @@ struct YouDoctrineTabView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: metrics.scaledSize(3)) {
-                MonoLabel(text: sectionKickers[section], color: .textMuted, size: 9)
-                Text(sectionTitles[section])
-                    .font(.sora(metrics.headlineSize, weight: .semibold))
-                    .foregroundColor(.textPrimary)
+            if !metrics.isIPad {
+                VStack(alignment: .leading, spacing: metrics.scaledSize(3)) {
+                    MonoLabel(text: sectionKickers[section], color: .textMuted, size: 9)
+                    Text(sectionTitles[section])
+                        .font(.sora(metrics.headlineSize, weight: .semibold))
+                        .foregroundColor(.textPrimary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, metrics.hPad)
+                .padding(.top, metrics.scaledSize(12))
+                .padding(.bottom, metrics.scaledSize(10))
+                .animation(.easeOut(duration: 0.2), value: section)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, metrics.hPad)
-            .padding(.top, metrics.scaledSize(12))
-            .padding(.bottom, metrics.scaledSize(10))
-            .animation(.easeOut(duration: 0.2), value: section)
 
             segmentControl(["Operator", "Distribution", "Hideout", "FORM"], selected: $section)
                 .padding(.horizontal, metrics.hPad)
+                .padding(.top, metrics.isIPad ? metrics.scaledSize(4) : 0)
                 .padding(.bottom, metrics.scaledSize(2))
 
             LinearGradient(
@@ -79,7 +82,6 @@ struct DoctrineSectionHeader: View {
                 .fill(accent.opacity(0.25))
                 .frame(width: metrics.scaledSize(40), height: 1)
         }
-        .padding(.horizontal, metrics.hPad)
         .padding(.top, isFirst ? metrics.scaledSize(8) : metrics.sectionGap)
         .padding(.bottom, metrics.blockSpacing)
     }
@@ -127,7 +129,6 @@ struct DoctrineSubsection: View {
                 .strokeBorder(Color.white.opacity(0.035), lineWidth: 0.5)
         )
         .shadow(color: Color.bgBase.opacity(0.5), radius: 6, x: 0, y: 3)
-        .padding(.horizontal, metrics.hPad)
         .padding(.bottom, metrics.sectionGap)
     }
 }
@@ -241,7 +242,7 @@ struct DoctrineOperatorReading: View {
                 label: "STRUCTURAL DIAGNOSIS",
                 accent: .violetLight,
                 paragraphs: [
-                    "Distribution is a named gap across all three ventures — not because the products are weak, not because discipline is missing, and not because there is psychological resistance to visibility. The products consistently outpace the acquisition systems.",
+                    "Distribution is the named gap across the ventures — not because the products are weak, not because discipline is missing, and not because there is psychological resistance to visibility. The products consistently outpace the acquisition systems.",
                     "Distribution is a trained operating discipline that was never part of how these ventures were built. The building instinct is native. The distribution instinct is not. This is a skill gap, not a character gap. It closes through reps, not through motivation."
                 ]
             )
@@ -276,6 +277,7 @@ struct DoctrineOperatorReading: View {
                 ]
             )
         }
+        .padding(.horizontal, metrics.hPad)
         .padding(.top, metrics.scaledSize(8))
     }
 }
@@ -336,7 +338,6 @@ struct DoctrineDistributionReading: View {
                         }
                     }
                 }
-                .padding(.horizontal, metrics.hPad)
                 .padding(.bottom, metrics.sectionGap)
             }
 
@@ -359,6 +360,7 @@ struct DoctrineDistributionReading: View {
                 ]
             )
         }
+        .padding(.horizontal, metrics.hPad)
         .padding(.top, metrics.scaledSize(8))
     }
 }
@@ -441,6 +443,7 @@ struct DoctrineHideoutReading: View {
                 ]
             )
         }
+        .padding(.horizontal, metrics.hPad)
         .padding(.top, metrics.scaledSize(8))
     }
 }
@@ -518,6 +521,7 @@ struct DoctrineFORMReading: View {
                 ]
             )
         }
+        .padding(.horizontal, metrics.hPad)
         .padding(.top, metrics.scaledSize(8))
     }
 }
@@ -550,7 +554,6 @@ struct DistributionCrashCourseReading: View {
                 }
                 .padding(metrics.cardPad)
             }
-            .padding(.horizontal, metrics.hPad)
             .padding(.top, metrics.sectionGap)
 
             crashSection(
@@ -635,6 +638,7 @@ struct DistributionCrashCourseReading: View {
                 ]
             )
         }
+        .padding(.horizontal, metrics.hPad)
         .padding(.bottom, metrics.sectionGap)
     }
 
