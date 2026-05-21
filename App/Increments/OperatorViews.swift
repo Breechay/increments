@@ -2677,7 +2677,7 @@ struct OperatorView: View {
                                     switch selectedSeg {
                                     case 0: DossierTabView(profile: profile)
                                     case 1: OperatorTabView()
-                                    default: FieldManualTabView()
+                                    default: YouFieldManualView()
                                     }
                                 }
                                 .adaptiveContentWidth(metrics)
@@ -2693,7 +2693,7 @@ struct OperatorView: View {
                             case 0: BriefTabView(state: state, profile: profile)
                             case 1: DossierTabView(profile: profile)
                             case 2: OperatorTabView()
-                            case 3: FieldManualTabView()
+                            case 3: YouFieldManualView()
                             default: EmptyView()
                             }
                         }

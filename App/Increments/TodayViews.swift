@@ -858,7 +858,7 @@ struct ManualTabView: View {
                     Spacer()
                 }
                 .padding(.horizontal, metrics.hPad).padding(.top, 20).padding(.bottom, 4)
-                FieldManualTabView()
+                YouFieldManualView()
             }
         }
     }

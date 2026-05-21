@@ -1429,12 +1429,60 @@ enum DistributionCalendar {
     /// FORM coached-session reminder for Signal tab — operational, not promotional.
     static var formCoachingDayLine: String? {
         if isTuesday {
-            return "FORM track · threshold · Simon / Julien · log one sentence after"
+            return "FORM track · threshold · \(formCaptureAthleteThisWeek) · log one sentence after"
         }
         if isSaturday {
-            return "FORM long run · Simon / Julien · log one sentence after"
+            return "FORM long run · \(formCaptureAthleteThisWeek) · log one sentence after"
         }
         return nil
+    }
+
+    /// Alternates Simon / Julien by calendar week for capture focus.
+    static var formCaptureAthleteThisWeek: String {
+        Calendar.current.component(.weekOfYear, from: Date()).isMultiple(of: 2) ? "Simon" : "Julien"
+    }
+
+    static var formCoachingDayExpandedTitle: String? {
+        if isTuesday { return "THRESHOLD TUESDAY · CAPTURE" }
+        if isSaturday { return "SATURDAY LONG RUN · CAPTURE" }
+        return nil
+    }
+
+    static var formCoachingDayExpandedBody: String? {
+        let athlete = formCaptureAthleteThisWeek
+        if isTuesday {
+            return """
+            Focus athlete this week: \(athlete). Sony: track b-roll, 5–10 min. Phone: one Today threshold screen (~30s) before first rep — or one Ledger log after if the outcome is notable.
+            Ledger (FORM): one sentence — what the session showed. Example shape: Tuesday 6AM track. \(athlete): [reps from Today]. Same threshold, different program on the other phone.
+            """
+        }
+        if isSaturday {
+            return """
+            Focus athlete this week: \(athlete). Sony: pre-dawn scene. Phone: one Saturday Today screen (Easy+Steady or continuous km — whatever Today shows) or one long-run Ledger after.
+            Ledger (FORM): one sentence on what the run showed. Do not claim live pace adjustment or a multi-athlete dashboard.
+            """
+        }
+        return nil
+    }
+
+    static func formLedgerExampleLines(fallbackCount: Int = 2) -> [String] {
+        let athlete = formCaptureAthleteThisWeek
+        if isTuesday {
+            return [
+                "Tuesday track. \(athlete) threshold — reps from Today. One coach, one program on this phone.",
+                "Logged threshold after session — pace held, week continues on that data."
+            ]
+        }
+        if isSaturday {
+            return [
+                "Saturday long run. \(athlete) — captured Today structure before the run.",
+                "Logged long run after — steady pace primary, effort tags secondary."
+            ]
+        }
+        return [
+            "One decision · one outcome · one sentence. Outsider-legible.",
+            "FORM: per-athlete Today or Ledger — never a composite multi-athlete screen."
+        ].prefix(fallbackCount).map { $0 }
     }
 
     static func appContentVenture(
