@@ -17,10 +17,16 @@ Core job: remove **execution drag** (ambiguity, fragmentation, bad sequencing, s
 |------|------|
 | Xcode project | `App/Increments.xcodeproj` |
 | Swift sources (8-file architecture) | `App/Increments/*.swift` |
-| Master brief | `Docs/INCREMENTS_Master.md` |
-| Signal tab (planned, after Hideout) | `Docs/INCREMENTS_DISTRIBUTION_TAB_SPEC.md` (v2.3 — implementation-ready) |
-| Cross-venture distribution doctrine | `FORM-iOS/docs/BRICE_OS/DISTRIBUTION_OPERATING_SYSTEM.md` |
-| Voice / design doctrine | `Docs/INCREMENTS_Voice_Doctrine.md`, `Docs/INCREMENTS_Design_Decisions_v1.2.md` |
+| Doctrine index (read first) | `Docs/DOCTRINE_INDEX.md` |
+| Master brief (engineering) | `Docs/INCREMENTS_Master.md` |
+| Product constitution | `Docs/PRODUCT_DOCTRINE.md` |
+| Tabs / surface contracts | `Docs/PRODUCT_ARCHITECTURE.md` |
+| Voice / copy / signal | `Docs/VOICE_DOCTRINE.md`, `Docs/COPY_SYSTEM.md`, `Docs/SIGNAL_DOCTRINE.md` |
+| Design / interaction | `Docs/DESIGN_DOCTRINE.md`, `Docs/INTERACTION_DOCTRINE.md`, `Docs/INCREMENTS_Design_Decisions_v1.2.md` (tokens) |
+| Content placement | `Docs/CONTENT_TOPOLOGY.md` |
+| Signal tab spec | `Docs/INCREMENTS_DISTRIBUTION_TAB_SPEC.md` (v2.3) |
+| Cross-venture distribution OS | `FORM-iOS/docs/BRICE_OS/DISTRIBUTION_OPERATING_SYSTEM.md` |
+| Voice examples (extended) | `Docs/INCREMENTS_Voice_Doctrine.md` |
 | Psych / profile references | `Psych/` (PDFs — not app code) |
 | Historical docs | `Archive/Past-Docs/` |
 
@@ -28,9 +34,10 @@ Do **not** open `INCREMENTS New Top Folder`, duplicate Xcode projects, or `Archi
 
 ## Read first (doctrine before code)
 
-1. `Docs/INCREMENTS_Master.md` — architecture, behavioral model, tab/system ownership
-2. `Docs/INCREMENTS_Voice_Doctrine.md` — presence layer (Jarvis/Alfred register; observed evidence only)
-3. `Docs/INCREMENTS_Design_Decisions_v1.2.md` — visual/type constraints when touching UI
+1. `Docs/DOCTRINE_INDEX.md` — which doc to open for the task
+2. `Docs/PRODUCT_DOCTRINE.md` + `Docs/PRODUCT_ARCHITECTURE.md` — identity, refusals, eight-tab contracts
+3. Targeted: `VOICE_DOCTRINE.md` / `COPY_SYSTEM.md` (copy) · `DESIGN_DOCTRINE.md` / `INTERACTION_DOCTRINE.md` (UI) · `SIGNAL_DOCTRINE.md` / `CONTENT_TOPOLOGY.md` (evidence + placement)
+4. `Docs/INCREMENTS_Master.md` — models, intelligence implementation, code map (when touching Swift)
 
 **Signal tab work:** `Docs/INCREMENTS_DISTRIBUTION_TAB_SPEC.md` (v2.3) + `DISTRIBUTION_OPERATING_SYSTEM.md`. Models: `DistributionWeek`, `DecisionLedger`. Monday step 6 = confirm ledger. Forge gate: `FORM-iOS/docs/FORGE_V1_GATE_QA.md` (9 checks). HOLD max 6 weeks. No rep-counter / validation UI.
 
@@ -47,8 +54,9 @@ For **workspace-wide strategy**: targeted sections of `FORM-iOS/docs/BRICE_OS/BR
 
 | Domain | Owns | Do not merge into |
 |--------|------|-------------------|
-| **Today** | Execute — sequence, doors, maintenance, daily review | Operator theory dumps on Home |
-| **Operator** | Improve routing — cognition lab, brief, dossier, consult | Motivational copy or generic task apps |
+| **Now** | Orient — operating priority; CONTEXT ↓ on phone | Theory dumps above fold |
+| **Today** | Execute — sequence, doors, maintenance, daily review | Doctrine on execute surface |
+| **You** | Evening interpret — Brief, Intel, Doctrine, Manual, Ventures | Mid-shift coaching; duplicate Manual tab |
 | **Capital** | Runway, reserves, financial state | Hideout shift logistics |
 | **Hideout** | Venue/business system (shifts, building context) | `hideout-ops-console` analytics theater |
 | **Physique** | Body composition / training-adjacent personal signal | FORM Forge programming or athlete Today |

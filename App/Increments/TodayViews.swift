@@ -129,6 +129,7 @@ struct HomeView: View {
     @Query(sort: \FinancialState.updatedAt, order: .reverse) private var financialStates: [FinancialState]
     @Bindable var state: AppState
     @State private var appeared = false
+    @State private var homeContextExpanded = false
     @Environment(\.appMetrics) private var metrics
     @StateObject private var weather = WeatherViewModel()
     @State private var showFirstActionDetail = false
@@ -573,7 +574,7 @@ struct HomeView: View {
                                     .fill(Color.warm)
                                     .frame(width: 3, height: 14)
                                     .clipShape(RoundedRectangle(cornerRadius: 1.5))
-                                MonoLabel(text: "CURRENT OPERATING PRIORITY", color: .warm, size: 10)
+                                MonoLabel(text: "OPERATING PRIORITY", color: .warm, size: 10)
                             }
                             Text("Hideout distribution")
                                 .font(metrics.fontSora(15, weight: .semibold))
@@ -646,6 +647,25 @@ struct HomeView: View {
                             }
                         }
 
+                        Button(action: {
+                            withAnimation(.easeOut(duration: 0.22)) { homeContextExpanded.toggle() }
+                        }) {
+                            HStack {
+                                MonoLabel(
+                                    text: homeContextExpanded ? "CONTEXT" : "CONTEXT ↓",
+                                    color: .textMuted,
+                                    size: 10
+                                )
+                                Spacer()
+                                Image(systemName: homeContextExpanded ? "chevron.up" : "chevron.down")
+                                    .font(.system(size: metrics.scaledSize(10), weight: .medium))
+                                    .foregroundColor(.textMuted.opacity(0.6))
+                            }
+                            .padding(.vertical, metrics.scaledSize(4))
+                        }
+                        .buttonStyle(.plain)
+
+                        if homeContextExpanded {
                         if todayIsHideoutDay {
                             CardView {
                                 VStack(alignment: .leading, spacing: metrics.rowSpacing) {
@@ -802,6 +822,8 @@ struct HomeView: View {
                             }
                         }
 
+                        } // homeContextExpanded
+
                     }
                     .padding(.horizontal, metrics.hPad)
                     .adaptiveContentWidth(metrics)
@@ -836,29 +858,6 @@ struct ProtocolsTabView: View {
                     }
                 }
                 ProtocolsViewEmbed()
-            }
-        }
-    }
-}
-
-// MARK: - TAB 4: MANUAL — standalone tab wrapping FieldManualTabView
-
-struct ManualTabView: View {
-    @Environment(\.appMetrics) private var metrics
-    var body: some View {
-        ZStack {
-            AtmosphericBackground()
-            VStack(spacing: 0) {
-                HStack {
-                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
-                        MonoLabel(text: "INCREMENTS", color: .violet, size: 10)
-                        Text("Manual")
-                            .font(metrics.fontSora(24, weight: .semibold)).foregroundColor(.textPrimary)
-                    }
-                    Spacer()
-                }
-                .padding(.horizontal, metrics.hPad).padding(.top, 20).padding(.bottom, 4)
-                YouFieldManualView()
             }
         }
     }

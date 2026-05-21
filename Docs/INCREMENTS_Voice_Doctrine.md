@@ -2,6 +2,9 @@
 ## The Presence Layer · How the App Speaks
 *v2.1 — presence character refined*
 
+> **Canonical entry:** [`VOICE_DOCTRINE.md`](VOICE_DOCTRINE.md) (constitution + surface permissions).  
+> **This file:** extended presence character, registers, line audits, approved examples.
+
 ---
 
 ## What This Is

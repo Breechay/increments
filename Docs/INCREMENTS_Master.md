@@ -2,6 +2,8 @@
 **Version:** May 2026 · Architecture Truth Pass + Doctrine Refinement Pass v3
 **Status:** Active development
 
+**Canonical product doctrine (May 2026):** start at [`DOCTRINE_INDEX.md`](DOCTRINE_INDEX.md) — constitution, voice, architecture, design, copy, interaction, signal, content topology. This Master file remains the **engineering** brief (models, intelligence code, file map).
+
 **Source of truth — 8 files:**
 
 | File | Lines | Contains |
@@ -13,7 +15,7 @@
 | `CapitalViews.swift` | ~690 | CapitalTabView, EditCapitalStateSheet, ProfileTabView |
 | `YouTabViews.swift` | — | YouView, VenturesTabView, IntelTabView, YouFieldManualView |
 | `YouDoctrineViews.swift` | — | YouDoctrineTabView — Operator, Distribution, Hideout, FORM night read |
-| `OperatorViews.swift` | ~3,410 | OperatorTabView, Cognition Lab, BriefTabView, DossierTabView, InsightsView, ConsultView, FocusMode, SettingsTabView |
+| `OperatorViews.swift` | ~1,710 | BriefTabView, ConsultView, FocusMode, SettingsTabView, Today embed wrappers (dead Mission Control / Dossier / Cognition Lab removed May 2026) |
 | `HideoutViews.swift` | ~640 | HideoutTabView, ShiftLogRow, EditShiftSheet, LogShiftSheet |
 | `AppShell.swift` | ~1,280 | CustomTabBar, seed data, daily reset, LaunchSequenceView, OnboardingView, RootView, app entry, schema migration |
 
@@ -155,38 +157,42 @@ The mechanism of action:
 
 ## Navigation Architecture
 
-**5 bottom tabs:**
+**8 bottom tabs** (`AppShell.swift` → `CustomTabBar`):
 
-| Tab | Icon | Purpose | Surface contract |
-|-----|------|---------|-----------------|
-| Home | house | Orient + launch | Orient |
-| Today | calendar | Execute. Sub-tabs: Today / Systems / Habits / Timeline | Execute |
-| Operator | brain | Intelligence layer. Sub-tabs: Brief / Dossier / Lab / Manual | Interpret |
-| Hideout | building.2 | Business system. The sixth system. | Business operation |
-| You | person | Configuration + export only. No intelligence content. | Configuration |
+| Tab | Label | Purpose | Surface contract |
+|-----|-------|---------|-----------------|
+| 0 | Now | Orient + launch — **OPERATING PRIORITY** first; secondary context collapsed on phone | Orient |
+| 1 | Today | Execute — Rail / Protocols / Log segments | Execute |
+| 2 | Protocols | Session protocols (embedded systems surface) | Execute / reference |
+| 3 | Physique | Body architecture reference | Reference |
+| 4 | Hideout | Venue experiment — **TODAY AT HIDEOUT** dashboard; scorecard / playbook / intel sub-tabs | Business operation |
+| 5 | Signal | Distribution plant / log / adjust | Execute |
+| 6 | You | Evening orientation — Capital · Brief · Doctrine · Ventures · Intel · Manual (Settings via gear) | Learn + interpret |
+| 7 | Recovery | Post-op reference | Reference |
+
+**Removed (May 2026 — do not resurrect in navigation):** standalone **Operator** tab (Mission Control), **Dossier** tab shell, duplicate **Manual** on Today, **Insights** embed, **Cognition Lab** orphan. Brief + Intel + Manual live under **You** only.
 
 **Surface contracts are non-negotiable.** Wendy on Today = contract violation. Intelligence on execution surface = wrong.
 
 **Key decisions:**
-- Dossier lives only in Operator. Not in You.
-- You = pure settings + export.
+- **Intel** (observed traits, failure modes, distribution state) lives in **You**, not a dead Dossier shell.
+- **Brief** lives in **You**, not Operator.
+- Hideout dashboard tiers: TODAY AT HIDEOUT (always) → EXPERIMENT SYSTEMS ↓ · FRICTION AUDIT ↓ · DECISIONS ↓.
+- Home (Now) on phone: priority + first action visible; Hideout / housing / distribution / sleep / training / Wendy / friction behind **CONTEXT ↓**.
 - Hideout is top-level.
-- Home is a command center. Answers: "what matters now in this life architecture?" — not a generic dashboard.
-- Home cards (live, conditional): First Action · Pre-Commitment · Hideout Status · Runway · Recovery · Training Status · Open Friction · Adaptation Phase. Cards only render when data exists — silence is correct when nothing is logged.
-- CTA label: START DAY / CONTINUE / OPEN TODAY. "RETURN TO IT" removed — it signaled nothing.
-- Wendy fires from Operator > Brief. Not from Today.
+- Cards only render when data exists — silence is correct when nothing is logged.
 
-**Signal tab (shipped — tab 5, after Hideout):** Spec v2.3 at `Docs/INCREMENTS_DISTRIBUTION_TAB_SPEC.md` — `DistributionWeek`, `DecisionLedger`, 8-step Monday block, Friday log, Tue/Sat FORM capture banners. **Plant / log / adjust.** Operator reads methodology in **You → Doctrine** + **Ventures** (live signal) + **Manual** (not markdown). Forge gate: `FORM-iOS/docs/FORGE_V1_GATE_QA.md`. OS: `FORM-iOS/docs/BRICE_OS/DISTRIBUTION_OPERATING_SYSTEM.md`.
+**Signal tab:** Spec v2.3 at `Docs/INCREMENTS_DISTRIBUTION_TAB_SPEC.md` — `DistributionWeek`, `DecisionLedger`, 8-step Monday block, Friday log. Methodology in **You → Doctrine** + **Ventures** + **Manual**. OS: `FORM-iOS/docs/BRICE_OS/DISTRIBUTION_OPERATING_SYSTEM.md`.
 
 ---
 
 ## The Two-Surface Split
 
-**TODAY — execution corridor:** Reduce switching. Reduce ambiguity. Sequence clearly. Act. Leave.
+**TODAY / SIGNAL — execution corridor:** Reduce switching. Reduce ambiguity. Sequence clearly. Act. Leave.
 
-**OPERATOR — architecture + intelligence:** Understand friction. Detect patterns. Adjust structure. Refine system.
+**YOU (Brief · Intel · Doctrine · Manual) — architecture + intelligence:** Understand friction. Detect patterns. Adjust structure. Refine system — primarily **evening iPad**, not mid-shift.
 
-Action and interpretation are different mental modes. They should not live on the same surface.
+Action and interpretation are different mental modes. They should not share the same above-the-fold surface.
 
 ---
 

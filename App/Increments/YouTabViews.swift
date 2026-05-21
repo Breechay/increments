@@ -520,7 +520,7 @@ struct IntelTabView: View {
     @Environment(\.appMetrics) private var metrics
 
     @State private var failuresExpanded = false
-    @State private var traitsExpanded = true
+    @State private var traitsExpanded = false
 
     // MARK: Live computed traits
 
@@ -592,19 +592,34 @@ struct IntelTabView: View {
             OperatorSeasonIntelCard()
                 .padding(.horizontal, metrics.hPad)
 
-            // Live observed traits
+            // Live observed traits — collapsed by default (diagnostic, not personality report)
             CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: metrics.blockSpacing) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Button(action: {
+                        withAnimation(.easeOut(duration: 0.22)) { traitsExpanded.toggle() }
+                    }) {
+                        HStack {
+                            MonoLabel(text: traitsExpanded ? "TRAITS" : "TRAITS ↓", color: .inkGreen, size: 10)
+                            Spacer()
+                            Image(systemName: traitsExpanded ? "chevron.up" : "chevron.down")
+                                .font(.system(size: metrics.scaledSize(10), weight: .medium))
+                                .foregroundColor(.textMuted.opacity(0.6))
+                        }
+                    }
+                    .buttonStyle(.plain)
+
+                    if traitsExpanded {
                     HStack {
-                        MonoLabel(text: "OBSERVED TRAITS", color: .inkGreen, size: 10)
                         Spacer()
                         Text("FROM USAGE DATA")
                             .font(.mono(metrics.monoSmall))
                             .foregroundColor(.textMuted.opacity(0.4))
                             .tracking(1.0)
                     }
+                    .padding(.top, metrics.scaledSize(8))
 
                     Rectangle().fill(Color.muted.opacity(0.15)).frame(height: 0.5)
+                        .padding(.top, metrics.scaledSize(8))
 
                     let traits: [(String, String, Color?)] = [
                         ("AVG FIRST ACTION", avgFirstActionHour.map { h in
@@ -656,6 +671,9 @@ struct IntelTabView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
                     }
+                    .padding(.top, metrics.scaledSize(4))
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
                 }
             }
             .padding(.horizontal, metrics.hPad)
@@ -667,7 +685,11 @@ struct IntelTabView: View {
                         withAnimation(.easeOut(duration: 0.22)) { failuresExpanded.toggle() }
                     }) {
                         HStack {
-                            MonoLabel(text: "FAILURE MODES", color: .inkAmber, size: 10)
+                            MonoLabel(
+                                text: failuresExpanded ? "WHEN STRUCTURE BREAKS" : "WHEN STRUCTURE BREAKS ↓",
+                                color: .inkAmber,
+                                size: 10
+                            )
                             Spacer()
                             Image(systemName: failuresExpanded ? "chevron.up" : "chevron.down")
                                 .font(.system(size: metrics.scaledSize(10), weight: .medium))

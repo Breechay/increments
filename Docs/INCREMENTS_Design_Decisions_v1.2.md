@@ -2,6 +2,9 @@
 ## Visual Design Synthesis · Post Multi-Agent UX Analysis
 *Built from 5-agent independent review · Sections 1–8 complete*
 
+> **Canonical entry:** [`DESIGN_DOCTRINE.md`](DESIGN_DOCTRINE.md) (aesthetic north star + layout/motion rules).  
+> **This file:** confirmed token fixes (V01–V06), hold list, agent re-steer paragraph.
+
 ---
 
 ## How to Read This Document

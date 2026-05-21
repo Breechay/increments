@@ -17,6 +17,9 @@ struct HideoutTabView: View {
     @State private var showLogSheet = false
     @State private var selectedTab: Int = 0  // 0 = Dashboard, 1 = Scorecard, 2 = Playbook
     @State private var editingShift: HideoutShiftLog? = nil
+    @State private var experimentSystemsExpanded = false
+    @State private var frictionAuditExpanded = false
+    @State private var decisionsExpanded = false
 
     // Friction audit — persisted checkboxes (14 items)
     @AppStorage("friction_street_visible")   private var frictionStreetVisible   = false
@@ -399,13 +402,31 @@ struct HideoutTabView: View {
 
     // MARK: - DASHBOARD
 
+    @ViewBuilder
+    private func hideoutCollapseHeader(_ title: String, isExpanded: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack {
+                MonoLabel(text: isExpanded ? title : "\(title) ↓", color: .textMuted, size: 10)
+                Spacer()
+                Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                    .font(.system(size: metrics.scaledSize(10), weight: .medium))
+                    .foregroundColor(.textMuted.opacity(0.6))
+            }
+            .padding(.vertical, metrics.scaledSize(4))
+        }
+        .buttonStyle(.plain)
+    }
+
     var dashboardView: some View {
         VStack(spacing: metrics.blockSpacing) {
 
+            MonoLabel(text: "TODAY AT HIDEOUT", color: .warm, size: 10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, metrics.hPad)
+
             // ── THE TWO NUMBERS THAT MATTER MOST ─────────────────────────────
-            // Section 9: "Everything else flows from these two numbers."
             VStack(alignment: .leading, spacing: metrics.rowSpacing) {
-                MonoLabel(text: "THE TWO NUMBERS THAT MATTER MOST", color: .warm, size: 9)
+                MonoLabel(text: "THE TWO NUMBERS THAT MATTER MOST", color: .warm.opacity(0.85), size: 9)
                     .padding(.horizontal, metrics.hPad)
 
                 HStack(spacing: metrics.cardSpacing) {
@@ -462,80 +483,13 @@ struct HideoutTabView: View {
                 .padding(.horizontal, metrics.hPad)
             }
 
-            // ── Revenue sparkline ────────────────────────────────────────────
-            if !recentShifts.isEmpty {
-                CardView(style: .secondary) {
-                    VStack(alignment: .leading, spacing: metrics.cardSpacing) {
-                        HStack {
-                            MonoLabel(text: "EXPERIMENT TIMELINE", color: .textMuted, size: 10)
-                            Spacer()
-                            MonoLabel(text: trend.label, color: trend.color, size: 10)
-                        }
-                        RevenueSparkline(shifts: recentShifts)
-                            .frame(height: 54)
-                        HStack(spacing: metrics.blockSpacing) {
-                            ForEach([("$520", Color.inkRed), ("$590", Color.inkAmber), ("$650", Color.inkGreen), ("$750", Color.violetLight)], id: \.0) { label, color in
-                                HStack(spacing: metrics.rowSpacing) {
-                                    Rectangle().fill(color.opacity(0.5)).frame(width: 10, height: 1.5)
-                                    Text(label).font(.system(size: metrics.scaledSize(10), design: .monospaced)).foregroundColor(.textMuted)
-                                }
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal, metrics.hPad)
+            let todayHasShift = shifts.contains { Calendar.current.isDateInToday($0.logDate) }
+            let currentHour   = Calendar.current.component(.hour, from: Date())
+            let isHideoutDay  = DayType.today == .hideout
+            if isHideoutDay && currentHour >= DayType.today.hideoutEndHour && !todayHasShift {
+                ShiftLogReminderCard(experimentDay: experimentDay, showLogSheet: $showLogSheet)
+                    .padding(.horizontal, metrics.hPad)
             }
-
-            // ── Solo economics ───────────────────────────────────────────────
-            if !recentShifts.isEmpty {
-                CardView(style: .secondary) {
-                    VStack(alignment: .leading, spacing: metrics.cardSpacing) {
-                        MonoLabel(text: "SOLO UNIT ECONOMICS", color: .textMuted, size: 10)
-                        HStack(spacing: 0) {
-                            econColumn("AVG GROSS", value: "$\(Int(thirtyDayAvg))", color: .textPrimary)
-                            Divider().frame(height: 36).background(Color.muted.opacity(0.2)).padding(.horizontal, 12)
-                            econColumn("AVG CONTRIB", value: avgContribution > 0 ? "$\(Int(avgContribution))" : "—", color: .inkGreen)
-                            Divider().frame(height: 36).background(Color.muted.opacity(0.2)).padding(.horizontal, 12)
-                            econColumn("AVG STRESS", value: avgStress > 0 ? "\(String(format: "%.1f", avgStress))/10" : "—",
-                                      color: avgStress <= 4 ? .inkGreen : avgStress <= 6 ? .inkAmber : .inkRed)
-                            if avgPeakBurst > 0 {
-                                Divider().frame(height: 36).background(Color.muted.opacity(0.2)).padding(.horizontal, 12)
-                                econColumn("PEAK BURST", value: "\(avgPeakBurst) tx", color: avgPeakBurst <= 15 ? .inkGreen : avgPeakBurst <= 22 ? .inkAmber : .inkRed)
-                            }
-                            Spacer()
-                        }
-                        Text("Contribution = revenue × 0.72 (after COGS 25% + Square 3%). Solo: no labor deduction.")
-                            .font(.system(size: metrics.scaledSize(11), design: .monospaced))
-                            .foregroundColor(.textMuted)
-                            .lineSpacing(2)
-                    }
-                }
-                .padding(.horizontal, metrics.hPad)
-            }
-
-            // ── Revenue gap to next band ─────────────────────────────────────
-            // Brief (May 2026): old throughput framing retired. Gap closes through revenue
-            // quality — recurring partnerships, residential capture, hospitality optimization,
-            // extended hours. "Need 9 more customers/day" is the wrong question.
-            CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
-                    MonoLabel(text: "REVENUE GAP — QUALITY OVER VOLUME", color: .textMuted, size: 10)
-                    VStack(spacing: 0) {
-                        gapRow("Survival floor", target: 520, current: thirtyDayAvg, bandColor: .inkRed)
-                        Rectangle().fill(Color.muted.opacity(0.12)).frame(height: 0.5)
-                        gapRow("Stability", target: 590, current: thirtyDayAvg, bandColor: .inkAmber)
-                        Rectangle().fill(Color.muted.opacity(0.12)).frame(height: 0.5)
-                        gapRow("Comfort", target: 650, current: thirtyDayAvg, bandColor: .inkGreen)
-                        Rectangle().fill(Color.muted.opacity(0.12)).frame(height: 0.5)
-                        gapRow("Growth", target: 750, current: thirtyDayAvg, bandColor: .violetLight)
-                    }
-                    Text("Gap closes through any mix: recurring partnerships · residential capture · hospitality optimization · extended hours. Not strictly more walk-ins.")
-                        .font(.system(size: metrics.scaledSize(10), design: .monospaced))
-                        .foregroundColor(.textMuted)
-                        .lineSpacing(2)
-                }
-            }
-            .padding(.horizontal, metrics.hPad)
 
             // ── Shift log ────────────────────────────────────────────────────
             if recentShifts.isEmpty {
@@ -575,6 +529,432 @@ struct HideoutTabView: View {
                     }
                 }
             }
+
+            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                hideoutCollapseHeader("EXPERIMENT SYSTEMS", isExpanded: experimentSystemsExpanded) {
+                    withAnimation(.easeOut(duration: 0.22)) { experimentSystemsExpanded.toggle() }
+                }
+                .padding(.horizontal, metrics.hPad)
+                if experimentSystemsExpanded {
+                        // MARK: — GROWTH SYSTEM (Locked May 2026)
+                        let growthSystem1Items: [(String, Binding<Bool>)] = [
+                            ("Design card in Canva — exact copy locked", $growthCardDesigned),
+                            ("Place print order (50–100, matte 16pt, Vistaprint)", $growthCardPrinted),
+                            ("Deliver to Watermarc front desk with coffee/pastries", $growthCardDelivered),
+                        ]
+                        let growthSystem2Items: [(String, Binding<Bool>)] = [
+                            ("Respond to 4 unread reviews (name + specific + invite)", $growthGBPReviews),
+                            ("Complete profile: hours, description, attributes", $growthGBPProfile),
+                            ("Upload photos: patio → entrance → plate → coffee", $growthGBPPhotos),
+                        ]
+                        let growthSystem3Items: [(String, Binding<Bool>)] = [
+                            ("Print TOP board: 24×24 matte Dibond — FIRST TIME? START HERE", $growthBoardTopOrdered),
+                            ("Print BOTTOM board: 24×18 matte Dibond — MADE WITH REAL THINGS", $growthBoardBotOrdered),
+                            ("Install both boards on column (menu face, above + below menu card)", $growthBoardsInstalled),
+                        ]
+                        let growthSystem4Items: [(String, Binding<Bool>)] = [
+                            ("Film Monday clip before 7 AM (7-shot fixed list)", $growthVideoFilmed),
+                            ("Post to GBP + Reels + TikTok — same file, 3 surfaces", $growthVideoPosted),
+                        ]
+
+                        let allGrowthItems = growthSystem1Items + growthSystem2Items + growthSystem3Items + growthSystem4Items
+                        let growthDone = allGrowthItems.filter { $0.1.wrappedValue }.count
+                        let growthTotal = allGrowthItems.count
+
+                        CardView(style: .secondary) {
+                            VStack(alignment: .leading, spacing: metrics.blockSpacing) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                                        MonoLabel(text: "GROWTH SYSTEM — LOCKED MAY 2026", color: .inkTeal, size: 10)
+                                        Text("Gap closes through revenue quality, not volume. Recurring revenue reduces walk-in dependency. Pickup-first: production business, not delivery route.")
+                                            .font(.sora(metrics.scaledSize(10), weight: .light))
+                                            .foregroundColor(.textMuted)
+                                            .lineSpacing(2)
+                                    }
+                                    Spacer()
+                                    VStack(alignment: .trailing, spacing: metrics.rowSpacing) {
+                                        Text("\(growthDone)/\(growthTotal)")
+                                            .font(.system(size: metrics.scaledSize(13), weight: .semibold, design: .monospaced))
+                                            .foregroundColor(growthDone == growthTotal ? .inkGreen : growthDone > 0 ? .inkAmber : .textMuted)
+                                        if growthDone == growthTotal {
+                                            MonoLabel(text: "SYSTEM LIVE", color: .inkGreen, size: 9)
+                                        }
+                                    }
+                                }
+
+                                // Progress bar
+                                GeometryReader { geo in
+                                    ZStack(alignment: .leading) {
+                                        RoundedRectangle(cornerRadius: 2).fill(Color.surface).frame(height: 3)
+                                        RoundedRectangle(cornerRadius: 2)
+                                            .fill(growthDone == growthTotal ? Color.inkGreen : Color.inkTeal)
+                                            .frame(width: growthTotal > 0 ? geo.size.width * CGFloat(growthDone) / CGFloat(growthTotal) : 0, height: 3)
+                                            .animation(.spring(response: 0.4), value: growthDone)
+                                    }
+                                }
+                                .frame(height: 3)
+
+                                growthSystemSection("01  WATERMARC CARD", items: growthSystem1Items,
+                                    note: "Code: WATERMARC · QR → GBP · matte credit-card · hospitality, not coupon")
+                                Rectangle().fill(Color.muted.opacity(0.1)).frame(height: 0.5)
+                                growthSystemSection("02  GOOGLE BUSINESS PROFILE", items: growthSystem2Items,
+                                    note: "Primary digital channel. 316 reviews, 4.7★. Freshness compounds.")
+                                Rectangle().fill(Color.muted.opacity(0.1)).frame(height: 0.5)
+                                growthSystemSection("03  COLUMN BOARDS — LOCKED", items: growthSystem3Items,
+                                    note: "TOP: FIRST TIME? START HERE. BOTTOM: MADE WITH REAL THINGS + SAVE THIS SPOT QR. Matte Dibond only. Door strips = dead.")
+                                Rectangle().fill(Color.muted.opacity(0.1)).frame(height: 0.5)
+                                growthSystemSection("04  MONDAY CONTENT LOOP", items: growthSystem4Items,
+                                    note: "One 20–30s clip before opening. Same shot list. 3 surfaces, no decisions.")
+
+                                Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
+                                HStack(spacing: metrics.rowSpacing) {
+                                    Circle().fill(Color.inkTeal.opacity(0.6)).frame(width: 4, height: 4)
+                                    Text("Signal: attribution mentions appear in weekly review. Any is better than none.")
+                                        .font(.system(size: metrics.scaledSize(10), design: .monospaced))
+                                        .foregroundColor(.textMuted)
+                                        .lineSpacing(2)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, metrics.hPad)
+
+                        CardView(style: .secondary) {
+                            VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                                MonoLabel(text: "IF $1,000 AVAILABLE — VISIBILITY ALLOCATION", color: .textMuted, size: 10)
+                                VStack(spacing: metrics.rowSpacing) {
+                                    ForEach([
+                                        ("$120", "Column boards (Dibond print x2)", "FIRST TIME? top + MADE WITH REAL THINGS bottom. This week."),
+                                        ("$150", "Lobby/elevator resident presence", "Framed menu where residents see it daily."),
+                                        ("$150", "Resident activation offer", "First-visit hook for residents who haven't been."),
+                                        ("$150", "Professional photography", "Google profile + Instagram. Quality signal."),
+                                        ("$430", "Remaining — hold", "Do not spend until column boards show attribution signal."),
+                                    ], id: \.0) { amt, title, note in
+                                        HStack(alignment: .top, spacing: metrics.cardSpacing) {
+                                            Text(amt)
+                                                .font(.system(size: metrics.scaledSize(12), weight: .semibold, design: .monospaced))
+                                                .foregroundColor(.warm)
+                                                .frame(width: 44, alignment: .leading)
+                                            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                                                Text(title).font(.sora(metrics.scaledSize(12), weight: .light)).foregroundColor(.textPrimary)
+                                                Text(note).font(.sora(metrics.scaledSize(10), weight: .light)).foregroundColor(.textMuted)
+                                            }
+                                            Spacer()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal, metrics.hPad)
+
+                        // MARK: — 14-DAY PARTNERSHIP SPRINT
+                        let sprintItems: [(String, Binding<Bool>)] = [
+                            ("Day 1: Define offer as pickup-first — 'accounts come to Hideout.' Print cards + make 3 sample bottles", $sprintOfferDefined),
+                            ("Day 2: Watermarc front desk — 2 samples, leave cards, ask who does amenities", $sprintWatermarcDesk),
+                            ("Day 3: Watermarc leasing office — 1 sample + food, tour-flow pitch", $sprintWatermarcLeasing),
+                            ("Day 4: Expansive Biscayne — 2 samples, ask for member experience contact", $sprintExpansive),
+                            ("Day 5: SkyView 22 concierge — 1 sample, zero-friction adjacency", $sprintSkyview),
+                            ("Day 6: Follow-up #1 — Watermarc + Expansive, move toward trial", $sprintFollowup1),
+                            ("Day 8: A Better You salon — 1 sample, corridor neighbor offer", $sprintSalon),
+                            ("Day 9: Follow-up #2 Expansive — propose trial week, no commitment", $sprintFollowup2),
+                            ("Day 12: Close first account — warmest lead, lock weekly schedule", $sprintFirstAccount),
+                            ("Day 13: First delivery — 1 gallon, cups, cards, say nothing else", $sprintFirstDelivery),
+                            ("Day 14: Convert trial to weekly invoice", $sprintConvertedWeekly),
+                        ]
+                        let sprintDone = sprintItems.filter { $0.1.wrappedValue }.count
+                        let sprintTotal = sprintItems.count
+                        let sprintComplete = sprintDone == sprintTotal
+
+                        CardView(style: .secondary) {
+                            VStack(alignment: .leading, spacing: metrics.blockSpacing) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                                        MonoLabel(text: "CURRENT EXPERIMENT — PARTNERSHIP SPRINT", color: .inkAmber, size: 10)
+                                        Text("Hypothesis: one recurring cold brew account materially changes the economics. Activate when mobility allows.")
+                                            .font(.sora(metrics.scaledSize(10), weight: .light))
+                                            .foregroundColor(.textMuted)
+                                            .lineSpacing(2)
+                                    }
+                                    Spacer()
+                                    VStack(alignment: .trailing, spacing: metrics.rowSpacing) {
+                                        Text("\(sprintDone)/\(sprintTotal)")
+                                            .font(.system(size: metrics.scaledSize(13), weight: .semibold, design: .monospaced))
+                                            .foregroundColor(sprintComplete ? .inkGreen : sprintDone > 0 ? .inkAmber : .textMuted)
+                                        if sprintComplete {
+                                            MonoLabel(text: "ACCOUNT LIVE", color: .inkGreen, size: 9)
+                                        }
+                                    }
+                                }
+
+                                GeometryReader { geo in
+                                    ZStack(alignment: .leading) {
+                                        RoundedRectangle(cornerRadius: 2).fill(Color.surface).frame(height: 3)
+                                        RoundedRectangle(cornerRadius: 2)
+                                            .fill(sprintComplete ? Color.inkGreen : Color.inkAmber)
+                                            .frame(width: sprintTotal > 0 ? geo.size.width * CGFloat(sprintDone) / CGFloat(sprintTotal) : 0, height: 3)
+                                            .animation(.spring(response: 0.4), value: sprintDone)
+                                    }
+                                }
+                                .frame(height: 3)
+
+                                VStack(spacing: metrics.rowSpacing) {
+                                    ForEach(Array(sprintItems.enumerated()), id: \.offset) { _, item in
+                                        HStack(alignment: .top, spacing: metrics.cardSpacing) {
+                                            Image(systemName: item.1.wrappedValue ? "checkmark.square.fill" : "square")
+                                                .font(.system(size: metrics.scaledSize(15)))
+                                                .foregroundColor(item.1.wrappedValue ? .inkGreen : .textMuted)
+                                                .onTapGesture { item.1.wrappedValue.toggle() }
+                                            Text(item.0)
+                                                .font(.sora(metrics.scaledSize(11), weight: .light))
+                                                .foregroundColor(item.1.wrappedValue ? .textMuted : .textSecond)
+                                                .lineSpacing(2)
+                                                .strikethrough(item.1.wrappedValue, color: .textMuted)
+                                            Spacer()
+                                        }
+                                    }
+                                }
+
+                                Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
+                                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                                    HStack(spacing: metrics.rowSpacing) {
+                                        Circle().fill(Color.inkAmber.opacity(0.6)).frame(width: 4, height: 4)
+                                        Text("Outreach windows: 7–9:30AM or 2:30–5PM. Never during hospitality mode.")
+                                            .font(.system(size: metrics.scaledSize(10), design: .monospaced))
+                                            .foregroundColor(.textMuted)
+                                            .lineSpacing(2)
+                                    }
+                                    HStack(spacing: metrics.rowSpacing) {
+                                        Circle().fill(Color.inkAmber.opacity(0.6)).frame(width: 4, height: 4)
+                                        Text("Injury constraint: outreach prep (offer, samples, cards) now. Active delivery onboarding after rhythm stabilizes 10–14 more days.")
+                                            .font(.system(size: metrics.scaledSize(10), design: .monospaced))
+                                            .foregroundColor(.textMuted)
+                                            .lineSpacing(2)
+                                    }
+                                    HStack(spacing: metrics.rowSpacing) {
+                                        Circle().fill(Color.inkGreen.opacity(0.6)).frame(width: 4, height: 4)
+                                        Text("Pickup-first doctrine: all accounts structured as production + scheduled pickup. No route delivery.")
+                                            .font(.system(size: metrics.scaledSize(10), design: .monospaced))
+                                            .foregroundColor(.textMuted)
+                                            .lineSpacing(2)
+                                    }
+                                    HStack(spacing: metrics.rowSpacing) {
+                                        Circle().fill(Color.inkGreen.opacity(0.6)).frame(width: 4, height: 4)
+                                        Text("Tier A (zero-motion): A Better You, SkyView. Tier B (trivial-motion): Expansive pickup, Watermarc. Fastest conversion = hypothesis, not fact.")
+                                            .font(.system(size: metrics.scaledSize(10), design: .monospaced))
+                                            .foregroundColor(.textMuted)
+                                            .lineSpacing(2)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal, metrics.hPad)
+                }
+            }
+            .padding(.bottom, metrics.scaledSize(4))
+
+            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                hideoutCollapseHeader("FRICTION AUDIT", isExpanded: frictionAuditExpanded) {
+                    withAnimation(.easeOut(duration: 0.22)) { frictionAuditExpanded.toggle() }
+                }
+                .padding(.horizontal, metrics.hPad)
+                if frictionAuditExpanded {
+                        // ── Discovery Friction Audit ─────────────────────────────────────
+                        let allFrictionItems: [(String, Binding<Bool>)] = [
+                            ("Can a stranger on the street tell Hideout exists?", $frictionStreetVisible),
+                            ("Obvious within 3 seconds?", $frictionObvious3sec),
+                            ("Column boards installed on menu column face?", $frictionStreetSignage),  // repurposed: now tracks boards, not street sign
+                            ("Elevator access to the patio — obvious?", $frictionElevatorObvious),
+                            ("Building residents explicitly told Hideout exists?", $frictionResidentsTold),
+                            ("QR code or menu visible from lobby?", $frictionQRLobby),
+                            ("Watermarc leasing team introduced?", $frictionWatermarcLeasing),
+                            ("Watermarc concierge briefed?", $frictionWatermarcConcierge),
+                            ("Walking path from Watermarc frictionless?", $frictionWatermarcPath),
+                        ]
+                        let completedCount = allFrictionItems.filter { $0.1.wrappedValue }.count
+                        let totalCount = allFrictionItems.count
+
+                        CardView(style: .secondary) {
+                            VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                                HStack {
+                                    MonoLabel(text: "DISCOVERY FRICTION AUDIT", color: .textMuted, size: 10)
+                                    Spacer()
+                                    // Progress pill
+                                    HStack(spacing: metrics.rowSpacing) {
+                                        Text("\(completedCount)/\(totalCount)")
+                                            .font(.system(size: metrics.scaledSize(11), weight: .semibold, design: .monospaced))
+                                            .foregroundColor(completedCount == totalCount ? .inkGreen : completedCount > 0 ? .inkAmber : .textMuted)
+                                        if completedCount == totalCount {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .font(.system(size: metrics.scaledSize(13)))
+                                                .foregroundColor(.inkGreen)
+                                        }
+                                    }
+                                }
+
+                                // Progress bar
+                                GeometryReader { geo in
+                                    ZStack(alignment: .leading) {
+                                        RoundedRectangle(cornerRadius: 2).fill(Color.surface).frame(height: 3)
+                                        RoundedRectangle(cornerRadius: 2)
+                                            .fill(completedCount == totalCount ? Color.inkGreen : Color.inkAmber)
+                                            .frame(width: totalCount > 0 ? geo.size.width * CGFloat(completedCount) / CGFloat(totalCount) : 0, height: 3)
+                                            .animation(.spring(response: 0.4), value: completedCount)
+                                    }
+                                }
+                                .frame(height: 3)
+
+                                Text("Solve physical friction before digital amplification. Tap each item as you complete it.")
+                                    .font(.sora(metrics.scaledSize(11), weight: .light))
+                                    .foregroundColor(.textMuted)
+                                    .lineSpacing(2)
+
+                                VStack(spacing: 0) {
+                                    ForEach(allFrictionItems.indices, id: \.self) { idx in
+                                        let item = allFrictionItems[idx]
+                                        Button {
+                                            withAnimation(.spring(response: 0.25)) { item.1.wrappedValue.toggle() }
+                                        } label: {
+                                            HStack(alignment: .top, spacing: metrics.cardSpacing) {
+                                                ZStack {
+                                                    RoundedRectangle(cornerRadius: 4)
+                                                        .fill(item.1.wrappedValue ? Color.inkGreen.opacity(0.15) : Color.surface)
+                                                        .frame(width: 20, height: 20)
+                                                    RoundedRectangle(cornerRadius: 4)
+                                                        .stroke(item.1.wrappedValue ? Color.inkGreen : Color.muted.opacity(0.4), lineWidth: 1.5)
+                                                        .frame(width: 20, height: 20)
+                                                    if item.1.wrappedValue {
+                                                        Image(systemName: "checkmark")
+                                                            .font(.system(size: metrics.scaledSize(10), weight: .bold))
+                                                            .foregroundColor(.inkGreen)
+                                                    }
+                                                }
+                                                Text(item.0)
+                                                    .font(.sora(metrics.scaledSize(12), weight: .light))
+                                                    .foregroundColor(item.1.wrappedValue ? .textMuted : .textSecond)
+                                                    .lineSpacing(2)
+                                                    .strikethrough(item.1.wrappedValue, color: .textMuted.opacity(0.5))
+                                                Spacer()
+                                            }
+                                            .padding(.vertical, 9)
+                                        }
+                                        .buttonStyle(.plain)
+                                        if idx < allFrictionItems.count - 1 {
+                                            Rectangle().fill(Color.muted.opacity(0.1)).frame(height: 0.5)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.horizontal, metrics.hPad)
+
+                }
+            }
+            .padding(.bottom, metrics.scaledSize(4))
+
+            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                hideoutCollapseHeader("DECISIONS", isExpanded: decisionsExpanded) {
+                    withAnimation(.easeOut(duration: 0.22)) { decisionsExpanded.toggle() }
+                }
+                .padding(.horizontal, metrics.hPad)
+                if decisionsExpanded {
+                        // ── Loan Decision Stack ──────────────────────────────────────────
+                        CardView {
+                            VStack(alignment: .leading, spacing: metrics.blockSpacing) {
+                                HStack {
+                                    MonoLabel(text: "LOAN DECISION — JUNE 13", color: .warm, size: 10)
+                                    Spacer()
+                                    HStack(spacing: metrics.rowSpacing) {
+                                        Text("\(daysToDecision)")
+                                            .font(.system(size: 22, weight: .bold, design: .monospaced))
+                                            .foregroundColor(.warm)
+                                        Text("days")
+                                            .font(.system(size: metrics.scaledSize(11), design: .monospaced))
+                                            .foregroundColor(.warm.opacity(0.6))
+                                    }
+                                }
+                                Text("Decision made from data, not desperation.")
+                                    .font(.sora(metrics.scaledSize(11), weight: .light))
+                                    .foregroundColor(.textMuted)
+                                    .lineSpacing(2)
+
+                                // Q01 — dynamic, data-driven
+                                interactiveDecisionQ(
+                                    num: "01",
+                                    question: "30-day avg trending toward $550+?",
+                                    answer: thirtyDayAvg >= 550
+                                        ? "YES — $\(Int(thirtyDayAvg)) avg"
+                                        : thirtyDayAvg > 0 ? "NOT YET — $\(Int(thirtyDayAvg)) avg"
+                                        : "No data yet",
+                                    green: thirtyDayAvg >= 550,
+                                    isAnswered: thirtyDayAvg > 0,
+                                    isTappable: false,
+                                    answerText: .constant(""),
+                                    showInput: .constant(false),
+                                    onTap: {}
+                                )
+
+                                Rectangle().fill(Color.muted.opacity(0.12)).frame(height: 0.5)
+
+                                // Q02 — tappable
+                                interactiveDecisionQ(
+                                    num: "02",
+                                    question: "Capital has a specific revenue-generating purpose?",
+                                    answer: decisionQ02Answered ? decisionQ02Text : "Tap to answer before June 13",
+                                    green: decisionQ02Answered,
+                                    isAnswered: decisionQ02Answered,
+                                    isTappable: true,
+                                    answerText: $decisionQ02Text,
+                                    showInput: $showQ02Input,
+                                    onTap: { withAnimation(.spring(response: 0.3)) { showQ02Input.toggle() } }
+                                )
+                                if showQ02Input {
+                                    HStack(spacing: metrics.cardSpacing) {
+                                        TextField("e.g. equipment, signage, event", text: $decisionQ02Text)
+                                            .font(metrics.fontSora(14))
+                                            .foregroundStyle(Color.textPrimary)
+                                            .padding(12).background(Color.surface2)
+                                            .clipShape(RoundedRectangle(cornerRadius: 8)).tint(.warm)
+                                        Button {
+                                            decisionQ02Answered = !decisionQ02Text.isEmpty
+                                            withAnimation(.spring(response: 0.3)) { showQ02Input = false }
+                                        } label: {
+                                            Image(systemName: decisionQ02Text.isEmpty ? "xmark" : "checkmark")
+                                                .font(.system(size: metrics.scaledSize(12), weight: .semibold))
+                                                .foregroundColor(decisionQ02Text.isEmpty ? .textMuted : .inkGreen)
+                                                .frame(width: 36, height: 36)
+                                                .background(decisionQ02Text.isEmpty ? Color.surface2 : Color.inkGreen.opacity(0.15))
+                                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                        }
+                                    }
+                                    .transition(.opacity.combined(with: .move(edge: .top)))
+                                }
+
+                                Rectangle().fill(Color.muted.opacity(0.12)).frame(height: 0.5)
+
+                                // Q03 — tappable toggle
+                                interactiveDecisionQ(
+                                    num: "03",
+                                    question: "Decision being made from stability, not crisis?",
+                                    answer: decisionQ03Answered ? "CONFIRMED — deciding from data" : "Tap to confirm when ready",
+                                    green: decisionQ03Answered,
+                                    isAnswered: decisionQ03Answered,
+                                    isTappable: true,
+                                    answerText: .constant(""),
+                                    showInput: .constant(false),
+                                    onTap: { withAnimation(.spring(response: 0.3)) { decisionQ03Answered.toggle() } }
+                                )
+
+                                Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
+                                Text("Bridge vs. anesthesia. Debt that funds restructuring is defensible. Debt that delays reckoning is not.")
+                                    .font(.system(size: metrics.scaledSize(10), design: .monospaced))
+                                    .foregroundColor(.textMuted)
+                                    .lineSpacing(2.5)
+                            }
+                        }
+                        .padding(.horizontal, metrics.hPad)
+
+                }
+            }
+            .padding(.bottom, metrics.scaledSize(4))
 
             Spacer(minLength: 100)
         }
@@ -617,6 +997,73 @@ struct HideoutTabView: View {
                             MonoLabel(text: trend.label, color: trend.color, size: 11)
                         }
                     }
+                }
+            }
+            .padding(.horizontal, metrics.hPad)
+
+            if !recentShifts.isEmpty {
+                CardView(style: .secondary) {
+                    VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                        HStack {
+                            MonoLabel(text: "EXPERIMENT TIMELINE", color: .textMuted, size: 10)
+                            Spacer()
+                            MonoLabel(text: trend.label, color: trend.color, size: 10)
+                        }
+                        RevenueSparkline(shifts: recentShifts)
+                            .frame(height: 54)
+                        HStack(spacing: metrics.blockSpacing) {
+                            ForEach([("$520", Color.inkRed), ("$590", Color.inkAmber), ("$650", Color.inkGreen), ("$750", Color.violetLight)], id: \.0) { label, color in
+                                HStack(spacing: metrics.rowSpacing) {
+                                    Rectangle().fill(color.opacity(0.5)).frame(width: 10, height: 1.5)
+                                    Text(label).font(.system(size: metrics.scaledSize(10), design: .monospaced)).foregroundColor(.textMuted)
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, metrics.hPad)
+
+                CardView(style: .secondary) {
+                    VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                        MonoLabel(text: "SOLO UNIT ECONOMICS", color: .textMuted, size: 10)
+                        HStack(spacing: 0) {
+                            econColumn("AVG GROSS", value: "$\(Int(thirtyDayAvg))", color: .textPrimary)
+                            Divider().frame(height: 36).background(Color.muted.opacity(0.2)).padding(.horizontal, 12)
+                            econColumn("AVG CONTRIB", value: avgContribution > 0 ? "$\(Int(avgContribution))" : "—", color: .inkGreen)
+                            Divider().frame(height: 36).background(Color.muted.opacity(0.2)).padding(.horizontal, 12)
+                            econColumn("AVG STRESS", value: avgStress > 0 ? "\(String(format: "%.1f", avgStress))/10" : "—",
+                                      color: avgStress <= 4 ? .inkGreen : avgStress <= 6 ? .inkAmber : .inkRed)
+                            if avgPeakBurst > 0 {
+                                Divider().frame(height: 36).background(Color.muted.opacity(0.2)).padding(.horizontal, 12)
+                                econColumn("PEAK BURST", value: "\(avgPeakBurst) tx", color: avgPeakBurst <= 15 ? .inkGreen : avgPeakBurst <= 22 ? .inkAmber : .inkRed)
+                            }
+                            Spacer()
+                        }
+                        Text("Contribution = revenue × 0.72 (after COGS 25% + Square 3%). Solo: no labor deduction.")
+                            .font(.system(size: metrics.scaledSize(11), design: .monospaced))
+                            .foregroundColor(.textMuted)
+                            .lineSpacing(2)
+                    }
+                }
+                .padding(.horizontal, metrics.hPad)
+            }
+
+            CardView(style: .secondary) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    MonoLabel(text: "REVENUE GAP — QUALITY OVER VOLUME", color: .textMuted, size: 10)
+                    VStack(spacing: 0) {
+                        gapRow("Survival floor", target: 520, current: thirtyDayAvg, bandColor: .inkRed)
+                        Rectangle().fill(Color.muted.opacity(0.12)).frame(height: 0.5)
+                        gapRow("Stability", target: 590, current: thirtyDayAvg, bandColor: .inkAmber)
+                        Rectangle().fill(Color.muted.opacity(0.12)).frame(height: 0.5)
+                        gapRow("Comfort", target: 650, current: thirtyDayAvg, bandColor: .inkGreen)
+                        Rectangle().fill(Color.muted.opacity(0.12)).frame(height: 0.5)
+                        gapRow("Growth", target: 750, current: thirtyDayAvg, bandColor: .violetLight)
+                    }
+                    Text("Gap closes through any mix: recurring partnerships · residential capture · hospitality optimization · extended hours. Not strictly more walk-ins.")
+                        .font(.system(size: metrics.scaledSize(10), design: .monospaced))
+                        .foregroundColor(.textMuted)
+                        .lineSpacing(2)
                 }
             }
             .padding(.horizontal, metrics.hPad)
@@ -929,402 +1376,6 @@ struct HideoutTabView: View {
     var playbookView: some View {
         VStack(spacing: metrics.blockSpacing) {
 
-            // ── Loan Decision Stack ──────────────────────────────────────────
-            CardView {
-                VStack(alignment: .leading, spacing: metrics.blockSpacing) {
-                    HStack {
-                        MonoLabel(text: "LOAN DECISION — JUNE 13", color: .warm, size: 10)
-                        Spacer()
-                        HStack(spacing: metrics.rowSpacing) {
-                            Text("\(daysToDecision)")
-                                .font(.system(size: 22, weight: .bold, design: .monospaced))
-                                .foregroundColor(.warm)
-                            Text("days")
-                                .font(.system(size: metrics.scaledSize(11), design: .monospaced))
-                                .foregroundColor(.warm.opacity(0.6))
-                        }
-                    }
-                    Text("Decision made from data, not desperation.")
-                        .font(.sora(metrics.scaledSize(11), weight: .light))
-                        .foregroundColor(.textMuted)
-                        .lineSpacing(2)
-
-                    // Q01 — dynamic, data-driven
-                    interactiveDecisionQ(
-                        num: "01",
-                        question: "30-day avg trending toward $550+?",
-                        answer: thirtyDayAvg >= 550
-                            ? "YES — $\(Int(thirtyDayAvg)) avg"
-                            : thirtyDayAvg > 0 ? "NOT YET — $\(Int(thirtyDayAvg)) avg"
-                            : "No data yet",
-                        green: thirtyDayAvg >= 550,
-                        isAnswered: thirtyDayAvg > 0,
-                        isTappable: false,
-                        answerText: .constant(""),
-                        showInput: .constant(false),
-                        onTap: {}
-                    )
-
-                    Rectangle().fill(Color.muted.opacity(0.12)).frame(height: 0.5)
-
-                    // Q02 — tappable
-                    interactiveDecisionQ(
-                        num: "02",
-                        question: "Capital has a specific revenue-generating purpose?",
-                        answer: decisionQ02Answered ? decisionQ02Text : "Tap to answer before June 13",
-                        green: decisionQ02Answered,
-                        isAnswered: decisionQ02Answered,
-                        isTappable: true,
-                        answerText: $decisionQ02Text,
-                        showInput: $showQ02Input,
-                        onTap: { withAnimation(.spring(response: 0.3)) { showQ02Input.toggle() } }
-                    )
-                    if showQ02Input {
-                        HStack(spacing: metrics.cardSpacing) {
-                            TextField("e.g. equipment, signage, event", text: $decisionQ02Text)
-                                .font(metrics.fontSora(14))
-                                .foregroundStyle(Color.textPrimary)
-                                .padding(12).background(Color.surface2)
-                                .clipShape(RoundedRectangle(cornerRadius: 8)).tint(.warm)
-                            Button {
-                                decisionQ02Answered = !decisionQ02Text.isEmpty
-                                withAnimation(.spring(response: 0.3)) { showQ02Input = false }
-                            } label: {
-                                Image(systemName: decisionQ02Text.isEmpty ? "xmark" : "checkmark")
-                                    .font(.system(size: metrics.scaledSize(12), weight: .semibold))
-                                    .foregroundColor(decisionQ02Text.isEmpty ? .textMuted : .inkGreen)
-                                    .frame(width: 36, height: 36)
-                                    .background(decisionQ02Text.isEmpty ? Color.surface2 : Color.inkGreen.opacity(0.15))
-                                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                            }
-                        }
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                    }
-
-                    Rectangle().fill(Color.muted.opacity(0.12)).frame(height: 0.5)
-
-                    // Q03 — tappable toggle
-                    interactiveDecisionQ(
-                        num: "03",
-                        question: "Decision being made from stability, not crisis?",
-                        answer: decisionQ03Answered ? "CONFIRMED — deciding from data" : "Tap to confirm when ready",
-                        green: decisionQ03Answered,
-                        isAnswered: decisionQ03Answered,
-                        isTappable: true,
-                        answerText: .constant(""),
-                        showInput: .constant(false),
-                        onTap: { withAnimation(.spring(response: 0.3)) { decisionQ03Answered.toggle() } }
-                    )
-
-                    Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
-                    Text("Bridge vs. anesthesia. Debt that funds restructuring is defensible. Debt that delays reckoning is not.")
-                        .font(.system(size: metrics.scaledSize(10), design: .monospaced))
-                        .foregroundColor(.textMuted)
-                        .lineSpacing(2.5)
-                }
-            }
-            .padding(.horizontal, metrics.hPad)
-
-            // ── Discovery Friction Audit ─────────────────────────────────────
-            let allFrictionItems: [(String, Binding<Bool>)] = [
-                ("Can a stranger on the street tell Hideout exists?", $frictionStreetVisible),
-                ("Obvious within 3 seconds?", $frictionObvious3sec),
-                ("Column boards installed on menu column face?", $frictionStreetSignage),  // repurposed: now tracks boards, not street sign
-                ("Elevator access to the patio — obvious?", $frictionElevatorObvious),
-                ("Building residents explicitly told Hideout exists?", $frictionResidentsTold),
-                ("QR code or menu visible from lobby?", $frictionQRLobby),
-                ("Watermarc leasing team introduced?", $frictionWatermarcLeasing),
-                ("Watermarc concierge briefed?", $frictionWatermarcConcierge),
-                ("Walking path from Watermarc frictionless?", $frictionWatermarcPath),
-            ]
-            let completedCount = allFrictionItems.filter { $0.1.wrappedValue }.count
-            let totalCount = allFrictionItems.count
-
-            CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
-                    HStack {
-                        MonoLabel(text: "DISCOVERY FRICTION AUDIT", color: .textMuted, size: 10)
-                        Spacer()
-                        // Progress pill
-                        HStack(spacing: metrics.rowSpacing) {
-                            Text("\(completedCount)/\(totalCount)")
-                                .font(.system(size: metrics.scaledSize(11), weight: .semibold, design: .monospaced))
-                                .foregroundColor(completedCount == totalCount ? .inkGreen : completedCount > 0 ? .inkAmber : .textMuted)
-                            if completedCount == totalCount {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.system(size: metrics.scaledSize(13)))
-                                    .foregroundColor(.inkGreen)
-                            }
-                        }
-                    }
-
-                    // Progress bar
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 2).fill(Color.surface).frame(height: 3)
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(completedCount == totalCount ? Color.inkGreen : Color.inkAmber)
-                                .frame(width: totalCount > 0 ? geo.size.width * CGFloat(completedCount) / CGFloat(totalCount) : 0, height: 3)
-                                .animation(.spring(response: 0.4), value: completedCount)
-                        }
-                    }
-                    .frame(height: 3)
-
-                    Text("Solve physical friction before digital amplification. Tap each item as you complete it.")
-                        .font(.sora(metrics.scaledSize(11), weight: .light))
-                        .foregroundColor(.textMuted)
-                        .lineSpacing(2)
-
-                    VStack(spacing: 0) {
-                        ForEach(allFrictionItems.indices, id: \.self) { idx in
-                            let item = allFrictionItems[idx]
-                            Button {
-                                withAnimation(.spring(response: 0.25)) { item.1.wrappedValue.toggle() }
-                            } label: {
-                                HStack(alignment: .top, spacing: metrics.cardSpacing) {
-                                    ZStack {
-                                        RoundedRectangle(cornerRadius: 4)
-                                            .fill(item.1.wrappedValue ? Color.inkGreen.opacity(0.15) : Color.surface)
-                                            .frame(width: 20, height: 20)
-                                        RoundedRectangle(cornerRadius: 4)
-                                            .stroke(item.1.wrappedValue ? Color.inkGreen : Color.muted.opacity(0.4), lineWidth: 1.5)
-                                            .frame(width: 20, height: 20)
-                                        if item.1.wrappedValue {
-                                            Image(systemName: "checkmark")
-                                                .font(.system(size: metrics.scaledSize(10), weight: .bold))
-                                                .foregroundColor(.inkGreen)
-                                        }
-                                    }
-                                    Text(item.0)
-                                        .font(.sora(metrics.scaledSize(12), weight: .light))
-                                        .foregroundColor(item.1.wrappedValue ? .textMuted : .textSecond)
-                                        .lineSpacing(2)
-                                        .strikethrough(item.1.wrappedValue, color: .textMuted.opacity(0.5))
-                                    Spacer()
-                                }
-                                .padding(.vertical, 9)
-                            }
-                            .buttonStyle(.plain)
-                            if idx < allFrictionItems.count - 1 {
-                                Rectangle().fill(Color.muted.opacity(0.1)).frame(height: 0.5)
-                            }
-                        }
-                    }
-                }
-            }
-            .padding(.horizontal, metrics.hPad)
-
-            // MARK: — GROWTH SYSTEM (Locked May 2026)
-            let growthSystem1Items: [(String, Binding<Bool>)] = [
-                ("Design card in Canva — exact copy locked", $growthCardDesigned),
-                ("Place print order (50–100, matte 16pt, Vistaprint)", $growthCardPrinted),
-                ("Deliver to Watermarc front desk with coffee/pastries", $growthCardDelivered),
-            ]
-            let growthSystem2Items: [(String, Binding<Bool>)] = [
-                ("Respond to 4 unread reviews (name + specific + invite)", $growthGBPReviews),
-                ("Complete profile: hours, description, attributes", $growthGBPProfile),
-                ("Upload photos: patio → entrance → plate → coffee", $growthGBPPhotos),
-            ]
-            let growthSystem3Items: [(String, Binding<Bool>)] = [
-                ("Print TOP board: 24×24 matte Dibond — FIRST TIME? START HERE", $growthBoardTopOrdered),
-                ("Print BOTTOM board: 24×18 matte Dibond — MADE WITH REAL THINGS", $growthBoardBotOrdered),
-                ("Install both boards on column (menu face, above + below menu card)", $growthBoardsInstalled),
-            ]
-            let growthSystem4Items: [(String, Binding<Bool>)] = [
-                ("Film Monday clip before 7 AM (7-shot fixed list)", $growthVideoFilmed),
-                ("Post to GBP + Reels + TikTok — same file, 3 surfaces", $growthVideoPosted),
-            ]
-
-            let allGrowthItems = growthSystem1Items + growthSystem2Items + growthSystem3Items + growthSystem4Items
-            let growthDone = allGrowthItems.filter { $0.1.wrappedValue }.count
-            let growthTotal = allGrowthItems.count
-
-            CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: metrics.blockSpacing) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
-                            MonoLabel(text: "GROWTH SYSTEM — LOCKED MAY 2026", color: .inkTeal, size: 10)
-                            Text("Gap closes through revenue quality, not volume. Recurring revenue reduces walk-in dependency. Pickup-first: production business, not delivery route.")
-                                .font(.sora(metrics.scaledSize(10), weight: .light))
-                                .foregroundColor(.textMuted)
-                                .lineSpacing(2)
-                        }
-                        Spacer()
-                        VStack(alignment: .trailing, spacing: metrics.rowSpacing) {
-                            Text("\(growthDone)/\(growthTotal)")
-                                .font(.system(size: metrics.scaledSize(13), weight: .semibold, design: .monospaced))
-                                .foregroundColor(growthDone == growthTotal ? .inkGreen : growthDone > 0 ? .inkAmber : .textMuted)
-                            if growthDone == growthTotal {
-                                MonoLabel(text: "SYSTEM LIVE", color: .inkGreen, size: 9)
-                            }
-                        }
-                    }
-
-                    // Progress bar
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 2).fill(Color.surface).frame(height: 3)
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(growthDone == growthTotal ? Color.inkGreen : Color.inkTeal)
-                                .frame(width: growthTotal > 0 ? geo.size.width * CGFloat(growthDone) / CGFloat(growthTotal) : 0, height: 3)
-                                .animation(.spring(response: 0.4), value: growthDone)
-                        }
-                    }
-                    .frame(height: 3)
-
-                    growthSystemSection("01  WATERMARC CARD", items: growthSystem1Items,
-                        note: "Code: WATERMARC · QR → GBP · matte credit-card · hospitality, not coupon")
-                    Rectangle().fill(Color.muted.opacity(0.1)).frame(height: 0.5)
-                    growthSystemSection("02  GOOGLE BUSINESS PROFILE", items: growthSystem2Items,
-                        note: "Primary digital channel. 316 reviews, 4.7★. Freshness compounds.")
-                    Rectangle().fill(Color.muted.opacity(0.1)).frame(height: 0.5)
-                    growthSystemSection("03  COLUMN BOARDS — LOCKED", items: growthSystem3Items,
-                        note: "TOP: FIRST TIME? START HERE. BOTTOM: MADE WITH REAL THINGS + SAVE THIS SPOT QR. Matte Dibond only. Door strips = dead.")
-                    Rectangle().fill(Color.muted.opacity(0.1)).frame(height: 0.5)
-                    growthSystemSection("04  MONDAY CONTENT LOOP", items: growthSystem4Items,
-                        note: "One 20–30s clip before opening. Same shot list. 3 surfaces, no decisions.")
-
-                    Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
-                    HStack(spacing: metrics.rowSpacing) {
-                        Circle().fill(Color.inkTeal.opacity(0.6)).frame(width: 4, height: 4)
-                        Text("Signal: attribution mentions appear in weekly review. Any is better than none.")
-                            .font(.system(size: metrics.scaledSize(10), design: .monospaced))
-                            .foregroundColor(.textMuted)
-                            .lineSpacing(2)
-                    }
-                }
-            }
-            .padding(.horizontal, metrics.hPad)
-
-            CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
-                    MonoLabel(text: "IF $1,000 AVAILABLE — VISIBILITY ALLOCATION", color: .textMuted, size: 10)
-                    VStack(spacing: metrics.rowSpacing) {
-                        ForEach([
-                            ("$120", "Column boards (Dibond print x2)", "FIRST TIME? top + MADE WITH REAL THINGS bottom. This week."),
-                            ("$150", "Lobby/elevator resident presence", "Framed menu where residents see it daily."),
-                            ("$150", "Resident activation offer", "First-visit hook for residents who haven't been."),
-                            ("$150", "Professional photography", "Google profile + Instagram. Quality signal."),
-                            ("$430", "Remaining — hold", "Do not spend until column boards show attribution signal."),
-                        ], id: \.0) { amt, title, note in
-                            HStack(alignment: .top, spacing: metrics.cardSpacing) {
-                                Text(amt)
-                                    .font(.system(size: metrics.scaledSize(12), weight: .semibold, design: .monospaced))
-                                    .foregroundColor(.warm)
-                                    .frame(width: 44, alignment: .leading)
-                                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
-                                    Text(title).font(.sora(metrics.scaledSize(12), weight: .light)).foregroundColor(.textPrimary)
-                                    Text(note).font(.sora(metrics.scaledSize(10), weight: .light)).foregroundColor(.textMuted)
-                                }
-                                Spacer()
-                            }
-                        }
-                    }
-                }
-            }
-            .padding(.horizontal, metrics.hPad)
-
-            // MARK: — 14-DAY PARTNERSHIP SPRINT
-            let sprintItems: [(String, Binding<Bool>)] = [
-                ("Day 1: Define offer as pickup-first — 'accounts come to Hideout.' Print cards + make 3 sample bottles", $sprintOfferDefined),
-                ("Day 2: Watermarc front desk — 2 samples, leave cards, ask who does amenities", $sprintWatermarcDesk),
-                ("Day 3: Watermarc leasing office — 1 sample + food, tour-flow pitch", $sprintWatermarcLeasing),
-                ("Day 4: Expansive Biscayne — 2 samples, ask for member experience contact", $sprintExpansive),
-                ("Day 5: SkyView 22 concierge — 1 sample, zero-friction adjacency", $sprintSkyview),
-                ("Day 6: Follow-up #1 — Watermarc + Expansive, move toward trial", $sprintFollowup1),
-                ("Day 8: A Better You salon — 1 sample, corridor neighbor offer", $sprintSalon),
-                ("Day 9: Follow-up #2 Expansive — propose trial week, no commitment", $sprintFollowup2),
-                ("Day 12: Close first account — warmest lead, lock weekly schedule", $sprintFirstAccount),
-                ("Day 13: First delivery — 1 gallon, cups, cards, say nothing else", $sprintFirstDelivery),
-                ("Day 14: Convert trial to weekly invoice", $sprintConvertedWeekly),
-            ]
-            let sprintDone = sprintItems.filter { $0.1.wrappedValue }.count
-            let sprintTotal = sprintItems.count
-            let sprintComplete = sprintDone == sprintTotal
-
-            CardView(style: .secondary) {
-                VStack(alignment: .leading, spacing: metrics.blockSpacing) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
-                            MonoLabel(text: "CURRENT EXPERIMENT — PARTNERSHIP SPRINT", color: .inkAmber, size: 10)
-                            Text("Hypothesis: one recurring cold brew account materially changes the economics. Activate when mobility allows.")
-                                .font(.sora(metrics.scaledSize(10), weight: .light))
-                                .foregroundColor(.textMuted)
-                                .lineSpacing(2)
-                        }
-                        Spacer()
-                        VStack(alignment: .trailing, spacing: metrics.rowSpacing) {
-                            Text("\(sprintDone)/\(sprintTotal)")
-                                .font(.system(size: metrics.scaledSize(13), weight: .semibold, design: .monospaced))
-                                .foregroundColor(sprintComplete ? .inkGreen : sprintDone > 0 ? .inkAmber : .textMuted)
-                            if sprintComplete {
-                                MonoLabel(text: "ACCOUNT LIVE", color: .inkGreen, size: 9)
-                            }
-                        }
-                    }
-
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 2).fill(Color.surface).frame(height: 3)
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(sprintComplete ? Color.inkGreen : Color.inkAmber)
-                                .frame(width: sprintTotal > 0 ? geo.size.width * CGFloat(sprintDone) / CGFloat(sprintTotal) : 0, height: 3)
-                                .animation(.spring(response: 0.4), value: sprintDone)
-                        }
-                    }
-                    .frame(height: 3)
-
-                    VStack(spacing: metrics.rowSpacing) {
-                        ForEach(Array(sprintItems.enumerated()), id: \.offset) { _, item in
-                            HStack(alignment: .top, spacing: metrics.cardSpacing) {
-                                Image(systemName: item.1.wrappedValue ? "checkmark.square.fill" : "square")
-                                    .font(.system(size: metrics.scaledSize(15)))
-                                    .foregroundColor(item.1.wrappedValue ? .inkGreen : .textMuted)
-                                    .onTapGesture { item.1.wrappedValue.toggle() }
-                                Text(item.0)
-                                    .font(.sora(metrics.scaledSize(11), weight: .light))
-                                    .foregroundColor(item.1.wrappedValue ? .textMuted : .textSecond)
-                                    .lineSpacing(2)
-                                    .strikethrough(item.1.wrappedValue, color: .textMuted)
-                                Spacer()
-                            }
-                        }
-                    }
-
-                    Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
-                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
-                        HStack(spacing: metrics.rowSpacing) {
-                            Circle().fill(Color.inkAmber.opacity(0.6)).frame(width: 4, height: 4)
-                            Text("Outreach windows: 7–9:30AM or 2:30–5PM. Never during hospitality mode.")
-                                .font(.system(size: metrics.scaledSize(10), design: .monospaced))
-                                .foregroundColor(.textMuted)
-                                .lineSpacing(2)
-                        }
-                        HStack(spacing: metrics.rowSpacing) {
-                            Circle().fill(Color.inkAmber.opacity(0.6)).frame(width: 4, height: 4)
-                            Text("Injury constraint: outreach prep (offer, samples, cards) now. Active delivery onboarding after rhythm stabilizes 10–14 more days.")
-                                .font(.system(size: metrics.scaledSize(10), design: .monospaced))
-                                .foregroundColor(.textMuted)
-                                .lineSpacing(2)
-                        }
-                        HStack(spacing: metrics.rowSpacing) {
-                            Circle().fill(Color.inkGreen.opacity(0.6)).frame(width: 4, height: 4)
-                            Text("Pickup-first doctrine: all accounts structured as production + scheduled pickup. No route delivery.")
-                                .font(.system(size: metrics.scaledSize(10), design: .monospaced))
-                                .foregroundColor(.textMuted)
-                                .lineSpacing(2)
-                        }
-                        HStack(spacing: metrics.rowSpacing) {
-                            Circle().fill(Color.inkGreen.opacity(0.6)).frame(width: 4, height: 4)
-                            Text("Tier A (zero-motion): A Better You, SkyView. Tier B (trivial-motion): Expansive pickup, Watermarc. Fastest conversion = hypothesis, not fact.")
-                                .font(.system(size: metrics.scaledSize(10), design: .monospaced))
-                                .foregroundColor(.textMuted)
-                                .lineSpacing(2)
-                        }
-                    }
-                }
-            }
-            .padding(.horizontal, metrics.hPad)
 
             CardView(style: .secondary) {
                 VStack(alignment: .leading, spacing: metrics.rowSpacing) {

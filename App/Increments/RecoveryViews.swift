@@ -175,24 +175,17 @@ struct RecoveryTabView: View {
                         }
                     }
                 } else {
-                    // ── iPhone: pill nav + scroll ─────────────────────────
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: metrics.rowSpacing) {
+                    // iPhone: vertical jump list
+                    ScrollView(showsIndicators: false) {
+                        VStack(alignment: .leading, spacing: metrics.scaledSize(2)) {
                             ForEach(sections.indices, id: \.self) { i in
-                                Button(action: { withAnimation(.easeOut(duration: 0.18)) { selectedSection = i } }) {
-                                    Text(sections[i])
-                                        .font(.system(size: metrics.scaledSize(10), weight: .medium, design: .monospaced))
-                                        .tracking(0.5)
-                                        .foregroundColor(selectedSection == i ? .bgBase : .textMuted)
-                                        .padding(.horizontal, 12).padding(.vertical, 6)
-                                        .background(selectedSection == i ? Color.inkTeal : Color.surface2)
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                }
+                                navRailButton(i)
                             }
                         }
                         .padding(.horizontal, metrics.hPad)
+                        .padding(.bottom, metrics.sectionGap)
                     }
-                    .padding(.bottom, metrics.sectionGap)
+                    .frame(maxHeight: metrics.scaledSize(280))
 
                     ScrollView(showsIndicators: false) {
                         Group {

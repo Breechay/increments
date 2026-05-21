@@ -90,24 +90,17 @@ struct PhysiqueTabView: View {
                         }
                     }
                 } else {
-                    // iPhone: scrollable pill tabs
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: metrics.rowSpacing) {
+                    // iPhone: vertical jump list (reference sections, not pill chrome)
+                    ScrollView(showsIndicators: false) {
+                        VStack(alignment: .leading, spacing: metrics.scaledSize(2)) {
                             ForEach(sections.indices, id: \.self) { i in
-                                Button(action: { withAnimation(.easeOut(duration: 0.18)) { selectedSection = i } }) {
-                                    Text(sections[i])
-                                        .font(.system(size: metrics.scaledSize(10), weight: .medium, design: .monospaced))
-                                        .tracking(0.5)
-                                        .foregroundColor(selectedSection == i ? .bgBase : .textMuted)
-                                        .padding(.horizontal, 12).padding(.vertical, 6)
-                                        .background(selectedSection == i ? Color.inkGreen : Color.surface2)
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                }
+                                physiqueNavRow(i)
                             }
                         }
                         .padding(.horizontal, metrics.hPad)
+                        .padding(.bottom, metrics.sectionGap)
                     }
-                    .padding(.bottom, metrics.sectionGap)
+                    .frame(maxHeight: metrics.scaledSize(280))
 
                     ScrollView(showsIndicators: false) {
                         Group {
@@ -1269,5 +1262,30 @@ struct PhysiqueTabView: View {
     // Overloaded version without third param
     func adjustCard2(_ title: String, _ questions: [(String, String, Bool)]) -> some View {
         adjustCard2(title, questions, [])
+    }
+
+    private func physiqueNavRow(_ i: Int) -> some View {
+        Button(action: { withAnimation(.easeOut(duration: 0.18)) { selectedSection = i } }) {
+            HStack(spacing: metrics.scaledSize(12)) {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(selectedSection == i ? Color.inkGreen : Color.inkGreen.opacity(0.15))
+                    .frame(width: metrics.scaledSize(3), height: metrics.scaledSize(28))
+                Text(sections[i].uppercased())
+                    .font(metrics.fontMono(11))
+                    .foregroundColor(selectedSection == i ? .textPrimary : .textMuted)
+                    .tracking(0.8)
+                Spacer()
+                if selectedSection == i {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: metrics.scaledSize(10), weight: .medium))
+                        .foregroundColor(.inkGreen.opacity(0.6))
+                }
+            }
+            .padding(.vertical, metrics.scaledSize(10))
+            .padding(.horizontal, metrics.scaledSize(4))
+            .background(selectedSection == i ? Color.inkGreen.opacity(0.07) : Color.clear)
+            .clipShape(RoundedRectangle(cornerRadius: metrics.cardRadius * 0.6))
+        }
+        .buttonStyle(.plain)
     }
 }

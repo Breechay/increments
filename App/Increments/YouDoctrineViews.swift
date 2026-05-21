@@ -276,6 +276,17 @@ struct DoctrineOperatorReading: View {
                     "Follow the protocol, log the signal, read the data at week eight. The muscle will be there."
                 ]
             )
+
+            DoctrineSubsection(
+                label: "WHY THE FEEDBACK LOOP BREAKS FOR YOU",
+                accent: .violetLight,
+                paragraphs: [
+                    "Building is native. Distribution is not. This is a skill gap, not a character gap. The building instinct was developed through years of making things work. The distribution instinct has not been developed yet. That is the entire explanation.",
+                    "The builder's reward loop runs on immediate feedback. Something compiles or it does not. Something works or it does not. Distribution's feedback loop runs on weeks. The Achiever drive, which fires at daily completion, gets no clean signal from a Monday block. The Analytical drive, which wants data before conclusions, has nothing to read for weeks. Both drives are poorly served by distribution's feedback structure.",
+                    "This is why the system is built the way it is. The Monday block is fixed so the rep happens regardless of how distribution feels that morning — before the day's product work has a chance to displace it. The Friday log is lightweight so signal capture does not require enthusiasm. The 8-week read is the single synthesis moment — not weekly optimization, not daily tracking. The system does not ask the operator to feel productive doing distribution. It asks him to run the protocol and read the data when there is enough of it.",
+                    "The distribution muscle is not there yet. That is correct and expected. Twelve weeks of Monday blocks, Tuesday ledger sentences, Saturday captures, and Friday logs is when the methodology exists in practice. The reps are the training. The spec is the coach. The signal is the result. You have done harder things with less of a roadmap."
+                ]
+            )
         }
         .padding(.horizontal, metrics.hPad)
         .padding(.top, metrics.scaledSize(8))
@@ -530,22 +541,23 @@ struct DoctrineFORMReading: View {
 
 struct DistributionCrashCourseReading: View {
     @Environment(\.appMetrics) private var metrics
+    @State private var deepReadExpanded = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: metrics.sectionGap) {
             ZStack(alignment: .topLeading) {
                 RadialGradient(
-                    colors: [Color.inkGreen.opacity(0.06), Color.clear],
+                    colors: [Color.inkGreen.opacity(0.07), Color.clear],
                     center: .topTrailing,
                     startRadius: 0,
-                    endRadius: metrics.scaledSize(200)
+                    endRadius: metrics.scaledSize(220)
                 )
                 VStack(alignment: .leading, spacing: metrics.scaledSize(8)) {
                     MonoLabel(text: "DISTRIBUTION", color: .inkGreen.opacity(0.8), size: 9)
                     Text("The crash course")
                         .font(.sora(metrics.titleSize, weight: .semibold))
                         .foregroundColor(.textPrimary)
-                    Text("Read once. Then execute in Signal.")
+                    Text("Skill level 0. Read completely. Then the reps make sense.")
                         .font(.sora(metrics.captionSize, weight: .light))
                         .foregroundColor(.textMuted)
                     Rectangle()
@@ -556,23 +568,40 @@ struct DistributionCrashCourseReading: View {
             }
             .padding(.top, metrics.sectionGap)
 
+            coreLabel
+
             crashSection(
-                label: "WHY DISTRIBUTION EXISTS",
+                label: "FARMING, NOT ENGINEERING",
                 accent: .inkGreen,
                 paragraphs: [
-                    "Every product has two problems. The first is making something worth having. The second is making sure the people who would value it know it exists. Most builders are naturally better at the first than the second.",
-                    "Building produces immediate, legible feedback — something works or it does not. Distribution produces delayed, ambiguous feedback — a seed planted today might produce a signal in eight weeks, or never, and you will not know which until you have run enough reps to read the pattern.",
-                    "Distribution feels unnatural to product builders because the feedback loops are completely different. When you build, you know within hours whether the thing does what you intended. When you distribute, you plant a seed and wait. The waiting is not a sign that something is wrong. It is how distribution works. Seeds take time."
+                    "You understand systems, mechanics, operations, product, behavior design. Distribution is not a harder version of those things. It is a different discipline with different physics. Applying builder logic to it produces frustration, not results.",
+                    "Engineering mindset: design the machine, the machine works, done. Feedback is immediate. If the button does not fire, you know within minutes.",
+                    "Distribution mindset: plant the seed, wait, some die, some sprout, learn which soil works, plant more there. Feedback is delayed by weeks or months. There is no compile error. There is no crash log.",
+                    "This is why builders hate it. Not because it is hard — because the feedback loop is broken compared to what they know. The ambiguity feels low-status. It feels like nothing is happening. Usually something is happening. You just cannot see it yet."
                 ]
             )
 
             crashSection(
-                label: "WHAT DISTRIBUTION IS",
+                label: "WHAT DISTRIBUTION ACTUALLY IS",
                 accent: .inkGreen,
                 paragraphs: [
-                    "Distribution is not marketing. Marketing is the story you tell about the product. Distribution is the mechanism by which the product reaches the people who would value it. A well-distributed product does not need a marketing strategy — the right seeds in the right places compound into reach over time without requiring active promotion.",
-                    "Marketing thinking produces the wrong instincts. Marketing says: more reach, bigger audience, louder message. Distribution thinking says: right seed, right surface, right mechanism, enough reps.",
-                    "A Watermarc card placed in a luxury building across the street is not marketing. It is a seed with a specific mechanism — a resident picks it up, keeps it, and uses it when they want a reason to try the café on a Tuesday morning. That mechanism either works or it does not. The signal tells you which."
+                    "The wrong definition: posting content, social media, marketing, making noise, persuasion, audience building. That definition produces the wrong instincts.",
+                    "The right definition: distribution is how the right person repeatedly encounters your product in a context that makes action easy.",
+                    "Read that again. Three parts: the right person, repeatedly, in a context that makes action easy. All three matter. Most distribution fails because one of the three is wrong.",
+                    "A Watermarc card in a luxury building across the street is distribution. A resident picks it up, keeps it, and uses it when they want a reason to try the café on a Tuesday morning. Right person — a resident within walking distance. Repeatedly — the card stays in their wallet. Context makes action easy — they already want coffee, they just needed a reason to try somewhere new.",
+                    "An Instagram reel is not automatically distribution. It might reach the right person. It might not be repeated. The context might be wrong. It can be distribution. It is not automatically distribution."
+                ]
+            )
+
+            crashSection(
+                label: "THE MENTAL SHIFT",
+                accent: .violetLight,
+                paragraphs: [
+                    "Stop asking: how do I promote this?",
+                    "Ask: how does discovery actually happen for this product?",
+                    "That question you are excellent at. Because it is systems design. You think about mechanisms, paths, failure modes, user behavior. Distribution is just systems design for discovery.",
+                    "For Hideout: the discovery system is local. Proximity, physical presence, search, word of mouth. Build those mechanisms. For FORM: the discovery system is intelligence. Runners who care about the problem find people who understand it. Be visible in the right problem spaces. For Forge: the discovery system is execution proof. Serious lifters recognize when something works correctly. Show it working.",
+                    "None of this requires a following. None of it requires performance. None of it requires personality. It requires seeds in the right soil, enough reps, and patience with the feedback loop."
                 ]
             )
 
@@ -580,66 +609,162 @@ struct DistributionCrashCourseReading: View {
                 label: "REPS · SIGNAL · ADJUSTMENT",
                 accent: .violetLight,
                 paragraphs: [
-                    "Reps are non-negotiable. No distribution system produces signal without reps. A single Monday content block tells you nothing. Eight Monday content blocks, consistently executed, start to produce data. Twelve weeks is when the methodology exists in your body rather than just in the protocol. The rep is the unit of currency, not the result.",
-                    "Signal is what tells you whether the reps are producing anything. Signal is not followers, views, or impressions. Signal for Hideout is a board attribution — someone saying they saw the sign. Signal for FORM is outside-network engagement — a runner who does not already know you engaging with the content. Signal for Forge is the gate clearing — the product used correctly by real athletes without workarounds. Signal is specific, observable, and tied to a mechanism. Anything that cannot be traced back to a specific seed is noise.",
-                    "Adjustment is what happens when signal is consistently absent after enough reps — eight weeks minimum for most surfaces. The adjustment is always singular: change one variable. Not the whole system. One thing. Then run more reps and watch what the signal does."
+                    "Reps are non-negotiable. One Monday block tells you nothing. Eight Monday blocks start to produce data. Twelve weeks is when the methodology lives in your body rather than in the spec. The rep is the unit of currency, not the result. This is threshold training. You did not understand the physiology before your first threshold session. You ran the reps. The pattern became legible afterward.",
+                    "Signal is specific and tied to a mechanism. Signal for Hideout: a board attribution — someone says they saw the sign. GBP attribution — someone says they found you on Google. Watermarc redemption — someone brought the card. Signal for FORM: outside-network engagement — a runner who does not already know you engaging with content. Signal for Forge: execution gate cleared, no workarounds needed in real sessions. Impressions, views, and likes are not signal. They are noise dressed as signal.",
+                    "Adjustment is singular and late. You do not adjust in week three. You adjust after eight weeks of logged signal shows a specific surface is not producing. Then you change one variable — not the system, one variable — and run more reps. Changing multiple things at once means you cannot read which change produced the result. One thing. Wait. Read."
                 ]
             )
 
             crashSection(
-                label: "WHY MOST DISTRIBUTION FAILS",
-                accent: .inkAmber,
-                paragraphs: [
-                    "The first reason is inconsistency. The seed gets planted once and you move on. Distribution requires repetition because the mechanism depends on exposure frequency. A third-exposure café wins, not a first-exposure one. Most efforts fail before the third exposure because the first exposure was expected to produce signal.",
-                    "The second reason is wrong surface. The seed is planted where the mechanism does not connect to the target person. TikTok algorithmic discovery for a neighborhood café is a weak surface — the person who discovers a café on TikTok is not the person who becomes a regular. GBP and physical seeds in residential buildings are strong surfaces because the mechanism connects directly to the behavior.",
-                    "The third reason is premature optimization. You change the approach before enough reps have run to produce readable signal. Week three feels like failure. Week eight starts to show pattern. Changing in week three resets the clock. One variable, after sufficient reps — that protocol exists to prevent premature optimization."
-                ]
-            )
-
-            crashSection(
-                label: "GOOGLE BUSINESS PROFILE",
-                accent: .warm,
-                paragraphs: [
-                    "GBP is the most important single surface for Hideout. It is where people searching for a café in Edgewater land. Photos, posts, and review responses directly affect whether a search converts to a visit. This is not social media. It is local search infrastructure. It compounds. A well-maintained profile from two years ago is still producing signal today."
-                ]
-            )
-
-            crashSection(
-                label: "PHYSICAL SEEDS",
-                accent: .warm,
-                paragraphs: [
-                    "Boards, cards, and partnerships are the highest-mechanism surfaces for residential and neighborhood reach. They require placement and maintenance, not ongoing creative effort. A Watermarc card in a building lobby is a seed that works passively. The investment is front-loaded. The compounding happens over months."
-                ]
-            )
-
-            crashSection(
-                label: "SHORT-FORM VIDEO",
-                accent: .textMuted,
-                paragraphs: [
-                    "Reels and TikTok are an exhaust pipe, not a primary surface. The algorithm may or may not route to the right person. For Hideout, secondary to GBP and physical seeds. For FORM and Forge, the mechanism by which product truth reaches runners and strength athletes who do not know the product exists. Not optimized. Posted and left."
-                ]
-            )
-
-            crashSection(
-                label: "PROBLEM-SPACE PARTICIPATION",
+                label: "WHY THE MONDAY BLOCK EXISTS",
                 accent: .inkGreen,
                 paragraphs: [
-                    "Forums, community threads, and niche communities are the highest-signal surface for FORM specifically. A runner asking why pace felt harder at the same heart rate is asking exactly the question FORM is built to answer. A real observation dropped into that thread — not a promotion — plants a seed where the audience has already self-selected into caring. No performance, no farming, pure intelligence."
+                    "Distribution skill level 0 operators overthink. A fixed block removes the overthinking.",
+                    "You did not understand threshold physiology before your first threshold session. You were not required to. You ran the reps. The pattern became legible. After enough sessions, threshold started to feel like something you understood in your body, not just in a plan.",
+                    "Monday block is the same mechanism. Do not try to understand distribution fully before the first rep. Run the block. Log the signal. Read the data at week eight. The understanding follows the reps, not the other way around.",
+                    "The block is fixed because decisions at execution time are the enemy of consistency. No deciding what to film. No deciding what to write. No deciding which platform. Those decisions were made when the protocol was designed. Monday morning, the only job is to execute the sequence. That is the rep."
                 ]
             )
 
-            crashSection(
-                label: "THIS OPERATOR",
-                accent: .violetLight,
-                paragraphs: [
-                    "Building is native. Distribution is not. This is the structural gap — not character, not motivation. The builder's reward loop produces immediate feedback. Distribution produces delayed feedback. The Achiever drive wants to complete something today. Distribution completes in eight weeks when the signal read says a specific seed is working.",
-                    "The system is designed around this. The Monday block is fixed so the rep happens regardless of how distribution feels that morning. The Friday log is lightweight so signal capture does not require enthusiasm. The 8-week read is the single review moment — not weekly optimization, not daily tracking. Plant, log, wait, read.",
-                    "The distribution muscle develops through reps. It is not there yet. That is correct. After twelve weeks of Monday blocks, Tuesday ledger sentences, Saturday captures, and Friday logs, the methodology will exist in practice rather than in a spec. The reps are the training. The spec is the coach. The signal is the result."
-                ]
-            )
+            deepReadToggle
+
+            if deepReadExpanded {
+                VStack(alignment: .leading, spacing: metrics.sectionGap) {
+                    crashSection(
+                        label: "HOW DISCOVERY ACTUALLY HAPPENS · HIDEOUT",
+                        accent: .warm,
+                        paragraphs: [
+                            "Stop asking: how do I make content? Start asking: how does an Edgewater resident become a regular?",
+                            "The actual path: walks dog past Hideout, notices the café, does not enter. Sees the board again two weeks later. Later searches coffee near me on Google. Sees the profile — 4.7 stars, photos, a recent post. Comes in. Likes it. Returns the following Tuesday.",
+                            "That path has multiple contact points: the physical space, the board, the Google profile. Distribution is improving each point on that path. The board is distribution. GBP is distribution. Watermarc cards are distribution. The salon partnership is distribution.",
+                            "Instagram? Maybe. But it is weak compared to local mechanisms because the person most likely to become a Hideout regular is not discovering neighborhood cafés on TikTok. They are walking past, searching nearby, or hearing from someone who goes.",
+                            "The bottleneck is not awareness. It is the gap between noticing and entering. The boards, the GBP, the cards — they all compress that gap. That is the job."
+                        ]
+                    )
+
+                    crashSection(
+                        label: "HOW DISCOVERY ACTUALLY HAPPENS · FORM",
+                        accent: .inkGreen,
+                        paragraphs: [
+                            "Stop asking: how do I get followers? Start asking: how does a runner with a real problem encounter FORM?",
+                            "The actual path: a runner thinks — why does my pace feel harder at the same heart rate this week? They search Reddit. Or a training forum. Or they scroll and something stops them. They encounter a real observation from someone who clearly understands the problem. They think: this person gets my exact issue. Then maybe a profile click, an App Store search, an install.",
+                            "That encounter mechanism is distribution. The observation dropped into the Reddit thread is a seed. The forum comment is a seed. The Tuesday track session clip showing two different program structures on two phones — that is a seed that lands specifically with runners and coaches who understand what individualized programming actually looks like.",
+                            "FORM content works because the intelligence layer is visible. A runner who cares about pacing, fatigue, periodization — they recognize the sophistication immediately. The content does not need to explain the product. It needs to show the product thinking.",
+                            "The injury actually helps here. When you cannot post running footage, what remains is the intelligence layer — what the system did, what it decided, how Ghost Protocol sequenced the week. That is rarer content than any run recap. Most apps have nothing interesting to show when the athlete is not running. FORM does."
+                        ]
+                    )
+
+                    crashSection(
+                        label: "HOW DISCOVERY ACTUALLY HAPPENS · FORGE",
+                        accent: .violetLight,
+                        paragraphs: [
+                            "Stop asking: how do I make content? Start asking: how does a serious lifter discover this when their current tools annoy them?",
+                            "The actual paths: a training discussion thread where someone complains that their workout app lost a set. A gym friend who mentions the app that actually starts in under five seconds. A coach who recommends it because the plan anchor works correctly. A search for best workout tracker that surfaces a comparison where Forge's execution integrity stands out.",
+                            "Forge distribution is about execution truth. Not features. Not design. The specific thing Forge does that other apps do not — session survives a phone call mid-set, draft restores to the right position, rest timer fires correctly with the screen locked — those are the seeds. Show one of those in action and the right person immediately understands the value.",
+                            "Tim, Tinius, and Cole have been using Forge for five weeks without workarounds. That is the proof. The gate cleared because real use confirmed it. Distribution starts from that position: a product that works correctly under real gym conditions, with athlete proof already in place."
+                        ]
+                    )
+
+                    crashSection(
+                        label: "WHY IT FEELS LIKE NOTHING IS HAPPENING",
+                        accent: .inkAmber,
+                        paragraphs: [
+                            "Product gives you immediate truth. Button works or it does not. Distribution gives you ambiguous truth. Posted a reel — nothing happened. Did it fail?",
+                            "Maybe. Maybe it reached the wrong audience. Maybe it reached the right audience but wrong surface. Maybe it needs twelve repetitions before anyone acts. Maybe the message is wrong. Maybe the channel is impossible. You do not know which.",
+                            "That ambiguity feels low-status to operator brains. The Achiever drive wants to complete something today. Distribution does not complete in a day. The Analytical drive wants data before conclusions. Distribution does not produce clean data for weeks.",
+                            "This is not a character flaw. It is a mismatch between your natural feedback loops and distribution's feedback loops. The system is designed to bridge that gap: fixed protocol removes the decision overhead, lightweight logging creates the data, 8-week read is when the data is actually readable. You are not supposed to feel the discipline working day-to-day. You are supposed to plant, log, and wait."
+                        ]
+                    )
+
+                    crashSection(
+                        label: "WHY MOST DISTRIBUTION FAILS",
+                        accent: .inkAmber,
+                        paragraphs: [
+                            "Inconsistency. The seed gets planted once and the operator moves on. Distribution depends on exposure frequency. A third-exposure café wins, not a first-exposure one. Most efforts collapse before the third exposure because the first exposure produced no visible signal and the operator concluded the approach was wrong.",
+                            "Wrong surface. The seed lands where the mechanism does not connect the right person to the product. TikTok for a neighborhood café: the person who discovers a café on TikTok is not the person who becomes a regular. The mechanism is wrong. GBP for the same café: the person searching coffee near me in Edgewater is exactly the target. Same product, different surface, completely different mechanism quality.",
+                            "Premature optimization. The approach changes before enough reps have run to produce readable signal. Week three feels like failure because nothing visible has happened. Week eight starts to show pattern. Week twelve confirms it. Changing the approach in week three resets the clock and guarantees you will never read the week-three-through-eight signal."
+                        ]
+                    )
+
+                    crashSection(
+                        label: "SURFACES · LOCAL SEARCH",
+                        accent: .warm,
+                        paragraphs: [
+                            "For Hideout, GBP is the most important single surface. Full stop. It is where people searching for a café in Edgewater land. Photos, posts, and review responses directly affect whether that search converts to a visit.",
+                            "This is not social media. It is local search infrastructure. It compounds invisibly — a well-maintained profile from two years ago is still producing signal today. Every photo added, every review responded to, every post published is a rep that stays in the system indefinitely. Most of Hideout's competition has weak GBP. That is an advantage available right now."
+                        ]
+                    )
+
+                    crashSection(
+                        label: "PHYSICAL SEEDS",
+                        accent: .warm,
+                        paragraphs: [
+                            "Column boards, Watermarc cards, salon partnership, SkyView lobby stand — these are the highest-mechanism surfaces for residential and neighborhood reach. They require placement and maintenance, not ongoing creative effort. The investment is front-loaded. The compounding happens over months.",
+                            "A Watermarc card in a 258-unit building is not one potential customer. It is 258 potential customers who live within walking distance and will encounter the card repeatedly in their own lobby. The mechanism is right person, right context, repeated exposure. No algorithm decides who sees it. Every resident sees it."
+                        ]
+                    )
+
+                    crashSection(
+                        label: "SHORT-FORM VIDEO",
+                        accent: .textMuted,
+                        paragraphs: [
+                            "Reels and TikTok are an exhaust pipe, not a primary surface. Post and leave. The algorithm routes to whoever it routes to. For Hideout, weak compared to GBP and physical seeds — the person who becomes a Hideout regular is not discovering it on TikTok. For FORM and Forge, slightly stronger — the problem-space audience does exist on these platforms, and product truth content can reach them if it shows the real system.",
+                            "The doctrine: same file posted to three surfaces in the same Monday block. Not optimized per platform. Not managed after posting. The block takes 11 minutes for posting. That is all the time these surfaces get."
+                        ]
+                    )
+
+                    crashSection(
+                        label: "SURFACES · RUNNER COMMUNITIES",
+                        accent: .inkGreen,
+                        paragraphs: [
+                            "For FORM, this is the highest-signal surface available. Reddit running threads, Strava training discussions, niche forums — these are places where runners are already asking exactly the questions FORM is built to answer.",
+                            "A runner asks: why does pace feel harder at the same HR this week? That is a FORM question. A real observation dropped into that thread — not a promotion, not a product mention, a genuine response about what the data shows — plants a seed where the audience has already self-selected into caring about the answer.",
+                            "This fits the operator profile precisely: observational, non-performative, intelligence-first, no farming. The authority comes from the quality of the observation, not from a following. One observation per week. No links. No pitches. Just the signal the product produces, described accurately."
+                        ]
+                    )
+                }
+                .transition(.opacity)
+            }
         }
         .padding(.horizontal, metrics.hPad)
         .padding(.bottom, metrics.sectionGap)
+    }
+
+    private var coreLabel: some View {
+        HStack(spacing: metrics.scaledSize(8)) {
+            Rectangle()
+                .fill(Color.inkGreen.opacity(0.4))
+                .frame(width: metrics.scaledSize(16), height: 1)
+            Text("READ THIS FIRST")
+                .font(.mono(metrics.monoSmall))
+                .foregroundColor(.inkGreen.opacity(0.6))
+                .tracking(1.2)
+            Rectangle()
+                .fill(Color.inkGreen.opacity(0.15))
+                .frame(height: 1)
+        }
+    }
+
+    private var deepReadToggle: some View {
+        Button(action: {
+            withAnimation(.easeOut(duration: 0.25)) {
+                deepReadExpanded.toggle()
+            }
+        }) {
+            HStack(spacing: metrics.scaledSize(8)) {
+                Rectangle()
+                    .fill(Color.textMuted.opacity(0.3))
+                    .frame(width: metrics.scaledSize(16), height: 1)
+                Text(deepReadExpanded ? "WHEN SIGNAL IS UNCLEAR ↑" : "WHEN SIGNAL IS UNCLEAR ↓")
+                    .font(.mono(metrics.monoSmall))
+                    .foregroundColor(.textMuted)
+                    .tracking(1.2)
+                Rectangle()
+                    .fill(Color.textMuted.opacity(0.15))
+                    .frame(height: 1)
+            }
+        }
+        .buttonStyle(.plain)
     }
 
     private func crashSection(label: String, accent: Color, paragraphs: [String]) -> some View {
