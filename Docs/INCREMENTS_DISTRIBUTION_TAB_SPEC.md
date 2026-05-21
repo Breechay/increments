@@ -9,6 +9,8 @@
 **Doctrine:** `FORM-iOS/docs/BRICE_OS/DISTRIBUTION_OPERATING_SYSTEM.md`  
 **Operator profile:** `FORM-iOS/docs/BRICE_OS/BRICE_OPERATOR_PRODUCT_BRIEF.md` (buy-in + system design corollary)
 
+**Operator reads in app:** INCREMENTS **You → Ventures** + **Manual** (distribution principles). This spec is agent implementation detail.
+
 ---
 
 ## 0. Read this first

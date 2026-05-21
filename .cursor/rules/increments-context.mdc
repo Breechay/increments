@@ -52,6 +52,7 @@ For **workspace-wide strategy**: targeted sections of `FORM-iOS/docs/BRICE_OS/BR
 | **Capital** | Runway, reserves, financial state | Hideout shift logistics |
 | **Hideout** | Venue/business system (shifts, building context) | `hideout-ops-console` analytics theater |
 | **Physique** | Body composition / training-adjacent personal signal | FORM Forge programming or athlete Today |
+| **You → Ventures / Intel / Manual** | Evening reading — venture truth, traits, principles (iPad-first) | Execution on Signal/Today; agent-only markdown briefs |
 
 **hideout-ops-console** is a separate repo (venue operator instrument). INCREMENTS Hideout tab is Brice’s embedded business context — do not port console dashboards or fake intelligence here.
 

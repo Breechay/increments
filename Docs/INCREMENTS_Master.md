@@ -10,7 +10,9 @@
 | `IntelligenceLayer.swift` | ~1,630 | `OperatorDoctrine`, presence engine, longitudinal context, observed intelligence, Wendy/Consult prompts |
 | `SharedComponents.swift` | ~1,030 | CardView, MonoLabel, ActionRow, AtmosphericBackground, SessionCard, SystemStatusRow |
 | `TodayViews.swift` | ~3,170 | HomeView, TodayView, OneDoorCard, EnergyStateInput, MaintenanceSection, Timeline, DailyReview, embed wrappers |
-| `CapitalViews.swift` | ~690 | CapitalTabView, EditCapitalStateSheet, YouView, ProfileTabView, FieldManualTabView |
+| `CapitalViews.swift` | ~690 | CapitalTabView, EditCapitalStateSheet, ProfileTabView |
+| `YouTabViews.swift` | — | YouView, VenturesTabView, IntelTabView, YouFieldManualView |
+| `YouDoctrineViews.swift` | — | YouDoctrineTabView — Operator, Distribution, Hideout, FORM night read |
 | `OperatorViews.swift` | ~3,410 | OperatorTabView, Cognition Lab, BriefTabView, DossierTabView, InsightsView, ConsultView, FocusMode, SettingsTabView |
 | `HideoutViews.swift` | ~640 | HideoutTabView, ShiftLogRow, EditShiftSheet, LogShiftSheet |
 | `AppShell.swift` | ~1,280 | CustomTabBar, seed data, daily reset, LaunchSequenceView, OnboardingView, RootView, app entry, schema migration |
@@ -174,7 +176,7 @@ The mechanism of action:
 - CTA label: START DAY / CONTINUE / OPEN TODAY. "RETURN TO IT" removed — it signaled nothing.
 - Wendy fires from Operator > Brief. Not from Today.
 
-**Signal tab (planned — 6th tab, after Hideout):** Spec v2.3 at `Docs/INCREMENTS_DISTRIBUTION_TAB_SPEC.md` — `DecisionLedger`, 8-step Monday block, HOLD/8-week rules. **Plant / log / adjust** — Monday block dominant; mid-week `trainingDecisionCapture` (Monday selects, not reconstructs); 8-week ADJUST session on calendar (doctrine). Forge gate: `FORM-iOS/docs/FORGE_V1_GATE_QA.md` (8 device checks). Post-gate: 3 consecutive Forge Mondays. Hideout shift log Friday fields stay parallel. Interim: Today door `Content block — Monday`.
+**Signal tab (shipped — tab 5, after Hideout):** Spec v2.3 at `Docs/INCREMENTS_DISTRIBUTION_TAB_SPEC.md` — `DistributionWeek`, `DecisionLedger`, 8-step Monday block, Friday log, Tue/Sat FORM capture banners. **Plant / log / adjust.** Operator reads methodology in **You → Doctrine** + **Ventures** (live signal) + **Manual** (not markdown). Forge gate: `FORM-iOS/docs/FORGE_V1_GATE_QA.md`. OS: `FORM-iOS/docs/BRICE_OS/DISTRIBUTION_OPERATING_SYSTEM.md`.
 
 ---
 
