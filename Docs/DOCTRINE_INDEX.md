@@ -59,6 +59,7 @@ This is **canonical infrastructure** for agents and future builds — not market
 | **[INCREMENTS_DISTRIBUTION_TAB_SPEC.md](INCREMENTS_DISTRIBUTION_TAB_SPEC.md)** | Signal tab — plant / log / adjust |
 | **[YOU_TAB_AUTHORED_CONTENT_AUDIT.md](YOU_TAB_AUTHORED_CONTENT_AUDIT.md)** | Authored You-tab export for review |
 | **`FORM-iOS/docs/BRICE_OS/README.md`** | BRICE-OS read order (kernel → active reality → distribution) |
+| **`FORM-iOS/docs/BRICE_OS/BRICE_PHYSIQUE_AGENT_BRIEF.md`** | **Physique / Forge Sculpt / cut / nutrition agent handoff** (paste for Claude/Cursor) |
 | **`FORM-iOS/docs/BRICE_OS/DISTRIBUTION_OPERATING_SYSTEM.md`** | Cross-venture distribution OS (Hideout · FORM · Forge) |
 
 ---
