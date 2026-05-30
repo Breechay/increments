@@ -1654,9 +1654,10 @@ func restoreSystemLastActivity(state: AppState, actions: [Action]) {
 //   V4 — added MaintenanceItem, HydrationLog, FinancialState, ConsultReceipt.
 //   V6 — added HideoutShiftLog (+ lastWendyObservation on OperatorProfile via lightweight default).
 //
-// Removed (identical model arrays = duplicate checksum crash):
-//   V2, V3 — same as V4
-//   V5     — same as V6
+// Removed from staged plan (duplicate checksum with V4/V6 if re-added with same model set):
+//   V2, V3 — same models as V4
+//   V5     — same models as V6
+// Stores tagged with those version ids recover via IncrementsPersistentStore store wipe + rebuild.
 
 enum SchemaV1: VersionedSchema {
     static var versionIdentifier = Schema.Version(1, 0, 0)
@@ -1769,6 +1770,75 @@ enum INCREMENTSMigrationPlan: SchemaMigrationPlan {
     }
 }
 
+// MARK: - SwiftData store bootstrap (CloudKit + migration recovery)
+
+private enum IncrementsPersistentStore {
+    static let schema = Schema([
+        Action.self, Habit.self, OperatorProfile.self,
+        DailyLog.self, WorkTrack.self, RecoveryPhase.self, CognitionLog.self,
+        Session.self, MaintenanceItem.self, HydrationLog.self, FinancialState.self,
+        ConsultReceipt.self, HideoutShiftLog.self, FridaySignalLog.self,
+        PartnerAccount.self, TibiaRecoveryLog.self,
+        DistributionWeek.self, DecisionLedger.self,
+        CoreCompletionLog.self, AMActivationLog.self
+    ])
+
+    private static let cloudKitContainer = "iCloud.com.brice.Increments"
+
+    /// Removes SwiftData SQLite store and WAL/SHM sidecars (same paths Core Data uses).
+    static func wipeStoreFiles(at storeURL: URL) {
+        let fm = FileManager.default
+        let directory = storeURL.deletingLastPathComponent()
+        let stem = storeURL.deletingPathExtension().lastPathComponent
+        let candidates = [
+            storeURL,
+            directory.appendingPathComponent("\(stem).store-shm"),
+            directory.appendingPathComponent("\(stem).store-wal"),
+            directory.appendingPathComponent("\(stem).sqlite-shm"),
+            directory.appendingPathComponent("\(stem).sqlite-wal"),
+        ]
+        for url in candidates where fm.fileExists(atPath: url.path) {
+            try? fm.removeItem(at: url)
+        }
+    }
+
+    static func makeContainer() -> ModelContainer {
+        let localConfig = ModelConfiguration(schema: schema)
+        let cloudConfig = ModelConfiguration(
+            schema: schema,
+            cloudKitDatabase: .private(cloudKitContainer)
+        )
+
+        do {
+            return try ModelContainer(
+                for: schema,
+                migrationPlan: INCREMENTSMigrationPlan.self,
+                configurations: [cloudConfig]
+            )
+        } catch {
+            print("INCREMENTS: CloudKit store unavailable (\(error.localizedDescription)); trying local migration.")
+        }
+
+        do {
+            return try ModelContainer(
+                for: schema,
+                migrationPlan: INCREMENTSMigrationPlan.self,
+                configurations: [localConfig]
+            )
+        } catch {
+            // Old installs may carry schema version ids (V2/V3/V5) removed from the staged plan.
+            // Wipe local store and open fresh — seed data repopulates on next launch.
+            print("INCREMENTS: Migration failed (\(error.localizedDescription)). Wiping store and rebuilding.")
+            wipeStoreFiles(at: localConfig.url)
+            do {
+                return try ModelContainer(for: schema, configurations: [localConfig])
+            } catch {
+                fatalError("INCREMENTS: Could not open SwiftData store after rebuild (\(error.localizedDescription)).")
+            }
+        }
+    }
+}
+
 @main
 struct INCREMENTSApp: App {
     @StateObject private var cloudSync = CloudSyncPreferences.shared
@@ -1780,43 +1850,8 @@ struct INCREMENTSApp: App {
     // the 2.25s animation completes, so in practice this adds zero perceptible delay.
     @State private var dataReady = false
 
-    // ModelContainer with proper migration plan — preserves all user data across rebuilds.
-    // New fields get their default values; nothing is wiped.
-    let container: ModelContainer = {
-        let schema = Schema([
-            Action.self, Habit.self, OperatorProfile.self,
-            DailyLog.self, WorkTrack.self, RecoveryPhase.self, CognitionLog.self,
-            Session.self, MaintenanceItem.self, HydrationLog.self, FinancialState.self,
-            ConsultReceipt.self, HideoutShiftLog.self, FridaySignalLog.self,
-            PartnerAccount.self, TibiaRecoveryLog.self,
-            DistributionWeek.self, DecisionLedger.self,
-            CoreCompletionLog.self, AMActivationLog.self
-        ])
-        let cloudConfig = ModelConfiguration(
-            schema: schema,
-            cloudKitDatabase: .private("iCloud.com.brice.Increments")
-        )
-        do {
-            return try ModelContainer(
-                for: schema,
-                migrationPlan: INCREMENTSMigrationPlan.self,
-                configurations: [cloudConfig]
-            )
-        } catch {
-            // CloudKit container missing, quota exceeded, or offline — run local-only so UI stays responsive.
-            print("INCREMENTS: CloudKit store unavailable (\(error.localizedDescription)); using local-only SwiftData.")
-            let localConfig = ModelConfiguration(schema: schema)
-            do {
-                return try ModelContainer(
-                    for: schema,
-                    migrationPlan: INCREMENTSMigrationPlan.self,
-                    configurations: [localConfig]
-                )
-            } catch {
-                fatalError("INCREMENTS: Could not open SwiftData store (\(error.localizedDescription)).")
-            }
-        }
-    }()
+    // ModelContainer with migration plan; falls back to local-only, then store rebuild.
+    let container: ModelContainer = IncrementsPersistentStore.makeContainer()
 
     var body: some Scene {
         WindowGroup {
