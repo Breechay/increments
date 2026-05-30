@@ -96,6 +96,7 @@ struct IntelligenceReadinessCard: View {
 
 struct SettingsTabView: View {
     @Environment(\.appMetrics) private var metrics
+    @Environment(\.dismiss) private var dismiss
     @Bindable var profile: OperatorProfile
     @Bindable var state: AppState
     // BUG FIX: was @State (resets to false on every tab switch/view re-init).
@@ -103,7 +104,9 @@ struct SettingsTabView: View {
     @AppStorage("notificationsEnabled") private var notificationsEnabled = false
 
     var body: some View {
-        VStack(spacing: metrics.blockSpacing) {
+        NavigationStack {
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: metrics.blockSpacing) {
 
             // OPERATOR — name and voice
             CardView {
@@ -136,6 +139,28 @@ struct SettingsTabView: View {
                     }
                     .tint(Color.inkGreen)
 
+                    if profile.wendyEnabled {
+                        Divider().background(Color.muted.opacity(0.3))
+
+                        VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                            MonoLabel(text: "ANTHROPIC · CLAUDE", color: .inkGreen, size: 11)
+                            Text("Powers weekly pattern reads and Operator Consult. Key stays on this device only.")
+                                .font(metrics.fontSora(13, weight: .light))
+                                .foregroundColor(.textMuted)
+                                .lineSpacing(2)
+                            apiKeyField("API KEY", placeholder: "sk-ant-...", text: $profile.claudeApiKey)
+                            if profile.claudeApiKey.isEmpty {
+                                Text("Required for Consult and deeper observations after day 7 in system.")
+                                    .font(metrics.fontMono(11))
+                                    .foregroundColor(.muted)
+                                    .tracking(0.3)
+                                    .lineSpacing(2)
+                            } else {
+                                MonoLabel(text: "KEY SET", color: .inkGreen, size: 9)
+                            }
+                        }
+                    }
+
                     Divider().background(Color.muted.opacity(0.3))
 
                     // Voice — spoken output only. Intelligence layer runs regardless.
@@ -160,27 +185,14 @@ struct SettingsTabView: View {
                         // Voice provider
                         VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                             MonoLabel(text: "VOICE SOURCE", color: .textMuted)
-                            HStack(spacing: metrics.rowSpacing) {
-                                ForEach(VoiceProvider.allCases, id: \.self) { p in
-                                    Button(action: {
-                                        profile.voiceProvider = p
-                                        VoicePresence.shared.provider = p
-                                    }) {
-                                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
-                                            Text(p.label)
-                                                .font(metrics.fontSora(14))
-                                                .foregroundColor(profile.voiceProvider == p ? .textPrimary : .textMuted)
-                                            Text(p.sublabel)
-                                                .font(metrics.fontSora(12, weight: .light))
-                                                .foregroundColor(.textMuted)
-                                                .lineSpacing(1.5)
-                                        }
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                        .padding(12)
-                                        .background(profile.voiceProvider == p ? Color.violetDim.opacity(0.3) : Color.surface)
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                        .overlay(RoundedRectangle(cornerRadius: 8)
-                                            .strokeBorder(profile.voiceProvider == p ? Color.violet.opacity(0.4) : Color.clear, lineWidth: 1))
+                            Group {
+                                if metrics.isIPad {
+                                    HStack(spacing: metrics.rowSpacing) {
+                                        voiceProviderChoices
+                                    }
+                                } else {
+                                    VStack(spacing: metrics.rowSpacing) {
+                                        voiceProviderChoices
                                     }
                                 }
                             }
@@ -466,9 +478,67 @@ struct SettingsTabView: View {
                 .frame(maxWidth: .infinity)
             }
             .padding(.horizontal, metrics.hPad)
+                }
+                .padding(.top, metrics.scaledSize(8))
+                .padding(.bottom, 80)
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .background(Color.bgBase)
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                        .foregroundColor(.violetLight)
+                }
+            }
         }
-        .padding(.bottom, 80)
         .onAppear { syncNotificationStatus() }
+    }
+
+    @ViewBuilder
+    private var voiceProviderChoices: some View {
+        ForEach(VoiceProvider.allCases, id: \.self) { p in
+            Button(action: {
+                profile.voiceProvider = p
+                VoicePresence.shared.provider = p
+            }) {
+                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                    Text(p.label)
+                        .font(metrics.fontSora(14))
+                        .foregroundColor(profile.voiceProvider == p ? .textPrimary : .textMuted)
+                    Text(p.sublabel)
+                        .font(metrics.fontSora(12, weight: .light))
+                        .foregroundColor(.textMuted)
+                        .lineSpacing(1.5)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(12)
+                .background(profile.voiceProvider == p ? Color.violetDim.opacity(0.3) : Color.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .overlay(RoundedRectangle(cornerRadius: 8)
+                    .strokeBorder(profile.voiceProvider == p ? Color.violet.opacity(0.4) : Color.clear, lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func apiKeyField(_ label: String, placeholder: String, text: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            MonoLabel(text: label)
+            TextField("", text: text, prompt: Text(placeholder).foregroundColor(.textMuted))
+                .font(.sora(15))
+                .foregroundColor(.textPrimary)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                #if os(iOS)
+                .textContentType(.password)
+                #endif
+                .padding(14)
+                .background(Color.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .tint(.warm)
+        }
     }
 
     func hourLabel(_ h: Int) -> String {

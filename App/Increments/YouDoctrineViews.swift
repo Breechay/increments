@@ -6,6 +6,7 @@ import SwiftData
 
 struct YouDoctrineTabView: View {
     @Environment(\.appMetrics) private var metrics
+    @Environment(\.youIPadReadingFocus) private var youReadingFocus
     @State private var section = 0
 
     private let sectionTitles = ["This season", "Plant · log · adjust", "Night read", "Night read"]
@@ -53,7 +54,7 @@ struct YouDoctrineTabView: View {
                 .id(section)
                 .transition(.opacity)
                 .animation(.easeOut(duration: 0.25), value: section)
-                .adaptiveContentWidth(metrics)
+                .youReadingContentWidth(metrics, focus: youReadingFocus)
                 .padding(.bottom, 80)
             }
         }
@@ -76,7 +77,7 @@ struct DoctrineSectionHeader: View {
                 .foregroundColor(accent.opacity(0.7))
                 .tracking(1.5)
             Text(title)
-                .font(.sora(metrics.titleSize, weight: .semibold))
+                .font(.sora(metrics.isIPad ? metrics.youReadTitleSize : metrics.titleSize, weight: .semibold))
                 .foregroundColor(.textPrimary)
             Rectangle()
                 .fill(accent.opacity(0.25))
@@ -152,9 +153,9 @@ struct DoctrineProseBlock: View {
                 .padding(.top, metrics.scaledSize(5))
 
             Text(text)
-                .font(.sora(metrics.bodySize, weight: .light))
+                .font(.sora(metrics.isIPad ? metrics.youReadBodySize : metrics.bodySize, weight: .light))
                 .foregroundColor(.textPrimary.opacity(0.92))
-                .lineSpacing(metrics.scaledSize(6))
+                .lineSpacing(metrics.isIPad ? metrics.youReadLineSpacing : metrics.scaledSize(6))
                 .tracking(0.1)
                 .fixedSize(horizontal: false, vertical: true)
         }

@@ -35,7 +35,11 @@
 //            stress/revenue relationship. Business observations same register as personal ones.
 // BIZ-07   — SchemaV5 migration: adds HideoutShiftLog to the store. Lightweight, no transform.
 //
-// v3.2 Quiet Cafe Advantage + Behavioral Science Stack:
+// v3.3 Physique practice instruments (May 2026):
+// PHYS-01 — CoreCompletionLog: daily legacy core rounds (0–3), calendar-normalized date.
+// PHYS-02 — AMActivationLog: daily AM glute activation complete flag.
+// PHYS-03 — TibiaRecoveryLog: Phase 2 clinical gate fields (unilateral loading, single-leg RDL, hard stop).
+//
 // BEHAVIOR-01 — "Solo Operator Protocol" session added to seed:
 //               4 steps loading the behavioral science stack before opening:
 //               Primacy (3-sec acknowledgment) · Choice Architecture (scripted upsell) ·
@@ -168,7 +172,7 @@
 //             6:00 Morning anchor open · 8:00 First block · 12:15 Midday
 //             16:30 Wrap · 21:00 Evening anchor
 // SCHED-07  — Full prescribed week in seed with time blocks:
-//             Every day: 4:00–5:50 morning anchor stack (4AM wake)
+//             Every day: 4:30–5:50 morning anchor stack (4:30 wake target)
 //             Hideout: 7:00 slow open → 7:15 behaviors → 7:30 priorities → 8:30 deep work → 12:00 midday
 //             Base: 8:00 ops → 8:15 messages → 8:30 reset
 //             Evening: 21:00 no screens → 21:15 read → 23:00 sleep
@@ -348,10 +352,13 @@ extension Font {
     }
 
     static func sora(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        .custom("Sora", size: size).weight(resolvedCustomWeight(weight))
+        // Bundled static faces — never chain .weight(); UIKit cannot synthesize weights (console spam).
+        _ = resolvedCustomWeight(weight)
+        return .custom("Sora", size: size)
     }
     static func mono(_ size: CGFloat, weight: Font.Weight = .light) -> Font {
-        .custom("DM Mono", size: size).weight(resolvedCustomWeight(weight))
+        _ = resolvedCustomWeight(weight)
+        return .custom("DM Mono", size: size)
     }
 }
 
@@ -531,7 +538,7 @@ enum DayType: String, Codable {
         }
     }
 
-    // Brice's schedule (4AM wake):
+    // Brice's schedule (4:30 wake target):
     // Hideout: arrives 6:30 for prep, open at 7:00 (slow open — coffee, music, setup, plant check, terrace audit). Deep work starts 8:30.
     //          Wed–Fri closes 5PM → gym. Sat–Sun closes 3PM → afternoon free. (Sun extends to 5PM Week 2 experiment)
     // Base (Mon–Tue): cafe/ops rhythm. Gym at 5PM most days.
@@ -843,10 +850,10 @@ class OperatorProfile {
                 if h == 6 { return "\(address)Prep window. 30 min before the door opens." }
                 return "\(address)Hideout opens at 7. You're already there."
             }
-            return "\(address)4AM. Morning anchor. Full day ahead."
+            return "\(address)4:30. Morning anchor. Full day ahead."
         case .morning:
             if dayType == .hideout && DayType.today.isHideoutHours {
-                if completedToday == 0 { return "\(address)Hideout hours. Deep work first." }
+                if completedToday == 0 { return "\(address)Hideout hours. Prep, then priorities." }
                 return "\(address)In it."
             }
             if dayType == .base {
@@ -1623,6 +1630,11 @@ class TibiaRecoveryLog {
     // Freeform
     var notes: String = ""
 
+    // Phase 2 clinical gate (Forge Sculpt — signal only, not auto-unlock)
+    var unilateralLoadingPainFree: Bool = false
+    var singleLegRDLStable: Bool = false
+    var hardStopSignalThisWeek: Bool = false
+
     init() {
         self.id = UUID()
         self.weekEndingDate = Date()
@@ -1681,6 +1693,40 @@ class TibiaRecoveryLog {
             case .moderate: return .inkRed
             }
         }
+    }
+}
+
+// MARK: - CORE COMPLETION LOG
+// PHYS-01 — Daily legacy core practice (Physique tab). Rounds 0–3. No streaks.
+
+@Model
+class CoreCompletionLog {
+    var id: UUID = UUID()
+    var date: Date = Date()
+    var rounds: Int = 0
+    var createdAt: Date = Date()
+
+    init() {
+        self.id = UUID()
+        self.date = Date()
+        self.createdAt = Date()
+    }
+}
+
+// MARK: - AM ACTIVATION LOG
+// PHYS-02 — Daily AM glute activation checklist (Physique · AM Stack). Complete flag only.
+
+@Model
+class AMActivationLog {
+    var id: UUID = UUID()
+    var date: Date = Date()
+    var complete: Bool = false
+    var createdAt: Date = Date()
+
+    init() {
+        self.id = UUID()
+        self.date = Date()
+        self.createdAt = Date()
     }
 }
 

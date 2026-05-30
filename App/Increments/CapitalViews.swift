@@ -720,13 +720,13 @@ struct NutritionProtocolView: View {
     @Environment(\.appMetrics) private var metrics
 
     let workdayMeals: [NutritionMeal] = [
-        NutritionMeal(time: "4:00 AM", name: "Wake protocol",
-            foods: "500ml water · 5g creatine · matcha",
-            rule: "Wake = water + creatine + matcha. Nothing else.",
+        NutritionMeal(time: "4:30 AM", name: "Wake protocol",
+            foods: "500ml water · 5g creatine (skip if on pause) · matcha",
+            rule: "Wake = water + creatine + matcha. Fasted — no pre-cardio carbs.",
             tag: "fast", kcal: "0 kcal"),
-        NutritionMeal(time: "4:30–5:10 AM", name: "Fasted cardio",
-            foods: "Zone 2 · bike or elliptical · 35–40 min · HR 130–145",
-            rule: "Default fasted. Half banana allowed: poor sleep, HRV off, legs empty.",
+        NutritionMeal(time: "4:40–5:50 AM", name: "AM stack + fasted cardio",
+            foods: "Core → glute activation → Zone 2 · bike or elliptical · 35–40 min · HR 130–145",
+            rule: "Default fasted. Half banana only: poor sleep, HRV off, body battery <30.",
             tag: "fast", kcal: "−300–350 kcal"),
         NutritionMeal(time: "5:15 AM", name: "Post-cardio protein anchor",
             foods: "Pumpkin seed protein in oat milk · 2 hard boiled eggs optional",
@@ -750,16 +750,16 @@ struct NutritionProtocolView: View {
             tag: "carb", kcal: "~480 kcal · 42g P"),
         NutritionMeal(time: "7:30–8:00 PM", name: "Final meal",
             foods: "120–150g roasted chicken · avocado · spinach/arugula · olive oil",
-            rule: "Chicken + avocado + greens. Kitchen closed at 8:30 PM.",
+            rule: "Chicken + avocado + greens. Kitchen closed 8:30 — no food after.",
             tag: "protein", kcal: "~480 kcal · 50g P"),
     ]
 
     let baseMeals: [NutritionMeal] = [
-        NutritionMeal(time: "4:00 AM", name: "Wake protocol",
-            foods: "500ml water · 5g creatine · matcha",
-            rule: "Same every day. No variation.",
+        NutritionMeal(time: "4:30 AM", name: "Wake protocol",
+            foods: "500ml water · 5g creatine (skip if on pause) · matcha",
+            rule: "Same every day. Fasted — no pre-cardio carbs.",
             tag: "fast", kcal: "0 kcal"),
-        NutritionMeal(time: "4:30–5:10 AM", name: "Fasted cardio (lower intensity)",
+        NutritionMeal(time: "4:40–5:50 AM", name: "AM stack + fasted cardio (lower intensity)",
             foods: "Zone 2 · HR 120–135 · active recovery pace",
             rule: "Base day cardio = same time, lower intensity. Fasted default.",
             tag: "fast", kcal: "−250–300 kcal"),

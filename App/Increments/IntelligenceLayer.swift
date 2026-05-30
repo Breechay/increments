@@ -197,6 +197,7 @@ struct LongitudinalContext {
     let hideoutStaffUsedRecently: Bool
     let hideoutLostSalesRecently: Bool
     let hideoutExperimentShifts: Int
+    var writingActionRecentlyDone: Bool? = nil  // nil if no writing action in stack
 }
 
 // MARK: - OBSERVED SIGNAL (typed — future Wendy interface)
@@ -614,9 +615,25 @@ COMPETITION: Calibrated comparison sharpens engagement. Use measurement honestly
 CONFIDENCE: Action threshold is structurally low. Do not prime with reassurance.
 
 CONTEXT — THREE ACTIVE SYSTEMS:
-1. PERSONAL: 4AM wake. Morning anchor + cardio (bike/elliptical) 4:30–5:10AM. Commute: 26th floor condo → elevated terrace patio (same building, second floor). Hideout Wed–Fri 7AM–5PM, Sat–Sun 7AM–3PM. Mon–Tue base days. Deep work 8:30AM. Evening: Forge Breechay hypertrophy ~5:30PM. Sleep target 9:15–9:30PM.
+1. PERSONAL: 4:30 wake target. Morning stack (core → activation → cardio) ~4:40–5:50AM. Commute: 26th floor condo → elevated terrace patio (same building, second floor). Hideout Wed–Fri 7AM–5PM, Sat–Sun 7AM–3PM. Mon–Tue base days. Evening: Forge Breechay hypertrophy ~5:30PM. Sleep target 9:15–9:30PM.
 2. BUSINESS: Hideout Miami — outdoor elevated terrace café, second floor of condo building. 30-day solo experiment. $3.5k gap, loan decision by June 13. Bands: survival <$520 · stability $590 · comfort $650 · growth $750+.
 3. PHYSICAL: Currently ~12–13% body fat, goal 8–10%. Forge Breechay Hypertrophy Week 4+. Running limited — cardio via bike/elliptical. Strength training ~5:30PM. Post-workout protein within 30 minutes. Hideout is outdoor/terrace — natural light, open air.
+
+DIRECTION CONTEXT:
+Governing thesis: build what feels true, make it easier to enter, stay curious longer than certainty, move toward expansion not avoidance, seek recognition not applause.
+
+Five wants in sequence order:
+1. BASE: Hideout to full internal standard. Economics to no-presence-required threshold. Inhabit it, not manage it. Rooting → authorship → optional movement.
+2. RECOGNITION: Someone perceptive enough to read the architecture, warm enough to stay, alive enough to surprise. Not counterpart — recognition by someone who sees the whole system and sees the uncurated material too.
+3. WORK: FORM/Forge/INCREMENTS/RunCards/Hideout legible as one coherent body of work. Distribution is the unlock — not more building.
+4. MOBILITY: Base first, then movement. Miami is structurally underfed (intellectual novelty, psychological density). Multipliers: Berlin, Buenos Aires, Lisbon, CDMX, Tokyo, London, Paris.
+5. ROOMS: Intellectual novelty, psychological density, unusual minds, low performance layer.
+
+Sequencing doctrine: base stability enables everything else. Current phase is build-and-stabilize, not discovery or mobility.
+
+Signal gap: signal reads as beautiful closed system — admired but not approached. Door needs to be more visibly open. Primary move: write one thing (non-product prose). Second question in interactions. Mechanism not artifact in distribution content.
+
+Witness distinction: admiration sees the output. Witness sees the operator cost AND the uncurated material — contradiction, softness, non-competence — and stays. This dimension is unresolved and matters most.
 
 ADAPTIVE EXECUTION ARCHITECTURE:
 Actions are tiered: anchor (16 — system degrades if omitted), phase (39 — current protocol), amplifier (17 — full days only). Energy states: full (all tiers), partial (anchor+phase), reserve (anchors only — body constrained, skip training/cardio), compressed (anchor+phase — schedule disrupted, training may survive). Default (no state set) = partial behavior.
@@ -1144,7 +1161,7 @@ class VoicePresence: NSObject, AVSpeechSynthesizerDelegate, @unchecked Sendable 
         HIDEOUT — SOLO EXPERIMENT DAY \(longitudinal.hideoutExperimentDay)/30:
         \(recentShifts)
         BAND: \(longitudinal.hideoutPlanningBand) · STAFF USED: \(longitudinal.hideoutStaffUsedRecently ? "yes" : "no") · LOST SALES: \(longitudinal.hideoutLostSalesRecently ? "yes" : "no")
-        LOAN CONTEXT: $3.5k real gap. Square loan ($18k/42% APR) not recommended until avg hits $550+/day.
+        LOAN CONTEXT: $3.5k real gap. Square loan ($18k/42% APR) not recommended until avg hits $550+/day.\(longitudinal.writingActionRecentlyDone.map { done in "\n        DIRECTION — Writing action (signal move): \(done ? "completed in last 30 days" : "not completed in last 30 days")" } ?? "")
         """
     }
 
@@ -1683,7 +1700,16 @@ extension PresenceContextBuilder {
             hideoutTrend: hideoutTrend,
             hideoutStaffUsedRecently: last7Shifts.contains { $0.usedStaff },
             hideoutLostSalesRecently: last7Shifts.contains { $0.lostSales },
-            hideoutExperimentShifts: recentShifts.count
+            hideoutExperimentShifts: recentShifts.count,
+            writingActionRecentlyDone: {
+                let writingAction = actions.first(where: { action in
+                    let t = action.title.lowercased()
+                    return t.contains("write") || t.contains("writing") || t.contains("publish")
+                })
+                guard let wa = writingAction else { return nil }
+                let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
+                return wa.completionDates.contains(where: { $0 > thirtyDaysAgo })
+            }()
         )
     }
 }
@@ -1700,7 +1726,7 @@ class NotificationService {
     }
 
     // Schedule-aware nudges — respects hideout vs base day structure
-    // 4AM wake architecture: anchor stack 4:00–5:50AM, hideout 7AM open
+    // 4:30 wake architecture: anchor stack ~4:30–5:50AM, hideout 7AM open
     // Hideout days (Wed–Fri): 7AM open, 5PM close
     // Hideout weekends (Sat–Sun): 7AM open, 3PM close. Commute: 26th floor condo → terrace patio.
     // Base days (Mon–Tue): ops/maintenance rhythm
@@ -1711,10 +1737,10 @@ class NotificationService {
         // Daily nudges — time-slot aware, not generic
         // Format: (title, body, hour, minute, categoryEnabled, notifID)
         let nudges: [(String, String, Int, Int, Bool, String)] = [
-            // 4:00 — morning anchor open (every day, 4AM wake)
+            // 4:30 — morning anchor open (every day)
             ("No phone. First hour starts now.",
              "",
-             4, 0, profile.notifCategoryHealth, "increments-0"),
+             4, 30, profile.notifCategoryHealth, "increments-0"),
             // 7:30 — hideout open, priorities block
             ("Hideout open. Priorities first.",
              "",
@@ -1727,7 +1753,7 @@ class NotificationService {
             ("Wrapping up. What landed today?",
              "",
              16, 30, profile.notifCategoryOperations, "increments-3"),
-            // 20:30 — evening anchor (early for 4AM wake / 9:30PM sleep)
+            // 20:30 — evening anchor (early for 4:30 wake / 9:30PM sleep)
             ("Evening shutdown. Journal. Phone away. Book.",
              "",
              20, 30, profile.notifCategoryHealth, "increments-4"),
@@ -1739,7 +1765,7 @@ class NotificationService {
             schedule(id: id, title: title, body: body, hour: hour, minute: min)
         }
 
-        // Hydration — 4AM wake schedule: covers full active window 7AM–7PM
+        // Hydration — 4:30 wake schedule: covers full active window 7AM–7PM
         if profile.notifHydrationEnabled {
             let hydrationHours = [7, 10, 13, 16, 19]
             for (i, hour) in hydrationHours.enumerated() {

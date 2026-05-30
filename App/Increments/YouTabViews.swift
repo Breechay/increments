@@ -3,7 +3,7 @@ import SwiftData
 
 // MARK: - YOU TAB — reimagined May 2026
 // Previous: Capital · Brief · Dossier · Lab · Manual · Settings
-// Now:      Capital · Brief · Doctrine · Ventures · Intel · Manual · Settings
+// Now:      Capital · Brief · Doctrine · Want · Ventures · Intel · Manual · Settings
 //
 // Lab removed — content not consumed, elaborate infrastructure for unused behavior.
 // Dossier stripped to Intel — live observed traits + failure modes only.
@@ -51,6 +51,7 @@ struct YouView: View {
     @Bindable var state: AppState
     @State private var selectedSeg = 0
     @State private var showSettings = false
+    @AppStorage("you_ipad_reading_focus") private var youReadingFocus = false
     @Environment(\.appMetrics) private var metrics
 
     var profile: OperatorProfile { profiles.first ?? OperatorProfile() }
@@ -59,9 +60,10 @@ struct YouView: View {
         switch selectedSeg {
         case 0: return "Brief"
         case 1: return "Doctrine"
-        case 2: return "Ventures"
-        case 3: return "Intel"
-        case 4: return "Manual"
+        case 2: return "Want"
+        case 3: return "Ventures"
+        case 4: return "Intel"
+        case 5: return "Manual"
         default: return "You"
         }
     }
@@ -85,60 +87,29 @@ struct YouView: View {
                 }
 
                 if metrics.isIPad {
-                    IPadMasterDetailLayout(metrics: metrics, leftFraction: metrics.masterDetailLeftFraction) {
-                        ScrollView(showsIndicators: false) {
-                            VStack(alignment: .leading, spacing: 0) {
-                                SectionHeader(text: "CAPITAL · RESOURCE", color: .warm)
-                                    .padding(.horizontal, metrics.hPad)
-                                    .padding(.bottom, metrics.scaledSize(8))
-                                CapitalTabView()
-                            }
-                            .padding(.top, metrics.screenTopPadding)
+                    if youReadingFocus {
+                        GeometryReader { _ in
+                            youIPadRightPane
+                                .environment(\.youIPadReadingFocus, true)
                         }
-                    } right: {
-                        VStack(spacing: 0) {
-                            HStack {
-                                VStack(alignment: .leading, spacing: metrics.scaledSize(3)) {
-                                    MonoLabel(text: "YOU", color: .violetLight, size: 9)
-                                    Text(iPadRightColumnTitle)
-                                        .font(.sora(metrics.headlineSize, weight: .semibold))
-                                        .foregroundColor(.textPrimary)
-                                        .animation(.easeOut(duration: 0.2), value: selectedSeg)
-                                }
-                                Spacer()
-                                Button(action: { showSettings = true }) {
-                                    Image(systemName: "gearshape")
-                                        .font(.system(size: metrics.scaledSize(15), weight: .light))
-                                        .foregroundColor(.textMuted)
-                                        .frame(width: metrics.scaledSize(34), height: metrics.scaledSize(34))
-                                        .background(Color.surface2)
-                                        .clipShape(Circle())
-                                }
-                            }
-                            .padding(.horizontal, metrics.hPad)
-                            .padding(.top, metrics.screenTopPadding)
-                            .padding(.bottom, metrics.scaledSize(8))
-
-                            segmentControl(["Brief", "Doctrine", "Ventures", "Intel", "Manual"], selected: $selectedSeg)
-                                .padding(.horizontal, metrics.hPad)
-                                .padding(.bottom, metrics.scaledSize(14))
+                    } else {
+                        IPadMasterDetailLayout(metrics: metrics, leftFraction: metrics.masterDetailLeftFraction) {
                             ScrollView(showsIndicators: false) {
-                                Group {
-                                    switch selectedSeg {
-                                    case 0: BriefTabView(state: state, profile: profile)
-                                    case 1: YouDoctrineTabView()
-                                    case 2: VenturesTabView()
-                                    case 3: IntelTabView(profile: profile)
-                                    case 4: YouFieldManualView()
-                                    default: EmptyView()
-                                    }
+                                VStack(alignment: .leading, spacing: 0) {
+                                    SectionHeader(text: "CAPITAL · RESOURCE", color: .warm)
+                                        .padding(.horizontal, metrics.hPad)
+                                        .padding(.bottom, metrics.scaledSize(8))
+                                    CapitalTabView()
                                 }
-                                .adaptiveContentWidth(metrics)
+                                .padding(.top, metrics.screenTopPadding)
                             }
+                        } right: {
+                            youIPadRightPane
+                                .environment(\.youIPadReadingFocus, false)
                         }
                     }
                 } else {
-                    segmentControl(["Capital", "Brief", "Doctrine", "Ventures", "Intel", "Manual"], selected: $selectedSeg)
+                    segmentControl(["Capital", "Brief", "Doctrine", "Want", "Ventures", "Intel", "Manual"], selected: $selectedSeg)
                         .padding(.horizontal, metrics.hPad)
                         .padding(.bottom, metrics.sectionGap)
                     ScrollView(showsIndicators: false) {
@@ -146,9 +117,10 @@ struct YouView: View {
                         case 0: CapitalTabView()
                         case 1: BriefTabView(state: state, profile: profile)
                         case 2: YouDoctrineTabView()
-                        case 3: VenturesTabView()
-                        case 4: IntelTabView(profile: profile)
-                        case 5: YouFieldManualView()
+                        case 3: WantDocTabView()
+                        case 4: VenturesTabView()
+                        case 5: IntelTabView(profile: profile)
+                        case 6: YouFieldManualView()
                         default: EmptyView()
                         }
                     }
@@ -157,6 +129,67 @@ struct YouView: View {
         }
         .sheet(isPresented: $showSettings) {
             SettingsTabView(profile: profile, state: state)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .presentationBackground(Color.bgBase)
+        }
+    }
+
+    // MARK: iPad right pane (Brief · Doctrine · Ventures · Intel · Manual)
+
+    private var youIPadRightPane: some View {
+        VStack(spacing: 0) {
+            HStack(alignment: .center, spacing: metrics.scaledSize(10)) {
+                VStack(alignment: .leading, spacing: metrics.scaledSize(3)) {
+                    MonoLabel(text: "YOU", color: .violetLight, size: 9)
+                    Text(iPadRightColumnTitle)
+                        .font(.sora(metrics.youReadHeadlineSize, weight: .semibold))
+                        .foregroundColor(.textPrimary)
+                        .animation(.easeOut(duration: 0.2), value: selectedSeg)
+                }
+                Spacer()
+                Button(action: {
+                    withAnimation(.easeOut(duration: 0.22)) { youReadingFocus.toggle() }
+                }) {
+                    Image(systemName: youReadingFocus ? "sidebar.left" : "arrow.up.left.and.arrow.down.right")
+                        .font(.system(size: metrics.scaledSize(14), weight: .light))
+                        .foregroundColor(youReadingFocus ? .violetLight : .textMuted)
+                        .frame(width: metrics.scaledSize(36), height: metrics.scaledSize(36))
+                        .background(Color.surface2)
+                        .clipShape(Circle())
+                }
+                .accessibilityLabel(youReadingFocus ? "Show Capital" : "Expand reading")
+                Button(action: { showSettings = true }) {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: metrics.scaledSize(15), weight: .light))
+                        .foregroundColor(.textMuted)
+                        .frame(width: metrics.scaledSize(34), height: metrics.scaledSize(34))
+                        .background(Color.surface2)
+                        .clipShape(Circle())
+                }
+            }
+            .padding(.horizontal, metrics.hPad)
+            .padding(.top, metrics.screenTopPadding)
+            .padding(.bottom, metrics.scaledSize(8))
+
+            segmentControl(["Brief", "Doctrine", "Want", "Ventures", "Intel", "Manual"], selected: $selectedSeg)
+                .padding(.horizontal, metrics.hPad)
+                .padding(.bottom, metrics.scaledSize(14))
+
+            ScrollView(showsIndicators: false) {
+                Group {
+                    switch selectedSeg {
+                    case 0: BriefTabView(state: state, profile: profile)
+                    case 1: YouDoctrineTabView()
+                    case 2: WantDocTabView()
+                    case 3: VenturesTabView()
+                    case 4: IntelTabView(profile: profile)
+                    case 5: YouFieldManualView()
+                    default: EmptyView()
+                    }
+                }
+                .youReadingContentWidth(metrics, focus: youReadingFocus)
+            }
         }
     }
 }
@@ -181,7 +214,7 @@ struct VenturesTabView: View {
                 kickerColor: .warm,
                 status: "Active · Solo experiment",
                 headline: "Neighborhood café. Edgewater. Six years. The original venture.",
-                body: "Hideout is a 4.7-star outdoor café on the Edgewater corridor. The product is correct — consistent food, real quality, outdoor terrace, regulars. The current constraint is threshold conversion and residential memory encoding: people who find it love it. The bottleneck is find.\n\nThe solo experiment runs Hideout without staff to test operational floor, revenue stability, and what the experience is without the full crew. The stability target is $590/day average.",
+                body: "Hideout is a 4.7-star outdoor café on the Edgewater corridor. The product is correct — consistent food, real quality, outdoor terrace, regulars. The current constraint is threshold conversion and residential memory encoding: people who find it love it. The bottleneck is find.\n\nThe solo experiment runs Hideout without staff to test operational floor, revenue stability, and what the experience is without the full crew. The stability target is $590/day average.\n\nHideout App (separate build): customer relationship capture — repeat orders, Sunday lineup, private events, B2B gallons. INCREMENTS Hideout tab tracks this solo experiment; the app holds demand the floor cannot keep in memory.",
                 distributionSection: hideoutDistribution,
                 signalSummary: hideoutSignalSummary
             )
@@ -335,6 +368,11 @@ struct VenturesTabView: View {
 
             ventureProseBlock(
                 "Execution stays simple: Monday block before open. Friday signal log after close. Full economics and signal doctrine live in You → Doctrine → Hideout.",
+                color: .warm
+            )
+
+            ventureProseBlock(
+                "Hideout App · customer surface (Documents/HideoutApp): reorder, Sunday, event requests, B2B gallons — relationship compression, not ordering theater. Pre-Square on device. Admin: lineup, events queue, catering. This tab = experiment ops; the app = captured demand.",
                 color: .warm
             )
         }
@@ -849,9 +887,9 @@ struct YouFieldManualView: View {
                             .foregroundColor(isExpanded ? entry.accentColor : .textSecond)
                             .tracking(0.5)
                         Text(entry.trigger)
-                            .font(.sora(metrics.bodySize, weight: .light))
+                            .font(.sora(metrics.isIPad ? metrics.youReadBodySize : metrics.bodySize, weight: .light))
                             .foregroundColor(isExpanded ? .textPrimary.opacity(0.92) : .textMuted.opacity(0.75))
-                            .lineSpacing(metrics.scaledSize(4))
+                            .lineSpacing(metrics.isIPad ? metrics.youReadLineSpacing : metrics.scaledSize(4))
                             .tracking(0.1)
                             .multilineTextAlignment(.leading)
                             .fixedSize(horizontal: false, vertical: true)
@@ -896,9 +934,9 @@ struct YouFieldManualView: View {
         VStack(alignment: .leading, spacing: metrics.scaledSize(5)) {
             MonoLabel(text: label, color: color, size: 9)
             Text(text)
-                .font(.sora(metrics.bodySize, weight: .light))
+                .font(.sora(metrics.isIPad ? metrics.youReadBodySize : metrics.bodySize, weight: .light))
                 .foregroundColor(.textPrimary.opacity(0.92))
-                .lineSpacing(metrics.scaledSize(6))
+                .lineSpacing(metrics.isIPad ? metrics.youReadLineSpacing : metrics.scaledSize(6))
                 .tracking(0.1)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -908,9 +946,9 @@ struct YouFieldManualView: View {
         VStack(alignment: .leading, spacing: metrics.scaledSize(5)) {
             MonoLabel(text: "MISREAD", color: .inkAmber, size: 9)
             Text(text)
-                .font(.sora(metrics.bodySize, weight: .light))
+                .font(.sora(metrics.isIPad ? metrics.youReadBodySize : metrics.bodySize, weight: .light))
                 .foregroundColor(.textSecond)
-                .lineSpacing(metrics.scaledSize(6))
+                .lineSpacing(metrics.isIPad ? metrics.youReadLineSpacing : metrics.scaledSize(6))
                 .tracking(0.1)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(8)

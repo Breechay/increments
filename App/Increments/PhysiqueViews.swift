@@ -1,15 +1,20 @@
 import SwiftUI
+import SwiftData
 import Foundation
 
 // MARK: - PHYSIQUE TAB — Body Architecture Lab
-// Multi-agent synthesis: A+B+D+E hybrid
-// Selective hypertrophy + selective omission. Ratio management, not mass accumulation.
-// Target: Olympic pole vaulter torso / tennis glutes / rugby posterior chain / sprinter leanness
+// Athletic coherence, not muscular accumulation. Economy of mass.
+// Canonical agent brief: FORM-iOS/docs/BRICE_OS/BRICE_PHYSIQUE_AGENT_BRIEF.md
+// Coherence over development · structure reveal · legacy core routine preserved
 
 struct PhysiqueTabView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \CoreCompletionLog.date, order: .reverse) private var coreLogs: [CoreCompletionLog]
+    @Query(sort: \AMActivationLog.date, order: .reverse) private var activationLogs: [AMActivationLog]
+
     @State private var selectedSection = 0
     @State private var expandedDay: String? = nil
-    let sections = ["Target", "Cut", "Program", "Cardio", "Sculpt", "Signals", "Failures", "Adjust"]
+    let sections = ["Target", "Cut", "Core", "AM Stack", "Program", "Cardio", "Sculpt", "Signals", "Failures", "Adjust"]
 
     @Environment(\.appMetrics) private var metrics
 
@@ -18,16 +23,24 @@ struct PhysiqueTabView: View {
             AtmosphericBackground()
             VStack(spacing: metrics.cardSpacing) {
 
-                GlanceTabHeader(kicker: "PHYSIQUE LAB", title: "Body Architecture", kickerColor: .inkGreen) {
-                    VStack(alignment: .trailing, spacing: metrics.scaledSize(4)) {
-                        HStack(spacing: metrics.scaledSize(6)) {
-                            MonoLabel(text: "~12–13%", color: .textMuted, size: 9)
-                            Image(systemName: "arrow.down")
-                                .font(.system(size: metrics.scaledSize(8), weight: .light))
-                                .foregroundColor(.inkGreen)
-                            MonoLabel(text: "8–10%", color: .inkGreen, size: 9)
+                GlanceTabHeader(
+                    kicker: "PHYSIQUE LAB",
+                    title: metrics.isIPad ? "Body Architecture" : "Physique",
+                    kickerColor: .inkGreen
+                ) {
+                    if metrics.isIPad {
+                        VStack(alignment: .trailing, spacing: metrics.scaledSize(4)) {
+                            HStack(spacing: metrics.scaledSize(6)) {
+                                MonoLabel(text: "~12–13%", color: .textMuted, size: 9)
+                                Image(systemName: "arrow.right")
+                                    .font(.system(size: metrics.scaledSize(8), weight: .light))
+                                    .foregroundColor(.inkGreen)
+                                MonoLabel(text: "STRUCTURE", color: .inkGreen, size: 9)
+                            }
+                            MonoLabel(text: "REVEAL", color: .textMuted, size: 8)
                         }
-                        MonoLabel(text: "BODY FAT", color: .textMuted, size: 8)
+                    } else {
+                        MonoLabel(text: "12–13% → STRUCTURE", color: .inkGreen, size: 9)
                     }
                 }
 
@@ -78,11 +91,13 @@ struct PhysiqueTabView: View {
                                 switch selectedSection {
                                 case 0: targetSection
                                 case 1: cutSection
-                                case 2: programSection
-                                case 3: cardioSection
-                                case 4: sculptSection
-                                case 5: adherenceSection
-                                case 6: failuresSection
+                                case 2: coreSection
+                                case 3: amActivationSection
+                                case 4: programSection
+                                case 5: cardioSection
+                                case 6: sculptSection
+                                case 7: adherenceSection
+                                case 8: failuresSection
                                 default: adjustSection
                                 }
                             }
@@ -90,32 +105,42 @@ struct PhysiqueTabView: View {
                         }
                     }
                 } else {
-                    // iPhone: vertical jump list (reference sections, not pill chrome)
-                    ScrollView(showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: metrics.scaledSize(2)) {
-                            ForEach(sections.indices, id: \.self) { i in
-                                physiqueNavRow(i)
+                    // iPhone: single-line section chips — content gets the screen
+                    VStack(spacing: 0) {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: metrics.scaledSize(6)) {
+                                ForEach(sections.indices, id: \.self) { i in
+                                    physiqueSectionChip(i)
+                                }
                             }
+                            .padding(.horizontal, metrics.hPad)
+                            .padding(.vertical, metrics.scaledSize(6))
                         }
-                        .padding(.horizontal, metrics.hPad)
-                        .padding(.bottom, metrics.sectionGap)
-                    }
-                    .frame(maxHeight: metrics.scaledSize(280))
 
-                    ScrollView(showsIndicators: false) {
-                        Group {
-                            switch selectedSection {
-                            case 0: targetSection
-                            case 1: cutSection
-                            case 2: programSection
-                            case 3: cardioSection
-                            case 4: sculptSection
-                            case 5: adherenceSection
-                            case 6: failuresSection
-                            default: adjustSection
+                        Rectangle()
+                            .fill(Color.muted.opacity(0.2))
+                            .frame(height: 0.5)
+                            .padding(.horizontal, metrics.hPad)
+
+                        ScrollView(showsIndicators: false) {
+                            Group {
+                                switch selectedSection {
+                                case 0: targetSection
+                                case 1: cutSection
+                                case 2: coreSection
+                                case 3: amActivationSection
+                                case 4: programSection
+                                case 5: cardioSection
+                                case 6: sculptSection
+                                case 7: adherenceSection
+                                case 8: failuresSection
+                                default: adjustSection
+                                }
                             }
+                            .adaptiveContentWidth(metrics)
+                            .padding(.top, metrics.scaledSize(8))
+                            .padding(.bottom, 80)
                         }
-                        .adaptiveContentWidth(metrics)
                     }
                 }
             }
@@ -133,16 +158,24 @@ struct PhysiqueTabView: View {
                     HStack(spacing: metrics.cardSpacing) {
                         Rectangle().fill(Color.inkGreen).frame(width: 3, height: 36).clipShape(RoundedRectangle(cornerRadius: 1.5))
                         VStack(alignment: .leading, spacing: metrics.rowSpacing) {
-                            MonoLabel(text: "GOVERNING INSIGHT — MULTI-AGENT SYNTHESIS", color: .inkGreen, size: 10)
-                            Text("Ratio management, not mass acquisition.")
+                            MonoLabel(text: "GOVERNING DOCTRINE", color: .inkGreen, size: 10)
+                            Text("Athletic coherence, not muscular accumulation.")
                                 .font(metrics.fontSora(15, weight: .semibold)).foregroundColor(.textPrimary)
                         }
                     }
-                    Text("The raw material is already there. The task is: suppress what's wrong, accelerate what's right, let leanness unmask what already exists.")
+                    Text("Build a body organized by performance — broad shoulders, visible structure, lean waist, functional glutes. Nothing screams for attention.")
                         .font(metrics.fontSora(14, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
                     Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
-                    Text("Fastest visual ROI: drop from 12–13% → 9–10% while building lateral delt cap simultaneously. These two levers change perception faster than any other combination.")
+                    Text("Economy of mass. Enough muscle to improve the read — not maximum muscle. Tissue that doesn't improve the silhouette is not the goal.")
+                        .font(metrics.fontSora(14, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                    Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
+                    Text("Target read: athletic first, muscular second. Preferred reaction: \"That guy clearly does something\" — not \"That guy lifts.\"")
                         .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.inkGreen).lineSpacing(2.5)
+                    Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
+                    Text("Coherence over development. The question is not \"What muscle is lagging?\" It is \"What would make the whole thing read correctly?\"")
+                        .font(metrics.fontSora(14, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                    Text("Repeatable meals > recipe exploration. System gets more familiar, not more featured.")
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.textMuted).lineSpacing(2.5)
                 }
             }
             .padding(.horizontal, metrics.hPad)
@@ -152,7 +185,7 @@ struct PhysiqueTabView: View {
                 VStack(alignment: .leading, spacing: metrics.blockSpacing) {
                     MonoLabel(text: "VISUAL LEVERAGE RANKING", color: .textMuted, size: 10)
                     leverageRow(1, "Shoulder width / 3D cap", 0.98, "Fastest ratio shift. Lateral + rear delt.")
-                    leverageRow(2, "Leanness (8–10% BF)", 0.90, "Unlocks serratus, abs, sternal line.")
+                    leverageRow(2, "Leanness / structure reveal", 0.90, "Jawline, serratus, clavicle shelf, waist — revealed, not built.")
                     leverageRow(3, "Upper chest clavicular fullness", 0.78, "Athletic armor plate. Cut-independent.")
                     leverageRow(4, "Glute shape / glute med shelf", 0.72, "Tennis player glute. Injury-gated now.")
                     leverageRow(5, "Rear delt / back depth", 0.65, "3D silhouette from side. Amplifies shoulders.")
@@ -170,13 +203,14 @@ struct PhysiqueTabView: View {
                         Spacer()
                         MonoLabel(text: "UPPER BODY", color: .inkGreen, size: 9)
                     }
-                    morphRow("Reference", "Olympic pole vaulter — extreme torso leanness, 3D shoulder development, visible musculature without mass.")
+                    morphRow("Reference", "Pole vaulter · decathlete · tennis · sprinter — capability visible, coherence over development.")
                     morphRow("Shoulders", "Broad, 3D, capped lateral delts. Rear delt visible from the side. Anterior delt suppressed.")
-                    morphRow("Clavicle shelf", "Visible at 8–10% BF. Cut milestone, not training milestone.")
-                    morphRow("Upper chest", "Clavicular head presence. Incline-dominant, 30–45°. Not flat-press dominant.")
-                    morphRow("Serratus", "Finger-like striations below lat. Appears at sub-10% BF. BF-gated + protraction training.")
-                    morphRow("Abs", "Present. Covered. Cut reveals them — not more ab work.")
-                    morphRow("Waist", "Narrow. TVA resting tone is trainable without adding circumference.")
+                    morphRow("Face / jaw", "Revealed by leanness and conditions — not trained directly. Jawline is the result, not the target.")
+                    morphRow("Clavicle shelf", "Visible when structure reads lean. Cut milestone, not training milestone.")
+                    morphRow("Upper chest", "Clavicular head presence. Incline 15–30°, 35° ceiling — not flat-press dominant.")
+                    morphRow("Serratus", "Finger-like striations below lat. Sub-10% + protraction work. Revealed, not built.")
+                    morphRow("Midsection", "Legacy core routine + TVA vacuum. Flat read from trunk work and leanness — not more Forge ab volume.")
+                    morphRow("Waist", "Narrow. TVA resting tone trainable without adding circumference.")
                 }
             }
             .padding(.horizontal, metrics.hPad)
@@ -224,10 +258,24 @@ struct PhysiqueTabView: View {
         VStack(spacing: metrics.blockSpacing) {
 
             CardView {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    HStack(spacing: metrics.cardSpacing) {
+                        Rectangle().fill(Color.inkGreen).frame(width: 3, height: 28).clipShape(RoundedRectangle(cornerRadius: 1.5))
+                        MonoLabel(text: "CUT PROTOCOL — STRUCTURE REVEAL", color: .inkGreen, size: 10)
+                    }
+                    Text("Leanness is pursued to reveal structure (face, clavicles, serratus, waist), not to achieve a body-fat number.")
+                        .font(metrics.fontSora(14, weight: .semibold)).foregroundColor(.textPrimary).lineSpacing(3)
+                    Text("The jawline is not the target. The conditions are the target. The jawline is the result.")
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.inkGreen).lineSpacing(2.5)
+                }
+            }
+            .padding(.horizontal, metrics.hPad)
+
+            CardView {
                 VStack(alignment: .leading, spacing: metrics.blockSpacing) {
                     HStack(spacing: metrics.cardSpacing) {
                         Rectangle().fill(Color.inkGreen).frame(width: 3, height: 28).clipShape(RoundedRectangle(cornerRadius: 1.5))
-                        MonoLabel(text: "CUT PROTOCOL — ACTIVE", color: .inkGreen, size: 10)
+                        MonoLabel(text: "MACROS — ACTIVE", color: .inkGreen, size: 10)
                     }
                     HStack(spacing: metrics.cardSpacing) {
                         cutCol("CALORIES\nWORKDAYS", "2,200\n–2,350")
@@ -239,8 +287,51 @@ struct PhysiqueTabView: View {
                         cutCol("RATE\nTARGET", "0.5–0.75\nlb/week")
                         Spacer()
                     }
-                    Text("~2,650 kcal estimated maintenance. Do not cut below 1,900 kcal. Rate above 1 lb/week = muscle loss risk — add 200 kcal. Rate below 0.5 lb/week after 2 weeks of confirmed adherence = reduce by 150 kcal.")
+                    Text("~2,650 kcal estimated maintenance. Do not cut below 1,900 kcal. Target: lean enough that anatomy reads correctly — directional ~8–10%, visual outcome over caliper number. Rate above 1 lb/week = muscle loss risk — add 200 kcal. Stall 2+ weeks with adherence = reduce by 150 kcal.")
                         .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.textMuted).lineSpacing(2.5)
+                }
+            }
+            .padding(.horizontal, metrics.hPad)
+
+            CardView(style: .secondary) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    MonoLabel(text: "VISUAL QUALITY SIGNALS", color: .inkGreen, size: 10)
+                    Text("Prioritize weekly photos and visual read over body-fat estimates alone. If visual quality improves while scale stalls, the cut has not failed.")
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                        visualSignalRow("Jawline visibility")
+                        visualSignalRow("Reduced facial puffiness")
+                        visualSignalRow("Cheekbone definition")
+                        visualSignalRow("Serratus + clavicle shelf")
+                        visualSignalRow("Shoulder-to-waist ratio")
+                        visualSignalRow("Waist circumference trend")
+                    }
+                    Text("Facial changes often lag the waist. Compare photos, not daily mirror checks.")
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.textMuted).lineSpacing(2.5)
+                }
+            }
+            .padding(.horizontal, metrics.hPad)
+
+            CardView(style: .secondary) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    MonoLabel(text: "HYDRATION DOCTRINE", color: .textMuted, size: 10)
+                    Text("Hydration is a physique variable. Stable day to day. Avoid large sodium swings, reactive dehydration, and crash-cut water manipulation.")
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                    Text("Judge visual quality under normal hydrated conditions — look good living normally, not temporarily leaner through dehydration.")
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.inkGreen).lineSpacing(2.5)
+                }
+            }
+            .padding(.horizontal, metrics.hPad)
+
+            CardView(style: .secondary) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    MonoLabel(text: "FACE & MIDSECTION READ", color: .textMuted, size: 10)
+                    Text("Governed by: body-fat level · hydration consistency · food volume · sleep quality.")
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                    Text("Before cutting calories further, audit: late-night eating · large food-volume meals · hydration · sodium variability · sleep disruption · stress/cortisol.")
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.textMuted).lineSpacing(2.5)
+                    Text("No jawline hacks — mewing, jaw exercisers, facial workouts. ROI is tiny vs continuing the cut path.")
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.inkAmber).lineSpacing(2.5)
                 }
             }
             .padding(.horizontal, metrics.hPad)
@@ -259,7 +350,7 @@ struct PhysiqueTabView: View {
                     carbRow2("Fasted cardio 4:30 AM", "Zone 2 fat oxidation peaks when insulin is low. No pre-cardio carbs. Override: half banana if body battery <30 or HRV suppressed.", .good)
                     carbRow2("9:30 AM banana", "First carb of the day. Liver glycogen restoration after fasted cardio without spiking insulin aggressively.", .neutral)
                     carbRow2("1:30 PM — no starch", "Protein + fat only. Keeps insulin low through afternoon, extending fat-burn window.", .neutral)
-                    carbRow2("4:45 PM sourdough ←", "Pre-lift glycogen prime. Determines Forge session quality. After a 10-hour active shift, glycogen is partially depleted — this is not optional.", .critical)
+                    carbRow2("4:45 PM sourdough ←", "Pre-lift glycogen prime. Determines Forge session quality. After a long Hideout shift, glycogen is partially depleted — this is not optional.", .critical)
                     carbRow2("6:30 PM fruit post-lift", "Rapid glycogen replenishment. High-GI post-exercise is appropriate — muscle glucose uptake is elevated.", .good)
                 }
             }
@@ -268,7 +359,7 @@ struct PhysiqueTabView: View {
             CardView(style: .secondary) {
                 VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "PRE-LIFT CARB — MOST CRITICAL SINGLE ACTION", color: .inkAmber, size: 10)
-                    Text("Chronically lifting glycogen-depleted after an 8-hour active shift produces strength regression that looks like 'the cut is working.' You're losing muscle, not fat. The sourdough at 4:45 is what separates fat loss from fat-and-muscle loss.")
+                    Text("Chronically lifting glycogen-depleted after a long Hideout shift produces strength regression that looks like 'the cut is working.' You're losing muscle, not fat. The sourdough at 4:45 is what separates fat loss from fat-and-muscle loss.")
                         .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
                     Text("Pack it in the bag every morning. This is not a decision — it is a system.")
                         .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.inkAmber).lineSpacing(2)
@@ -281,7 +372,135 @@ struct PhysiqueTabView: View {
         .padding(.top, 8)
     }
 
-    // MARK: - 3. PROGRAM
+    // MARK: - 3. CORE (LEGACY)
+
+    var coreSection: some View {
+        VStack(spacing: metrics.blockSpacing) {
+
+            CardView {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    HStack(spacing: metrics.cardSpacing) {
+                        Rectangle().fill(Color.inkGreen).frame(width: 3, height: 28).clipShape(RoundedRectangle(cornerRadius: 1.5))
+                        MonoLabel(text: "CORE ROUTINE — LEGACY PRACTICE", color: .inkGreen, size: 10)
+                    }
+                    Text("Predates Forge. Decades at 4–6×/week — a personal staple like Zone 2, not a random finisher. Whole-system practice; may run independently of Forge.")
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                    Text("Long-term operator evidence — preserve unless injury, recovery, or a clearly superior reason says otherwise.")
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.inkGreen).lineSpacing(2.5)
+                }
+            }
+            .padding(.horizontal, metrics.hPad)
+
+            CardView(style: .secondary) {
+                VStack(alignment: .leading, spacing: metrics.blockSpacing) {
+                    MonoLabel(text: "ONE ROUND", color: .textMuted, size: 10)
+                    coreMoveRow("20", "Accordions")
+                    coreMoveRow("60", "Bicycle kicks (30/side)")
+                    coreMoveRow("20/side", "Cross-leg reverse crunches")
+                    coreMoveRow("20", "Open-leg sit-ups — legs open, push through")
+                    coreMoveRow("20", "Windshield wipers — knees at 90°")
+                    coreMoveRow("20", "V-ups")
+                    coreMoveRow("60", "Flutter kicks (30/side)")
+                    coreMoveRow("20", "Leg raises")
+                    Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
+                    HStack(spacing: metrics.sectionGap) {
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                            MonoLabel(text: "ROUNDS", color: .textMuted, size: 9)
+                            Text("2–3").font(.system(size: metrics.scaledSize(13), weight: .semibold, design: .monospaced)).foregroundColor(.textPrimary)
+                        }
+                        Rectangle().fill(Color.muted.opacity(0.2)).frame(width: 0.5, height: 30)
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                            MonoLabel(text: "PER ROUND", color: .textMuted, size: 9)
+                            Text("~5–6 min").font(.system(size: metrics.scaledSize(13), weight: .semibold, design: .monospaced)).foregroundColor(.textPrimary)
+                        }
+                        Rectangle().fill(Color.muted.opacity(0.2)).frame(width: 0.5, height: 30)
+                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                            MonoLabel(text: "FREQUENCY", color: .textMuted, size: 9)
+                            Text("4–6×/wk").font(.system(size: metrics.scaledSize(13), weight: .semibold, design: .monospaced)).foregroundColor(.inkGreen)
+                        }
+                        Spacer()
+                    }
+                    Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
+                    coreCompletionTracker
+                    Text("Independent of Forge — not programmed in Sculpt.")
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.textMuted).lineSpacing(2)
+                    Text("Placement: first in the 4:30 AM stack — before glute activation, before fasted cardio. Not at bedtime.")
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.inkGreen).lineSpacing(2)
+                }
+            }
+            .padding(.horizontal, metrics.hPad)
+
+            CardView(style: .secondary) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    MonoLabel(text: "OBSERVED EFFECTS — OPERATOR REPORTED", color: .inkGreen, size: 10)
+                    signalRow("Flatter midsection + abdominal definition", "Faster visual response than many traditional hypertrophy-focused ab programs.", .inkGreen)
+                    signalRow("Trunk awareness + spinal movement confidence", "Not just hypertrophy — movement reset.", .inkGreen)
+                    signalRow("Improved mood + creative energy", "Completion signal beyond physique. Daily reset, not ab day.", .inkGreen)
+                    signalRow("Athletic readiness", "Subjective readiness before Forge — preserved unless injury or schedule conflict.", .inkGreen)
+                }
+            }
+            .padding(.horizontal, metrics.hPad)
+
+            CardView(style: .secondary) {
+                HStack(alignment: .top, spacing: metrics.blockSpacing) {
+                    Rectangle().fill(Color.inkAmber.opacity(0.7)).frame(width: 2)
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                        MonoLabel(text: "BOUNDARY", color: .inkAmber, size: 10)
+                        Text("Lives in Physique — not in Forge Sculpt set prescriptions. Do not replace with \"better\" ab programming without explicit operator request.")
+                            .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted).lineSpacing(2.5)
+                    }
+                }
+            }
+            .padding(.horizontal, metrics.hPad)
+
+            Spacer(minLength: 100)
+        }
+        .padding(.top, 8)
+    }
+
+    // MARK: - 4. AM STACK
+
+    var amActivationSection: some View {
+        VStack(spacing: metrics.blockSpacing) {
+
+            CardView {
+                VStack(alignment: .leading, spacing: metrics.blockSpacing) {
+                    HStack(spacing: metrics.cardSpacing) {
+                        Rectangle().fill(Color.inkTeal).frame(width: 3, height: 28).clipShape(RoundedRectangle(cornerRadius: 1.5))
+                        MonoLabel(text: "AM GLUTE ACTIVATION", color: .inkTeal, size: 10)
+                    }
+                    Text("After core, before fasted cardio. Bridges → clamshells → walks → kicks → hinge. Prescribed — not optional.")
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+
+                    activationMoveRow("Glute bridge (BW)", "3×15")
+                    activationMoveRow("Clamshell (band)", "3×20/side")
+                    activationMoveRow("Lateral band walk", "2×15 steps/direction")
+                    activationMoveRow("Donkey kick (BW)", "2×15/side")
+                    activationMoveRow("Single-leg hip hinge (BW)", "2×10/side")
+
+                    Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
+                    activationCompletionTracker
+                }
+            }
+            .padding(.horizontal, metrics.hPad)
+
+            CardView(style: .secondary) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    MonoLabel(text: "STACK ORDER", color: .textMuted, size: 10)
+                    Text("Core (2–3 rnd) → Glute activation → Z2 cardio (40 min · 130–145 BPM)")
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                    Text("Total window ~50 min. If time-crunched: 2 core rounds + full activation.")
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.textMuted).lineSpacing(2)
+                }
+            }
+            .padding(.horizontal, metrics.hPad)
+
+            Spacer(minLength: 100)
+        }
+        .padding(.top, 8)
+    }
+
+    // MARK: - 5. PROGRAM
 
     var programSection: some View {
         VStack(spacing: metrics.blockSpacing) {
@@ -318,12 +537,12 @@ struct PhysiqueTabView: View {
             CardView {
                 VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "DAILY STRUCTURE", color: .inkGreen, size: 10)
-                    Text("2.5 exposures per day. Not 3 full sessions. The third slot fires only for a specific purpose — serratus, TVA, or targeted micro-pump. Most days: 2 exposures.")
+                    Text("Morning stack is one window — core, then glute activation, then cardio. PM Forge is the primary hypertrophy signal. Bedtime is tibia protocols only.")
                         .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
                     HStack(spacing: metrics.cardSpacing) {
-                        slotCol("AM 4:30–5:10", "Activation\nGlute primer\nLow fatigue")
+                        slotCol("AM 4:30–5:10", "Core\nGlute activation\nZ2 cardio")
                         slotCol("PM 5:30+", "Primary\nHypertrophy\nHigh signal")
-                        slotCol("Optional 3rd", "Sculpt micro\n10–15 min\nVery low cost")
+                        slotCol("Bedtime", "Ankle mobility\nTKE · tibia\nNo glute extras")
                         Spacer()
                     }
                 }
@@ -483,13 +702,14 @@ struct PhysiqueTabView: View {
             // AM Activation
             CardView(style: .secondary) {
                 VStack(alignment: .leading, spacing: metrics.cardSpacing) {
-                    MonoLabel(text: "AM SLOT — 4:30–5:10 AM", color: .textMuted, size: 10)
-                    Text("Not a workout. A stimulus tier. Fires glute med and preserves posterior chain patterns while PM lower loading is suppressed. Daily or 4–5× per week. 15–20 min max. If it doesn't feel easy, it's too much.")
+                    MonoLabel(text: "AM STACK — 4:30–5:10 AM", color: .textMuted, size: 10)
+                    Text("Order: legacy core (Core tab) → glute activation below → 40 min Zone 2 cardio. Prescribed — not optional. If it doesn't feel easy, it's too much.")
                         .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textMuted).lineSpacing(2.5)
                     Rectangle().fill(Color.muted.opacity(0.15)).frame(height: 0.5)
+                    MonoLabel(text: "GLUTE ACTIVATION — AFTER CORE", color: .inkGreen, size: 10)
                     Text("Glute bridge (BW) · Clamshell (band) · Lateral band walk · Donkey kick · Single-leg hip hinge")
                         .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.textSecond).lineSpacing(2.5)
-                    Text("Zero fatigue cost to PM session — that is the design constraint.")
+                    Text("15–20 min · zero fatigue cost to PM. Donkey kicks here — not at bedtime.")
                         .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.inkGreen).lineSpacing(2)
                 }
             }
@@ -844,13 +1064,15 @@ struct PhysiqueTabView: View {
             // Positive signals
             CardView(style: .secondary) {
                 VStack(alignment: .leading, spacing: metrics.cardSpacing) {
-                    MonoLabel(text: "GREEN SIGNALS — ARCHITECTURE ON TRACK", color: .inkGreen, size: 10)
+                    MonoLabel(text: "GREEN SIGNALS — STRUCTURE REVEALING", color: .inkGreen, size: 10)
+                    signalRow("Jawline sharper in weekly photos", "Facial structure revealing. Do not chase a caliper number if visual read is improving.", .inkGreen)
+                    signalRow("Less facial puffiness at same scale weight", "Hydration, food volume, or sleep correction landing — not necessarily more deficit.", .inkGreen)
                     signalRow("Shoulders look wider in photos than 4 weeks ago", "Lateral delt stimulus is landing. Continue.", .inkGreen)
                     signalRow("Rear of shoulder visible from side view", "Rear delt volume is cumulative. Don't stop.", .inkGreen)
                     signalRow("Waist looks narrower without weight change", "TVA resting tone improving. Vacuum work is registering.", .inkGreen)
                     signalRow("PM sessions feel strong despite the cut", "Pre-lift carb execution is correct. Glycogen is being protected.", .inkGreen)
-                    signalRow("Stairmaster legs feel like glutes, not quads", "Technique is correct. Posterior chain stimulus landing.", .inkGreen)
-                    signalRow("Upper chest feels worked after Tuesday", "Clavicular head is the primary target. If mid-chest is sore instead — incline too low.", .inkGreen)
+                    signalRow("Core routine consistent (4–6×/wk)", "Legacy staple working. Before AM glute activation.", .inkGreen)
+                    signalRow("AM glute activation consistent (4–5×/wk)", "Prescribed Phase 1 architecture — after core, before cardio.", .inkGreen)
                 }
             }
             .padding(.horizontal, metrics.hPad)
@@ -859,7 +1081,8 @@ struct PhysiqueTabView: View {
             CardView(style: .secondary) {
                 VStack(alignment: .leading, spacing: metrics.cardSpacing) {
                     MonoLabel(text: "AMBER SIGNALS — ARCHITECTURE DRIFT", color: .inkAmber, size: 10)
-                    signalRow("Front of shoulder sore after chest day", "Incline angle has crept above 45°. Press is becoming shoulder press.", .inkAmber)
+                    signalRow("Face looks soft at same body fat", "Audit sleep, sodium swings, food volume, stress before cutting calories.", .inkAmber)
+                    signalRow("Front of shoulder sore after chest day", "Incline angle has crept above 35°. Press is becoming shoulder press.", .inkAmber)
                     signalRow("Shoulder sessions feel like chest sessions", "Exercise order is wrong. Lateral isolation must come before pressing.", .inkAmber)
                     signalRow("Stairmaster legs feel like quad work", "Technique breakdown. Long stride and heel drive — not rapid tiny steps.", .inkAmber)
                     signalRow("Muscles looking flat despite no weight change", "Glycogen depletion. Pre-lift carb is being missed or cut sessions are too aggressive.", .inkAmber)
@@ -966,11 +1189,14 @@ struct PhysiqueTabView: View {
             }
             .padding(.horizontal, metrics.hPad)
 
-            adjustCard2("ABS NOT IMPROVING", [
+            adjustCard2("STRUCTURE NOT REVEALING", [
+                ("Is visual quality improving in weekly photos?", "If yes while scale stalls — cut is working. Do not chase a BF number.", false),
+                ("Is core routine consistent (4–6×/wk · 2–3 rounds)?", "No → restore legacy staple before changing macros.", false),
                 ("Is 7-day cardio adherence above 85%?", "No → execution is the variable. Close the adherence gap before changing anything.", false),
                 ("Is pre-lift carb being executed 6/7 days?", "No → glycogen depletion masking muscle and slowing metabolism. Fix this first.", false),
                 ("Is sleep averaging 6+ hours over 7 days?", "No → hormonal suppression is the primary fat-loss inhibitor. Sleep fix outranks everything.", false),
-                ("All three confirmed, stall continues 2+ weeks?", "Reduce by 150 kcal. Remove from carbs outside training windows. Protect pre and post-lift carbs.", true),
+                ("Audit hydration, sodium, food volume before cutting calories?", "Face and midsection read governed by conditions — not deficit alone.", false),
+                ("All confirmed, stall continues 2+ weeks?", "Reduce by 150 kcal. Remove from carbs outside training windows. Protect pre and post-lift carbs.", true),
             ])
 
             adjustCard2("SHOULDER WIDTH NOT IMPROVING", [
@@ -1045,6 +1271,28 @@ struct PhysiqueTabView: View {
                 .frame(width: 100, alignment: .leading)
             Rectangle().fill(Color.muted.opacity(0.25)).frame(width: 0.5).padding(.top, 3)
             Text(value).font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(2.5).fixedSize(horizontal: false, vertical: true)
+            Spacer()
+        }
+    }
+
+    func visualSignalRow(_ label: String) -> some View {
+        HStack(alignment: .top, spacing: metrics.rowSpacing) {
+            Text("·").font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.inkGreen)
+            Text(label).font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(2)
+        }
+    }
+
+    func coreMoveRow(_ reps: String, _ movement: String) -> some View {
+        HStack(alignment: .top, spacing: metrics.cardSpacing) {
+            Text(reps)
+                .font(.system(size: metrics.scaledSize(11), weight: .semibold, design: .monospaced))
+                .foregroundColor(.inkGreen)
+                .frame(width: 56, alignment: .leading)
+            Text(movement)
+                .font(metrics.fontSora(13, weight: .light))
+                .foregroundColor(.textSecond)
+                .lineSpacing(2)
+                .fixedSize(horizontal: false, vertical: true)
             Spacer()
         }
     }
@@ -1264,28 +1512,192 @@ struct PhysiqueTabView: View {
         adjustCard2(title, questions, [])
     }
 
-    private func physiqueNavRow(_ i: Int) -> some View {
+    private func physiqueSectionChip(_ i: Int) -> some View {
         Button(action: { withAnimation(.easeOut(duration: 0.18)) { selectedSection = i } }) {
-            HStack(spacing: metrics.scaledSize(12)) {
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(selectedSection == i ? Color.inkGreen : Color.inkGreen.opacity(0.15))
-                    .frame(width: metrics.scaledSize(3), height: metrics.scaledSize(28))
-                Text(sections[i].uppercased())
-                    .font(metrics.fontMono(11))
-                    .foregroundColor(selectedSection == i ? .textPrimary : .textMuted)
-                    .tracking(0.8)
-                Spacer()
-                if selectedSection == i {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: metrics.scaledSize(10), weight: .medium))
-                        .foregroundColor(.inkGreen.opacity(0.6))
-                }
-            }
-            .padding(.vertical, metrics.scaledSize(10))
-            .padding(.horizontal, metrics.scaledSize(4))
-            .background(selectedSection == i ? Color.inkGreen.opacity(0.07) : Color.clear)
-            .clipShape(RoundedRectangle(cornerRadius: metrics.cardRadius * 0.6))
+            Text(sections[i].uppercased())
+                .font(metrics.fontMono(9))
+                .foregroundColor(selectedSection == i ? .bgBase : .textMuted)
+                .tracking(0.5)
+                .lineLimit(1)
+                .padding(.horizontal, metrics.scaledSize(10))
+                .padding(.vertical, metrics.scaledSize(7))
+                .background(selectedSection == i ? Color.inkGreen : Color.surface2)
+                .clipShape(RoundedRectangle(cornerRadius: metrics.cardRadius * 0.45))
         }
         .buttonStyle(.plain)
+    }
+
+    // MARK: - Practice tracking (Core + AM activation)
+
+    private var calendar: Calendar { Calendar.current }
+
+    private func dayStart(_ date: Date = Date()) -> Date {
+        calendar.startOfDay(for: date)
+    }
+
+    private func trailingSevenDays() -> [Date] {
+        let today = dayStart()
+        return (0..<7).compactMap { offset in
+            calendar.date(byAdding: .day, value: offset - 6, to: today)
+        }
+    }
+
+    private func coreLog(on day: Date) -> CoreCompletionLog? {
+        let target = dayStart(day)
+        return coreLogs.first { dayStart($0.date) == target }
+    }
+
+    private func activationLog(on day: Date) -> AMActivationLog? {
+        let target = dayStart(day)
+        return activationLogs.first { dayStart($0.date) == target }
+    }
+
+    private var todayCoreRounds: Int {
+        coreLog(on: Date())?.rounds ?? 0
+    }
+
+    private var todayActivationComplete: Bool {
+        activationLog(on: Date())?.complete ?? false
+    }
+
+    private var coreDotGrid: some View {
+        HStack(spacing: metrics.scaledSize(8)) {
+            ForEach(trailingSevenDays(), id: \.self) { day in
+                Circle()
+                    .fill((coreLog(on: day)?.rounds ?? 0) >= 1 ? Color.inkGreen : Color.surface2)
+                    .frame(width: metrics.scaledSize(8), height: metrics.scaledSize(8))
+            }
+            Spacer()
+        }
+    }
+
+    private var activationDotGrid: some View {
+        HStack(spacing: metrics.scaledSize(8)) {
+            ForEach(trailingSevenDays(), id: \.self) { day in
+                Circle()
+                    .fill(activationLog(on: day)?.complete == true ? Color.inkTeal : Color.surface2)
+                    .frame(width: metrics.scaledSize(8), height: metrics.scaledSize(8))
+            }
+            Spacer()
+        }
+    }
+
+    private var coreCompletionTracker: some View {
+        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+            MonoLabel(text: "LAST 7 DAYS", color: .textMuted, size: 9)
+            coreDotGrid
+
+            if todayCoreRounds >= 1 {
+                HStack {
+                    Text("Done · \(todayCoreRounds) rounds")
+                        .font(.system(size: metrics.scaledSize(11), weight: .semibold, design: .monospaced))
+                        .foregroundColor(.inkGreen)
+                    Spacer()
+                    Text("Change")
+                        .font(.system(size: metrics.scaledSize(10), design: .monospaced))
+                        .foregroundColor(.textMuted)
+                }
+                coreRoundPicker(selected: todayCoreRounds)
+            } else {
+                Text("Core done today?")
+                    .font(metrics.fontSora(13, weight: .medium))
+                    .foregroundColor(.textPrimary)
+                coreRoundPicker(selected: 0)
+            }
+        }
+    }
+
+    private func coreRoundPicker(selected: Int) -> some View {
+        HStack(spacing: metrics.scaledSize(8)) {
+            ForEach(1...3, id: \.self) { round in
+                Button(action: { saveCoreRounds(round) }) {
+                    Text("\(round)")
+                        .font(.system(size: metrics.scaledSize(12), weight: .medium, design: .monospaced))
+                        .foregroundColor(selected == round ? .bgBase : .textMuted)
+                        .frame(width: metrics.scaledSize(32), height: metrics.scaledSize(32))
+                        .background(selected == round ? Color.inkGreen : Color.surface2)
+                        .clipShape(RoundedRectangle(cornerRadius: 7))
+                }
+                .buttonStyle(.plain)
+            }
+            if selected >= 1 {
+                Button(action: { saveCoreRounds(0) }) {
+                    Text("Clear")
+                        .font(.system(size: metrics.scaledSize(10), design: .monospaced))
+                        .foregroundColor(.textMuted)
+                }
+                .buttonStyle(.plain)
+            }
+            Spacer()
+        }
+    }
+
+    private func saveCoreRounds(_ rounds: Int) {
+        let today = dayStart()
+        if let existing = coreLog(on: today) {
+            if rounds <= 0 {
+                modelContext.delete(existing)
+            } else {
+                existing.rounds = rounds
+                existing.createdAt = Date()
+            }
+        } else if rounds > 0 {
+            let log = CoreCompletionLog()
+            log.date = today
+            log.rounds = rounds
+            modelContext.insert(log)
+        }
+        try? modelContext.save()
+    }
+
+    private var activationCompletionTracker: some View {
+        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+            MonoLabel(text: "LAST 7 DAYS", color: .textMuted, size: 9)
+            activationDotGrid
+
+            Button(action: { saveActivationComplete(!todayActivationComplete) }) {
+                HStack {
+                    Image(systemName: todayActivationComplete ? "checkmark.square.fill" : "square")
+                        .font(.system(size: metrics.scaledSize(14), weight: .light))
+                        .foregroundColor(todayActivationComplete ? .inkTeal : .textMuted)
+                    Text(todayActivationComplete ? "Activation complete" : "Activation done?")
+                        .font(metrics.fontSora(13, weight: .medium))
+                        .foregroundColor(todayActivationComplete ? .inkTeal : .textPrimary)
+                    Spacer()
+                }
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func saveActivationComplete(_ complete: Bool) {
+        let today = dayStart()
+        if let existing = activationLog(on: today) {
+            if complete {
+                existing.complete = true
+                existing.createdAt = Date()
+            } else {
+                modelContext.delete(existing)
+            }
+        } else if complete {
+            let log = AMActivationLog()
+            log.date = today
+            log.complete = true
+            modelContext.insert(log)
+        }
+        try? modelContext.save()
+    }
+
+    private func activationMoveRow(_ movement: String, _ dose: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: metrics.cardSpacing) {
+            Text(movement)
+                .font(metrics.fontSora(13, weight: .light))
+                .foregroundColor(.textSecond)
+                .lineSpacing(2)
+            Spacer(minLength: 8)
+            Text(dose)
+                .font(.system(size: metrics.scaledSize(11), weight: .semibold, design: .monospaced))
+                .foregroundColor(.inkTeal)
+        }
     }
 }

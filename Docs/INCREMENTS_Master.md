@@ -655,16 +655,16 @@ Computed from real SwiftData: avg first action hour · morning execution rate ·
 
 30-day solo experiment. Started May 13, 2026. $3.5k monthly gap. Loan decision June 13. Bands: survival <$520 · stability $590 · comfort $650 · growth $750+.
 
-**Schedule (current):** Wed–Fri 7AM–5PM, Sat–Sun 7AM–3PM. Mon–Tue base days.
+**Schedule (current):** Wed–Fri 7AM–5PM, Sat–Sun 10AM–3PM. Mon–Tue base days.
 
 **Physical context:** Lives on 26th floor of condo building. Hideout is an elevated outdoor terrace café on the second floor of the same building. Commute is internal — elevator down, short walk. Natural light and open air environment at the hideout. Factor into environment/output correlation.
 
 **Operator schedule:**
-- Wake: 4:00 AM
-- Cardio (bike/elliptical): 4:30–5:10 AM
+- Wake: 4:30 AM
+- AM stack (core → activation → fasted Z2 cardio): ~4:40–5:50 AM
 - Leave for hideout: ~5:50–6:00 AM
-- Hideout open: 7:00 AM
-- Hideout close: 5:00 PM (weekdays) / 3:00 PM (weekends)
+- Hideout open: 7:00 AM (Wed–Fri) / 10:00 AM (Sat–Sun)
+- Hideout close: 5:00 PM (Wed–Fri) / 3:00 PM (Sat–Sun)
 - Strength training (Forge Breechay): 5:30 PM
 - Post-workout meal: ~7:00 PM
 - Sleep target: 9:15–9:30 PM (6h30 window)

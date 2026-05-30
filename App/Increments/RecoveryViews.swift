@@ -85,6 +85,7 @@ private let recoveryGates: [RecoveryGate] = {
 
 struct RecoveryTabView: View {
     @Environment(\.appMetrics) private var metrics
+    @Environment(\.modelContext) private var modelContext
     @State private var selectedSection = 0
     @State private var showLogSheet = false
     @Query(sort: \TibiaRecoveryLog.weekEndingDate, order: .reverse) private var logs: [TibiaRecoveryLog]
@@ -96,13 +97,21 @@ struct RecoveryTabView: View {
             AtmosphericBackground()
             VStack(spacing: metrics.cardSpacing) {
 
-                GlanceTabHeader(kicker: "PHYSICAL INFRASTRUCTURE", title: "Recovery Protocol", kickerColor: .inkTeal) {
-                    VStack(alignment: .trailing, spacing: metrics.scaledSize(4)) {
-                        HStack(spacing: metrics.scaledSize(6)) {
-                            MonoLabel(text: "WK", color: .textMuted, size: 9)
-                            MonoLabel(text: "\(currentWeekPostOp)", color: .inkTeal, size: 13)
+                GlanceTabHeader(
+                    kicker: "PHYSICAL INFRASTRUCTURE",
+                    title: metrics.isIPad ? "Recovery Protocol" : "Recovery",
+                    kickerColor: .inkTeal
+                ) {
+                    if metrics.isIPad {
+                        VStack(alignment: .trailing, spacing: metrics.scaledSize(4)) {
+                            HStack(spacing: metrics.scaledSize(6)) {
+                                MonoLabel(text: "WK", color: .textMuted, size: 9)
+                                MonoLabel(text: "\(currentWeekPostOp)", color: .inkTeal, size: 13)
+                            }
+                            MonoLabel(text: currentStage.rawValue.uppercased(), color: .textMuted, size: 8)
                         }
-                        MonoLabel(text: currentStage.rawValue.uppercased(), color: .textMuted, size: 8)
+                    } else {
+                        MonoLabel(text: "WK \(currentWeekPostOp) · \(currentStage.rawValue.uppercased())", color: .inkTeal, size: 9)
                     }
                 }
 
@@ -175,32 +184,40 @@ struct RecoveryTabView: View {
                         }
                     }
                 } else {
-                    // iPhone: vertical jump list
-                    ScrollView(showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: metrics.scaledSize(2)) {
-                            ForEach(sections.indices, id: \.self) { i in
-                                navRailButton(i)
+                    // iPhone: single-line section chips — content gets the screen
+                    VStack(spacing: 0) {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: metrics.scaledSize(6)) {
+                                ForEach(sections.indices, id: \.self) { i in
+                                    recoverySectionChip(i)
+                                }
                             }
+                            .padding(.horizontal, metrics.hPad)
+                            .padding(.vertical, metrics.scaledSize(6))
                         }
-                        .padding(.horizontal, metrics.hPad)
-                        .padding(.bottom, metrics.sectionGap)
-                    }
-                    .frame(maxHeight: metrics.scaledSize(280))
 
-                    ScrollView(showsIndicators: false) {
-                        Group {
-                            switch selectedSection {
-                            case 0: phaseSection
-                            case 1: dailySection
-                            case 2: cardioSection
-                            case 3: signalsSection
-                            case 4: gatesSection
-                            case 5: returnSection
-                            case 6: logSection
-                            default: phaseSection
+                        Rectangle()
+                            .fill(Color.muted.opacity(0.2))
+                            .frame(height: 0.5)
+                            .padding(.horizontal, metrics.hPad)
+
+                        ScrollView(showsIndicators: false) {
+                            Group {
+                                switch selectedSection {
+                                case 0: phaseSection
+                                case 1: dailySection
+                                case 2: cardioSection
+                                case 3: signalsSection
+                                case 4: gatesSection
+                                case 5: returnSection
+                                case 6: logSection
+                                default: phaseSection
+                                }
                             }
+                            .adaptiveContentWidth(metrics)
+                            .padding(.top, metrics.scaledSize(8))
+                            .padding(.bottom, 80)
                         }
-                        .adaptiveContentWidth(metrics)
                     }
                 }
             }
@@ -232,6 +249,21 @@ struct RecoveryTabView: View {
             .padding(.horizontal, metrics.hPad)
             .background(selectedSection == i ? Color.inkTeal.opacity(0.07) : Color.clear)
             .clipShape(RoundedRectangle(cornerRadius: metrics.cardRadius * 0.6))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func recoverySectionChip(_ i: Int) -> some View {
+        Button(action: { withAnimation(.easeOut(duration: 0.18)) { selectedSection = i } }) {
+            Text(sections[i].uppercased())
+                .font(metrics.fontMono(9))
+                .foregroundColor(selectedSection == i ? .bgBase : .textMuted)
+                .tracking(0.5)
+                .lineLimit(1)
+                .padding(.horizontal, metrics.scaledSize(10))
+                .padding(.vertical, metrics.scaledSize(7))
+                .background(selectedSection == i ? Color.inkTeal : Color.surface2)
+                .clipShape(RoundedRectangle(cornerRadius: metrics.cardRadius * 0.45))
         }
         .buttonStyle(.plain)
     }
@@ -880,6 +912,8 @@ extension RecoveryTabView {
     var gatesSection: some View {
         VStack(spacing: metrics.blockSpacing) {
 
+            phase2ClinicalGateCard
+
             CardView(style: .ambient) {
                 VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                     MonoLabel(text: "PHASE GATE TIMELINE", color: .textMuted, size: 9)
@@ -938,6 +972,148 @@ extension RecoveryTabView {
             .padding(.horizontal, metrics.hPad)
             .padding(.bottom, 80)
         }
+    }
+
+    private var latestRecoveryLog: TibiaRecoveryLog? { logs.first }
+
+    private enum Phase2GateBadge {
+        case hardStop, met, partial, notCleared
+
+        var label: String {
+            switch self {
+            case .hardStop: return "HARD STOP"
+            case .met: return "GATE MET"
+            case .partial: return "PARTIAL"
+            case .notCleared: return "NOT CLEARED"
+            }
+        }
+
+        var color: Color {
+            switch self {
+            case .hardStop: return .inkRed
+            case .met: return .inkGreen
+            case .partial: return .inkAmber
+            case .notCleared: return .textMuted
+            }
+        }
+    }
+
+    private var phase2GateBadge: Phase2GateBadge {
+        guard let log = latestRecoveryLog else { return .notCleared }
+        if log.hardStopSignalThisWeek { return .hardStop }
+        if log.unilateralLoadingPainFree && log.singleLegRDLStable { return .met }
+        if log.unilateralLoadingPainFree || log.singleLegRDLStable { return .partial }
+        return .notCleared
+    }
+
+    private var phase2ClinicalGateCard: some View {
+        CardView {
+            VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                HStack {
+                    MonoLabel(text: "PHASE 2 CLINICAL GATE", color: .inkTeal, size: 10)
+                    Spacer()
+                    MonoLabel(text: phase2GateBadge.label, color: phase2GateBadge.color, size: 9)
+                }
+
+                if latestRecoveryLog == nil {
+                    Button(action: { showLogSheet = true }) {
+                        Text("Log this week first to record gate status.")
+                            .font(.system(size: metrics.scaledSize(11), design: .monospaced))
+                            .foregroundColor(.inkAmber)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    gateCriterionRow(
+                        label: "Pain-free unilateral loading confirmed",
+                        isOn: latestRecoveryLog?.unilateralLoadingPainFree == true,
+                        enabled: latestRecoveryLog?.hardStopSignalThisWeek != true
+                    ) {
+                        toggleUnilateralGate()
+                    }
+                    gateCriterionRow(
+                        label: "Stable single-leg RDL tolerance confirmed",
+                        isOn: latestRecoveryLog?.singleLegRDLStable == true,
+                        enabled: latestRecoveryLog?.hardStopSignalThisWeek != true
+                    ) {
+                        toggleSingleLegRDLGate()
+                    }
+                }
+
+                gateHardStopRow
+
+                Text("\"Gate met\" requires BOTH criteria confirmed AND no hard stop. Not elapsed time. Not subjective feel. Clinical only.")
+                    .font(.system(size: metrics.scaledSize(11), design: .monospaced))
+                    .foregroundColor(.textMuted)
+                    .lineSpacing(2)
+            }
+        }
+        .padding(.horizontal, metrics.hPad)
+    }
+
+    private func gateCriterionRow(label: String, isOn: Bool, enabled: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(alignment: .top, spacing: metrics.cardSpacing) {
+                Image(systemName: isOn ? "checkmark.square.fill" : "square")
+                    .font(.system(size: metrics.scaledSize(14), weight: .light))
+                    .foregroundColor(isOn ? .inkGreen : .textMuted)
+                Text(label)
+                    .font(metrics.fontSora(13, weight: .light))
+                    .foregroundColor(isOn ? .inkGreen : .textSecond)
+                    .multilineTextAlignment(.leading)
+                Spacer()
+            }
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled || latestRecoveryLog == nil)
+        .opacity(enabled ? 1 : 0.45)
+    }
+
+    private var gateHardStopRow: some View {
+        let active = latestRecoveryLog?.hardStopSignalThisWeek == true
+        return Button(action: toggleHardStopSignal) {
+            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                HStack(alignment: .top, spacing: metrics.cardSpacing) {
+                    Image(systemName: active ? "checkmark.square.fill" : "square")
+                        .font(.system(size: metrics.scaledSize(14), weight: .light))
+                        .foregroundColor(active ? .inkRed : .textMuted)
+                    Text("Hard-stop signal this week")
+                        .font(metrics.fontSora(13, weight: .medium))
+                        .foregroundColor(active ? .inkRed : .textSecond)
+                    Spacer()
+                }
+                if active {
+                    Text("Active hard stop — do not probe. Monitor: warmth · acute WB pain · numbness · mid-shaft pain.")
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced))
+                        .foregroundColor(.inkRed)
+                        .lineSpacing(2)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .disabled(latestRecoveryLog == nil)
+    }
+
+    private func toggleUnilateralGate() {
+        guard let log = latestRecoveryLog else { return }
+        log.unilateralLoadingPainFree.toggle()
+        try? modelContext.save()
+    }
+
+    private func toggleSingleLegRDLGate() {
+        guard let log = latestRecoveryLog else { return }
+        log.singleLegRDLStable.toggle()
+        try? modelContext.save()
+    }
+
+    private func toggleHardStopSignal() {
+        guard let log = latestRecoveryLog else { return }
+        log.hardStopSignalThisWeek.toggle()
+        if log.hardStopSignalThisWeek {
+            log.unilateralLoadingPainFree = false
+            log.singleLegRDLStable = false
+        }
+        try? modelContext.save()
     }
 
     @ViewBuilder

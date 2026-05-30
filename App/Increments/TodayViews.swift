@@ -487,7 +487,7 @@ struct HomeView: View {
                                                                 .foregroundColor(.textMuted)
                                                         }
                                                     } else {
-                                                        Text("4:00 AM wake · 6H 45MIN window")
+                                                        Text("4:30 AM wake · 6H 45MIN window")
                                                             .font(metrics.fontSora(13, weight: .light))
                                                             .foregroundColor(.textSecond)
                                                     }
@@ -763,7 +763,7 @@ struct HomeView: View {
                                                         .foregroundColor(.textMuted)
                                                 }
                                             } else {
-                                                Text("4:00 AM wake · 6H 45MIN window")
+                                                Text("4:30 AM wake · 6H 45MIN window")
                                                     .font(metrics.fontSora(14, weight: .light))
                                                     .foregroundColor(.textSecond)
                                             }
@@ -991,7 +991,6 @@ struct TodayView: View {
             if title.contains("shutdown") || title.contains("preservation") { return 0 }
             if title.contains("morning") || title.contains("whole human reset") { return 99 }
         }
-        if (title.contains("operator") || title.contains("solo")) && DayType.today == .hideout && isMorning { return 1 }
         return 50
     }
 
@@ -3790,10 +3789,10 @@ struct ProgressionCurriculum {
             layer: 2,
             system: .cognition,
             title: "5-min pre-work visualization",
-            why: "Elite performers in any domain use mental rehearsal. 5 min before the deep work block imagining the specific output — not the process, the result — measurably improves focus quality and session length.",
-            how: "After priorities review, before starting the timer. Eyes closed. Specific: what does the completed thing look like? 5 min only. Then start.",
-            cue: "After review priorities — before deep work timer",
-            prerequisiteKeywords: ["Deep work", "Review priorities"],
+            why: "Elite performers in any domain use mental rehearsal. 5 min before focused work imagining the specific output — not the process, the result — measurably improves focus quality.",
+            how: "After priorities review, before the next block. Eyes closed. Specific: what does the completed thing look like? 5 min only. Then start.",
+            cue: "After review priorities — before next block",
+            prerequisiteKeywords: ["Review priorities"],
             unlockAfterDays: 21,
             weeklyOrDaily: "daily"
         ),
@@ -3802,10 +3801,10 @@ struct ProgressionCurriculum {
             layer: 2,
             system: .cognition,
             title: "Weekly deliberate practice — one craft skill",
-            why: "Deep work produces output. Deliberate practice improves the quality of what you can produce. They're different. One hour per week on a specific skill gap — not working, studying the craft.",
+            why: "Focused output and deliberate practice are different. One hour per week on a specific skill gap — not working, studying the craft.",
             how: "Pick one skill in your actual domain of work. One hour, no output goal — just the practice. Log what you worked on in the journal.",
-            cue: "Saturday morning — after the slow open, before deep work",
-            prerequisiteKeywords: ["Deep work", "Journal"],
+            cue: "Saturday morning — quiet window after open",
+            prerequisiteKeywords: ["Review priorities", "Journal"],
             unlockAfterDays: 28,
             weeklyOrDaily: "weekly"
         ),
@@ -3840,10 +3839,10 @@ struct ProgressionCurriculum {
             layer: 3,
             system: .health,
             title: "Sleep score → next-day stack calibration",
-            why: "Garmin sleep score + HRV together predict next-day cognitive performance with reasonable accuracy. Below 70 sleep score = don't schedule deep work as the first block. Let the data move the schedule.",
-            how: "Check Garmin sleep score at the same moment as HRV. Below 70: move deep work to afternoon, put operations and maintenance in the morning slot. The app already tracks which days you complete more — this closes the loop.",
+            why: "Garmin sleep score + HRV together predict next-day cognitive performance with reasonable accuracy. Below 70 sleep score = compress the morning stack. Let the data move the schedule.",
+            how: "Check Garmin sleep score at the same moment as HRV. Below 70: keep anchors only, defer amplifiers. The app already tracks which days you complete more — this closes the loop.",
             cue: "Morning check — Garmin app, same moment as HRV",
-            prerequisiteKeywords: ["HRV morning", "Sleep by midnight", "Deep work"],
+            prerequisiteKeywords: ["HRV morning", "Sleep by midnight"],
             unlockAfterDays: 42,
             weeklyOrDaily: "daily"
         ),

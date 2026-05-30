@@ -58,8 +58,11 @@ This is **canonical infrastructure** for agents and future builds — not market
 | **[INCREMENTS_Master.md](INCREMENTS_Master.md)** | Engineering brief — models, intelligence layers, code map, changelog |
 | **[INCREMENTS_DISTRIBUTION_TAB_SPEC.md](INCREMENTS_DISTRIBUTION_TAB_SPEC.md)** | Signal tab — plant / log / adjust |
 | **[YOU_TAB_AUTHORED_CONTENT_AUDIT.md](YOU_TAB_AUTHORED_CONTENT_AUDIT.md)** | Authored You-tab export for review |
+| **`Documents/HideoutApp/HIDEOUT_APP_STRATEGY.md`** | Hideout App product doctrine — customer capture, admin, relationship compression |
+| **`Documents/HideoutApp/HIDEOUT_EXECUTION_CHECKLIST.md`** | Hideout App build + operator sequence |
 | **`FORM-iOS/docs/BRICE_OS/README.md`** | BRICE-OS read order (kernel → active reality → distribution) |
 | **`FORM-iOS/docs/BRICE_OS/BRICE_PHYSIQUE_AGENT_BRIEF.md`** | **Physique / Forge Sculpt / cut / nutrition agent handoff** (paste for Claude/Cursor) |
+| **`FORM-iOS/docs/FORGE_SCULPT_PHASE_TRANSITION_AGENT_PROMPT.md`** | **Week 4+ / Phase 2 transition** — multi-agent prompt after Phase 1 closes |
 | **`FORM-iOS/docs/BRICE_OS/DISTRIBUTION_OPERATING_SYSTEM.md`** | Cross-venture distribution OS (Hideout · FORM · Forge) |
 
 ---

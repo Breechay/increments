@@ -65,24 +65,11 @@ struct HideoutTabView: View {
     @AppStorage("growth_video_filmed")       private var growthVideoFilmed       = false
     @AppStorage("growth_video_posted")       private var growthVideoPosted       = false
 
-    // Experiment Ledger — expand/collapse state per card (collapsed by default — clean, not busy)
-    @AppStorage("exp_7am_expanded")        private var exp7amExpanded        = false
-    @AppStorage("exp_sunday_expanded")     private var expSundayExpanded      = false
-    @AppStorage("exp_watermarc_expanded")  private var expWatermarcExpanded   = false
-    @AppStorage("exp_coldbrew_expanded")   private var expColdBrewExpanded    = false
-    @AppStorage("exp_concierge_expanded")  private var expConciergeExpanded   = false
-
-    // Experiment Ledger — status per experiment (continue/kill/modify + notes)
-    @AppStorage("exp_7am_status")          private var exp7amStatus          = "active"
-    @AppStorage("exp_7am_note")            private var exp7amNote            = ""
-    @AppStorage("exp_sunday_status")       private var expSundayStatus       = "active"
-    @AppStorage("exp_sunday_note")         private var expSundayNote         = ""
-    @AppStorage("exp_watermarc_status")    private var expWatermarcStatus    = "active"
-    @AppStorage("exp_watermarc_note")      private var expWatermarcNote      = ""
-    @AppStorage("exp_coldbrew_status")     private var expColdBrewStatus     = "pending"
-    @AppStorage("exp_coldbrew_note")       private var expColdBrewNote       = ""
-    @AppStorage("exp_concierge_status")    private var expConciergeStatus    = "active"
-    @AppStorage("exp_concierge_note")      private var expConciergeNote      = ""
+    // Hideout App — operator milestones (sync with Documents/HideoutApp/HIDEOUT_EXECUTION_CHECKLIST.md)
+    @AppStorage("hideout_app_photos_shot")    private var hideoutAppPhotosShot    = false
+    @AppStorage("hideout_app_on_device")       private var hideoutAppOnDevice      = false
+    @AppStorage("hideout_app_real_user_test") private var hideoutAppRealUserTest  = false
+    @AppStorage("hideout_app_nfc_qr")         private var hideoutAppNFCQR         = false
 
     // Weekly Revenue Composition — persisted notes per source (current week)
     @AppStorage("wrc_week_label")          private var wrcWeekLabel          = ""
@@ -122,7 +109,19 @@ struct HideoutTabView: View {
         max(0, Calendar.current.dateComponents([.day], from: Date(), to: Self.loanDecision).day ?? 0)
     }
 
-    var recentShifts: [HideoutShiftLog] { Array(shifts.prefix(30)) }
+    /// One entry per calendar day — prevents duplicate rows when seed + manual log overlap.
+    var recentShifts: [HideoutShiftLog] {
+        let cal = Calendar.current
+        var seenDays = Set<Date>()
+        var unique: [HideoutShiftLog] = []
+        for shift in shifts {
+            let day = cal.startOfDay(for: shift.logDate)
+            guard seenDays.insert(day).inserted else { continue }
+            unique.append(shift)
+            if unique.count >= 30 { break }
+        }
+        return unique
+    }
 
     var thirtyDayAvg: Double {
         guard !recentShifts.isEmpty else { return 0 }
@@ -199,7 +198,7 @@ struct HideoutTabView: View {
                             }
                         }
                     } right: {
-                        // Right: active work surface
+                        // Right: active work surface (tabs 1–3 only; tab 0 = dashboard-only on left)
                         VStack(spacing: 0) {
                             ipadRightTabs(metrics: metrics)
                             ScrollView(showsIndicators: false) {
@@ -208,13 +207,20 @@ struct HideoutTabView: View {
                                         scorecardView
                                     } else if selectedTab == 2 {
                                         playbookView
+                                    } else if selectedTab == 3 {
+                                        HideoutIntelTab()
                                     } else {
-                                        intelView
+                                        hideoutSplitRightIdle(metrics: metrics)
                                     }
                                 }
+                                .id(selectedTab)
                                 .environment(\.hideoutMetrics, metrics)
                             }
+                            .scrollDismissesKeyboard(.interactively)
                         }
+                    }
+                    .onAppear {
+                        if selectedTab == 0 { selectedTab = 1 }
                     }
                 } else {
                     // ── iPhone / iPad portrait: single column ─────────────────
@@ -232,11 +238,13 @@ struct HideoutTabView: View {
                                 } else if selectedTab == 2 {
                                     playbookView
                                 } else {
-                                    intelView
+                                    HideoutIntelTab()
                                 }
                             }
+                            .id(selectedTab)
                             .environment(\.hideoutMetrics, metrics)
                         }
+                        .scrollDismissesKeyboard(.interactively)
                     }
                 }
 
@@ -325,7 +333,7 @@ struct HideoutTabView: View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
                 ForEach([1, 2, 3], id: \.self) { i in
-                    Button(action: { withAnimation(.easeOut(duration: 0.2)) { selectedTab = i } }) {
+                    Button(action: { selectedTab = i }) {
                         VStack(spacing: metrics.scaledSize(6)) {
                             Text(["SCORECARD", "PLAYBOOK", "INTEL"][i - 1])
                                 .font(metrics.fontMono(10))
@@ -402,6 +410,225 @@ struct HideoutTabView: View {
 
     // MARK: - DASHBOARD
 
+    private var hideoutHeroMetricCard: some View {
+        CardView {
+            VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                MonoLabel(text: "01  30-DAY AVG", color: .warm.opacity(0.7), size: 9)
+                Text(recentShifts.isEmpty ? "—" : "$\(Int(thirtyDayAvg))")
+                    .font(.system(size: metrics.useTwoColumn ? 32 : 36, weight: .bold, design: .monospaced))
+                    .foregroundColor(.textPrimary)
+                    .minimumScaleFactor(0.7)
+                    .lineLimit(1)
+                HStack(spacing: metrics.rowSpacing) {
+                    Circle().fill(currentBand.color).frame(width: 6, height: 6)
+                    Text(recentShifts.isEmpty ? "no data yet" : currentBand.label)
+                        .font(.system(size: metrics.scaledSize(12), design: .monospaced))
+                        .foregroundColor(currentBand.color)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
+                }
+                if txToNextBand > 0 {
+                    Text("~$\(txToNextBand * 17) rev to next band")
+                        .font(.system(size: metrics.scaledSize(9), design: .monospaced))
+                        .foregroundColor(.textMuted)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else if !recentShifts.isEmpty {
+                    MonoLabel(text: "at target", color: .inkGreen, size: 9)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var hideoutAppContextCard: some View {
+        let milestones: [(String, Binding<Bool>)] = [
+            ("Product photos shot (5 items)", $hideoutAppPhotosShot),
+            ("Fonts + build verified on device", $hideoutAppOnDevice),
+            ("Real customer test order (sandbox OK)", $hideoutAppRealUserTest),
+            ("NFC sticker + QR card at counter", $hideoutAppNFCQR),
+        ]
+        let done = milestones.filter { $0.1.wrappedValue }.count
+
+        return CardView(style: .secondary) {
+            VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                MonoLabel(text: "HIDEOUT APP · CUSTOMER SURFACE", color: .inkTeal, size: 10)
+                Text("Separate build from this tab. Relationship capture — reorder, Sunday, event requests, B2B gallons. Dependability over excitement.")
+                    .font(metrics.fontSora(13, weight: .light))
+                    .foregroundColor(.textSecond)
+                    .lineSpacing(2)
+                HStack(spacing: metrics.rowSpacing) {
+                    MonoLabel(text: "BUILT ✅", color: .inkGreen, size: 9)
+                    MonoLabel(text: "SQUARE ❌", color: .inkRed, size: 9)
+                    Spacer()
+                    Text("\(done)/\(milestones.count)")
+                        .font(.system(size: metrics.scaledSize(10), weight: .semibold, design: .monospaced))
+                        .foregroundColor(done == milestones.count ? .inkGreen : .inkAmber)
+                }
+                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                    HStack(alignment: .top, spacing: metrics.cardSpacing) {
+                        MonoLabel(text: "THIS TAB", color: .warm, size: 9)
+                            .frame(width: metrics.scaledSize(72), alignment: .leading)
+                        Text("Solo experiment ops · shift log · playbook · Friday signal")
+                            .font(metrics.fontSora(12, weight: .light))
+                            .foregroundColor(.textMuted)
+                            .lineSpacing(2)
+                    }
+                    HStack(alignment: .top, spacing: metrics.cardSpacing) {
+                        MonoLabel(text: "HIDEOUT APP", color: .inkTeal, size: 9)
+                            .frame(width: metrics.scaledSize(72), alignment: .leading)
+                        Text("Customer + admin on device · pre-Square · repo: Documents/HideoutApp")
+                            .font(metrics.fontSora(12, weight: .light))
+                            .foregroundColor(.textMuted)
+                            .lineSpacing(2)
+                    }
+                }
+                Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
+                MonoLabel(text: "PRE-SQUARE MILESTONES", color: .textMuted, size: 9)
+                VStack(spacing: 0) {
+                    ForEach(milestones.indices, id: \.self) { idx in
+                        let item = milestones[idx]
+                        Button {
+                            withAnimation(.spring(response: 0.25)) { item.1.wrappedValue.toggle() }
+                        } label: {
+                            HStack(alignment: .top, spacing: metrics.cardSpacing) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(item.1.wrappedValue ? Color.inkGreen.opacity(0.15) : Color.surface)
+                                        .frame(width: 18, height: 18)
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .stroke(item.1.wrappedValue ? Color.inkGreen : Color.muted.opacity(0.4), lineWidth: 1.5)
+                                        .frame(width: 18, height: 18)
+                                    if item.1.wrappedValue {
+                                        Image(systemName: "checkmark")
+                                            .font(.system(size: metrics.scaledSize(9), weight: .bold))
+                                            .foregroundColor(.inkGreen)
+                                    }
+                                }
+                                Text(item.0)
+                                    .font(.sora(metrics.scaledSize(11), weight: .light))
+                                    .foregroundColor(item.1.wrappedValue ? .textMuted : .textSecond)
+                                    .lineSpacing(2)
+                                    .strikethrough(item.1.wrappedValue, color: .textMuted.opacity(0.5))
+                                Spacer()
+                            }
+                            .padding(.vertical, 7)
+                        }
+                        .buttonStyle(.plain)
+                        if idx < milestones.count - 1 {
+                            Rectangle().fill(Color.muted.opacity(0.1)).frame(height: 0.5)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var hideoutRepeatMetricCard: some View {
+        CardView {
+            VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                MonoLabel(text: "02  REPEAT %", color: .warm.opacity(0.7), size: 9)
+                if let rp = aggregateRepeatPercent {
+                    Text("\(Int(rp * 100))%")
+                        .font(.system(size: metrics.useTwoColumn ? 32 : 36, weight: .bold, design: .monospaced))
+                        .foregroundColor(.textPrimary)
+                        .lineLimit(1)
+                    let diagnosis = rp >= 0.8 ? "acquisition" : rp >= 0.5 ? "mixed" : "retention"
+                    let color: Color = rp >= 0.8 ? .inkAmber : rp >= 0.5 ? .inkTeal : .inkRed
+                    HStack(spacing: metrics.rowSpacing) {
+                        Circle().fill(color).frame(width: 6, height: 6)
+                        Text(diagnosis)
+                            .font(.system(size: metrics.scaledSize(12), design: .monospaced))
+                            .foregroundColor(color)
+                            .lineLimit(1)
+                    }
+                    Text("\(diagnosis) problem")
+                        .font(.system(size: metrics.scaledSize(9), design: .monospaced))
+                        .foregroundColor(.textMuted)
+                        .lineLimit(1)
+                } else {
+                    Text("—")
+                        .font(.system(size: metrics.useTwoColumn ? 32 : 36, weight: .bold, design: .monospaced))
+                        .foregroundColor(.textMuted)
+                    HStack(spacing: metrics.rowSpacing) {
+                        Circle().fill(Color.textMuted.opacity(0.4)).frame(width: 6, height: 6)
+                        Text("not tracked")
+                            .font(.system(size: metrics.scaledSize(12), design: .monospaced))
+                            .foregroundColor(.textMuted)
+                    }
+                    MonoLabel(text: "log repeat vs new", color: .textMuted, size: 9)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    /// iPad left column: stack eyebrow, body copy, and progress — avoids crushed side-by-side wraps.
+    @ViewBuilder
+    private func hideoutLedgerCardHeader(
+        eyebrow: String,
+        eyebrowColor: Color,
+        detail: String,
+        done: Int,
+        total: Int,
+        completeLabel: String?,
+        completeColor: Color
+    ) -> some View {
+        let progressColor: Color = done == total ? .inkGreen : done > 0 ? .inkAmber : .textMuted
+
+        if metrics.useTwoColumn {
+            VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                MonoLabel(text: eyebrow, color: eyebrowColor, size: 10)
+                Text(detail)
+                    .font(.sora(metrics.scaledSize(10), weight: .light))
+                    .foregroundColor(.textMuted)
+                    .lineSpacing(3)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: metrics.rowSpacing) {
+                    Text("\(done)/\(total)")
+                        .font(.system(size: metrics.scaledSize(13), weight: .semibold, design: .monospaced))
+                        .foregroundColor(progressColor)
+                    if done == total, let completeLabel {
+                        MonoLabel(text: completeLabel, color: completeColor, size: 9)
+                    }
+                }
+            }
+        } else {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                    MonoLabel(text: eyebrow, color: eyebrowColor, size: 10)
+                    Text(detail)
+                        .font(.sora(metrics.scaledSize(10), weight: .light))
+                        .foregroundColor(.textMuted)
+                        .lineSpacing(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 8)
+                VStack(alignment: .trailing, spacing: metrics.rowSpacing) {
+                    Text("\(done)/\(total)")
+                        .font(.system(size: metrics.scaledSize(13), weight: .semibold, design: .monospaced))
+                        .foregroundColor(progressColor)
+                    if done == total, let completeLabel {
+                        MonoLabel(text: completeLabel, color: completeColor, size: 9)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func hideoutSignalFootnote(_ text: String, dot: Color = .inkTeal) -> some View {
+        HStack(alignment: .top, spacing: metrics.rowSpacing) {
+            Circle().fill(dot.opacity(0.6)).frame(width: 4, height: 4).padding(.top, 5)
+            Text(text)
+                .font(.system(size: metrics.scaledSize(10), design: .monospaced))
+                .foregroundColor(.textMuted)
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
     @ViewBuilder
     private func hideoutCollapseHeader(_ title: String, isExpanded: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
@@ -429,59 +656,24 @@ struct HideoutTabView: View {
                 MonoLabel(text: "THE TWO NUMBERS THAT MATTER MOST", color: .warm.opacity(0.85), size: 9)
                     .padding(.horizontal, metrics.hPad)
 
-                HStack(spacing: metrics.cardSpacing) {
-                    // Number 1 — 30-day avg
-                    CardView {
-                        VStack(alignment: .leading, spacing: metrics.cardSpacing) {
-                            MonoLabel(text: "01  30-DAY AVG", color: .warm.opacity(0.7), size: 9)
-                            Text(recentShifts.isEmpty ? "—" : "$\(Int(thirtyDayAvg))")
-                                .font(.system(size: 36, weight: .bold, design: .monospaced))
-                                .foregroundColor(.textPrimary)
-                                .minimumScaleFactor(0.7)
-                            HStack(spacing: metrics.rowSpacing) {
-                                Circle().fill(currentBand.color).frame(width: 6, height: 6)
-                                Text(recentShifts.isEmpty ? "no data yet" : currentBand.label)
-                                    .font(.system(size: metrics.scaledSize(12), design: .monospaced))
-                                    .foregroundColor(currentBand.color)
-                            }
-                            if txToNextBand > 0 {
-                                MonoLabel(text: "~$\(txToNextBand * 17) rev to next band", color: .textMuted, size: 9)
-                            } else if !recentShifts.isEmpty {
-                                MonoLabel(text: "at target", color: .inkGreen, size: 9)
-                            }
+                Group {
+                    if metrics.useTwoColumn {
+                        VStack(spacing: metrics.cardSpacing) {
+                            hideoutHeroMetricCard
+                            hideoutRepeatMetricCard
                         }
-                    }
-
-                    // Number 2 — Repeat %
-                    CardView {
-                        VStack(alignment: .leading, spacing: metrics.cardSpacing) {
-                            MonoLabel(text: "02  REPEAT %", color: .warm.opacity(0.7), size: 9)
-                            if let rp = aggregateRepeatPercent {
-                                Text("\(Int(rp * 100))%")
-                                    .font(.system(size: 36, weight: .bold, design: .monospaced))
-                                    .foregroundColor(.textPrimary)
-                                let diagnosis = rp >= 0.8 ? "acquisition" : rp >= 0.5 ? "mixed" : "retention"
-                                let color: Color = rp >= 0.8 ? .inkAmber : rp >= 0.5 ? .inkTeal : .inkRed
-                                HStack(spacing: metrics.rowSpacing) {
-                                    Circle().fill(color).frame(width: 6, height: 6)
-                                    Text(diagnosis).font(.system(size: metrics.scaledSize(12), design: .monospaced)).foregroundColor(color)
-                                }
-                                MonoLabel(text: "\(diagnosis) problem", color: .textMuted, size: 9)
-                            } else {
-                                Text("—")
-                                    .font(.system(size: 36, weight: .bold, design: .monospaced))
-                                    .foregroundColor(.textMuted)
-                                HStack(spacing: metrics.rowSpacing) {
-                                    Circle().fill(Color.textMuted.opacity(0.4)).frame(width: 6, height: 6)
-                                    Text("not tracked").font(.system(size: metrics.scaledSize(12), design: .monospaced)).foregroundColor(.textMuted)
-                                }
-                                MonoLabel(text: "log repeat vs new", color: .textMuted, size: 9)
-                            }
+                    } else {
+                        HStack(spacing: metrics.cardSpacing) {
+                            hideoutHeroMetricCard
+                            hideoutRepeatMetricCard
                         }
                     }
                 }
                 .padding(.horizontal, metrics.hPad)
             }
+
+            hideoutAppContextCard
+                .padding(.horizontal, metrics.hPad)
 
             let todayHasShift = shifts.contains { Calendar.current.isDateInToday($0.logDate) }
             let currentHour   = Calendar.current.component(.hour, from: Date())
@@ -522,10 +714,11 @@ struct HideoutTabView: View {
                 }
                 .padding(.horizontal, metrics.hPad)
             } else {
-                VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                LazyVStack(alignment: .leading, spacing: metrics.rowSpacing) {
                     SectionHeader(text: "SHIFT LOG").padding(.horizontal, metrics.hPad)
-                    ForEach(recentShifts) { shift in
-                        ShiftLogRow(shift: shift).padding(.horizontal, metrics.hPad)
+                    ForEach(recentShifts, id: \.id) { shift in
+                        ShiftLogRow(shift: shift)
+                            .padding(.horizontal, metrics.hPad)
                     }
                 }
             }
@@ -563,24 +756,15 @@ struct HideoutTabView: View {
 
                         CardView(style: .secondary) {
                             VStack(alignment: .leading, spacing: metrics.blockSpacing) {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
-                                        MonoLabel(text: "GROWTH SYSTEM — LOCKED MAY 2026", color: .inkTeal, size: 10)
-                                        Text("Gap closes through revenue quality, not volume. Recurring revenue reduces walk-in dependency. Pickup-first: production business, not delivery route.")
-                                            .font(.sora(metrics.scaledSize(10), weight: .light))
-                                            .foregroundColor(.textMuted)
-                                            .lineSpacing(2)
-                                    }
-                                    Spacer()
-                                    VStack(alignment: .trailing, spacing: metrics.rowSpacing) {
-                                        Text("\(growthDone)/\(growthTotal)")
-                                            .font(.system(size: metrics.scaledSize(13), weight: .semibold, design: .monospaced))
-                                            .foregroundColor(growthDone == growthTotal ? .inkGreen : growthDone > 0 ? .inkAmber : .textMuted)
-                                        if growthDone == growthTotal {
-                                            MonoLabel(text: "SYSTEM LIVE", color: .inkGreen, size: 9)
-                                        }
-                                    }
-                                }
+                                hideoutLedgerCardHeader(
+                                    eyebrow: "GROWTH SYSTEM — LOCKED MAY 2026",
+                                    eyebrowColor: .inkTeal,
+                                    detail: "Gap closes through revenue quality, not volume. Recurring revenue reduces walk-in dependency. Pickup-first: production business, not delivery route.",
+                                    done: growthDone,
+                                    total: growthTotal,
+                                    completeLabel: "SYSTEM LIVE",
+                                    completeColor: .inkGreen
+                                )
 
                                 // Progress bar
                                 GeometryReader { geo in
@@ -607,13 +791,7 @@ struct HideoutTabView: View {
                                     note: "One 20–30s clip before opening. Same shot list. 3 surfaces, no decisions.")
 
                                 Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
-                                HStack(spacing: metrics.rowSpacing) {
-                                    Circle().fill(Color.inkTeal.opacity(0.6)).frame(width: 4, height: 4)
-                                    Text("Signal: attribution mentions appear in weekly review. Any is better than none.")
-                                        .font(.system(size: metrics.scaledSize(10), design: .monospaced))
-                                        .foregroundColor(.textMuted)
-                                        .lineSpacing(2)
-                                }
+                                hideoutSignalFootnote("Signal: attribution mentions appear in weekly review. Any is better than none.")
                             }
                         }
                         .padding(.horizontal, metrics.hPad)
@@ -666,24 +844,15 @@ struct HideoutTabView: View {
 
                         CardView(style: .secondary) {
                             VStack(alignment: .leading, spacing: metrics.blockSpacing) {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
-                                        MonoLabel(text: "CURRENT EXPERIMENT — PARTNERSHIP SPRINT", color: .inkAmber, size: 10)
-                                        Text("Hypothesis: one recurring cold brew account materially changes the economics. Activate when mobility allows.")
-                                            .font(.sora(metrics.scaledSize(10), weight: .light))
-                                            .foregroundColor(.textMuted)
-                                            .lineSpacing(2)
-                                    }
-                                    Spacer()
-                                    VStack(alignment: .trailing, spacing: metrics.rowSpacing) {
-                                        Text("\(sprintDone)/\(sprintTotal)")
-                                            .font(.system(size: metrics.scaledSize(13), weight: .semibold, design: .monospaced))
-                                            .foregroundColor(sprintComplete ? .inkGreen : sprintDone > 0 ? .inkAmber : .textMuted)
-                                        if sprintComplete {
-                                            MonoLabel(text: "ACCOUNT LIVE", color: .inkGreen, size: 9)
-                                        }
-                                    }
-                                }
+                                hideoutLedgerCardHeader(
+                                    eyebrow: "CURRENT EXPERIMENT — PARTNERSHIP SPRINT",
+                                    eyebrowColor: .inkAmber,
+                                    detail: "Hypothesis: one recurring cold brew account materially changes the economics. Activate when mobility allows.",
+                                    done: sprintDone,
+                                    total: sprintTotal,
+                                    completeLabel: "ACCOUNT LIVE",
+                                    completeColor: .inkGreen
+                                )
 
                                 GeometryReader { geo in
                                     ZStack(alignment: .leading) {
@@ -715,34 +884,10 @@ struct HideoutTabView: View {
 
                                 Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
                                 VStack(alignment: .leading, spacing: metrics.rowSpacing) {
-                                    HStack(spacing: metrics.rowSpacing) {
-                                        Circle().fill(Color.inkAmber.opacity(0.6)).frame(width: 4, height: 4)
-                                        Text("Outreach windows: 7–9:30AM or 2:30–5PM. Never during hospitality mode.")
-                                            .font(.system(size: metrics.scaledSize(10), design: .monospaced))
-                                            .foregroundColor(.textMuted)
-                                            .lineSpacing(2)
-                                    }
-                                    HStack(spacing: metrics.rowSpacing) {
-                                        Circle().fill(Color.inkAmber.opacity(0.6)).frame(width: 4, height: 4)
-                                        Text("Injury constraint: outreach prep (offer, samples, cards) now. Active delivery onboarding after rhythm stabilizes 10–14 more days.")
-                                            .font(.system(size: metrics.scaledSize(10), design: .monospaced))
-                                            .foregroundColor(.textMuted)
-                                            .lineSpacing(2)
-                                    }
-                                    HStack(spacing: metrics.rowSpacing) {
-                                        Circle().fill(Color.inkGreen.opacity(0.6)).frame(width: 4, height: 4)
-                                        Text("Pickup-first doctrine: all accounts structured as production + scheduled pickup. No route delivery.")
-                                            .font(.system(size: metrics.scaledSize(10), design: .monospaced))
-                                            .foregroundColor(.textMuted)
-                                            .lineSpacing(2)
-                                    }
-                                    HStack(spacing: metrics.rowSpacing) {
-                                        Circle().fill(Color.inkGreen.opacity(0.6)).frame(width: 4, height: 4)
-                                        Text("Tier A (zero-motion): A Better You, SkyView. Tier B (trivial-motion): Expansive pickup, Watermarc. Fastest conversion = hypothesis, not fact.")
-                                            .font(.system(size: metrics.scaledSize(10), design: .monospaced))
-                                            .foregroundColor(.textMuted)
-                                            .lineSpacing(2)
-                                    }
+                                    hideoutSignalFootnote("Outreach windows: 7–9:30AM or 2:30–5PM. Never during hospitality mode.", dot: .inkAmber)
+                                    hideoutSignalFootnote("Injury constraint: outreach prep (offer, samples, cards) now. Active delivery onboarding after rhythm stabilizes 10–14 more days.", dot: .inkAmber)
+                                    hideoutSignalFootnote("Pickup-first doctrine: all accounts structured as production + scheduled pickup. No route delivery.", dot: .inkGreen)
+                                    hideoutSignalFootnote("Tier A (zero-motion): A Better You, SkyView. Tier B (trivial-motion): Expansive pickup, Watermarc. Fastest conversion = hypothesis, not fact.", dot: .inkGreen)
                                 }
                             }
                         }
@@ -1190,7 +1335,7 @@ struct HideoutTabView: View {
                     if !shiftsWithSource.isEmpty {
                         Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
                         MonoLabel(text: "LOGGED NOTES", color: .textMuted, size: 9)
-                        ForEach(shiftsWithSource.prefix(5)) { shift in
+                        ForEach(shiftsWithSource.prefix(5), id: \.id) { shift in
                             HStack(alignment: .top, spacing: metrics.rowSpacing) {
                                 MonoLabel(text: shift.dayLabel, color: .warm, size: 9)
                                 Text(shift.sourceNotes)
@@ -1683,129 +1828,6 @@ struct HideoutTabView: View {
     }
 
 
-    // MARK: - INTEL TAB
-    // Experiment Ledger — every active hypothesis with pass/fail and mechanism.
-    // Cards are collapsed by default. Tap to expand. Clean, not busy.
-    // "Doctrine vs hypothesis: principles are durable, tactics are provisional."
-
-    var intelView: some View {
-        VStack(spacing: 0) {
-
-                // ── Header ────────────────────────────────────────────────────
-                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
-                    HStack(alignment: .top) {
-                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
-                            MonoLabel(text: "EXPERIMENT LEDGER", color: .warm, size: 10)
-                            Text("Provisional hypotheses. Each runs until the data decides, then closes.")
-                                .font(.sora(metrics.scaledSize(12), weight: .light))
-                                .foregroundColor(.textMuted)
-                                .lineSpacing(2.5)
-                        }
-                        Spacer()
-                        HStack(spacing: metrics.cardSpacing) {
-                            legendDot("ACTIVE", color: .inkGreen)
-                            legendDot("PENDING", color: .inkAmber)
-                            legendDot("CLOSED", color: .textMuted)
-                        }
-                    }
-                }
-                .padding(.horizontal, metrics.hPad)
-                .padding(.top, 20)
-                .padding(.bottom, 16)
-
-                Rectangle().fill(Color.muted.opacity(0.15)).frame(height: 0.5)
-                    .padding(.horizontal, metrics.hPad)
-                    .padding(.bottom, 16)
-
-                // ── Experiment cards ──────────────────────────────────────────
-                VStack(spacing: metrics.cardSpacing) {
-                    experimentCard(
-                        id: "7am",
-                        name: "7AM WEEKDAY OPEN",
-                        signal: "4–6 wks",
-                        status: $exp7amStatus,
-                        note: $exp7amNote,
-                        isExpanded: $exp7amExpanded,
-                        hypothesis: "Earlier open captures building commuters and regulars who'd skip a later start. Tests whether a 7–8AM customer archetype exists in this building population.",
-                        pass: "5+ recurring 7–8AM customer types identified within 4 weeks",
-                        fail: "Zero 7–8AM revenue after 4 full weeks of consistent execution",
-                        mechanism: "Habit formation requires a consistent environmental cue. 7AM open creates that cue. Four weeks is enough to tell whether the archetype exists here — it either forms or it doesn't."
-                    )
-                    experimentCard(
-                        id: "sunday",
-                        name: "SUNDAY EXTENSION TO 5PM",
-                        signal: "2 wks",
-                        status: $expSundayStatus,
-                        note: $expSundayNote,
-                        isExpanded: $expSundayExpanded,
-                        hypothesis: "Brice already inhabits the space Sunday afternoons. Extending from 3→5PM captures tail revenue at near-zero incremental cost — Operator Studio mode.",
-                        pass: "Any incremental revenue 3–5PM + stress stays ≤3",
-                        fail: "Stress rises OR zero customers in 3–5PM window after 2 weeks",
-                        mechanism: "If the operator naturally inhabits the asset, compatible monetization costs nothing. The only question is whether the customer population exists in that window. Stress score is the kill signal — if it rises, the model isn't working."
-                    )
-                    experimentCard(
-                        id: "watermarc",
-                        name: "WATERMARC RESIDENTIAL CAPTURE",
-                        signal: "2 wks",
-                        status: $expWatermarcStatus,
-                        note: $expWatermarcNote,
-                        isExpanded: $expWatermarcExpanded,
-                        hypothesis: "Front desk engagement + leave-behind cards converts luxury neighbors into recurring regulars. The relationship is already warm — front desk proactively suggested the leave-behind.",
-                        pass: "5 attributed visits/week from card redemption or front-desk referral",
-                        fail: "0–1 attributed visits after 2 full weeks of consistent card presence",
-                        mechanism: "Proximity + warm introduction = highest conversion probability of any acquisition channel. Card includes first-visit offer (complimentary drink with breakfast) to lower friction on the initial decision."
-                    )
-                    experimentCard(
-                        id: "coldbrew",
-                        name: "COLD BREW — FIRST RECURRING ACCOUNT",
-                        signal: "60 days",
-                        status: $expColdBrewStatus,
-                        note: $expColdBrewNote,
-                        isExpanded: $expColdBrewExpanded,
-                        hypothesis: "One recurring weekly cold brew pickup account materially changes revenue composition. One invoice can be economically superior to many chaotic walk-ins.",
-                        pass: "2 recurring weekly accounts beyond Jimmy within 60 days",
-                        fail: "No meetings convert after 3 outreach attempts per target",
-                        mechanism: "Pickup-first doctrine: production + scheduled pickup = zero logistics stress. One $45/gallon weekly account = $180/month clean recurring revenue with no table management or route complexity."
-                    )
-                    experimentCard(
-                        id: "concierge",
-                        name: "CONCIERGE REFERRAL — SKYVIEW 22",
-                        signal: "4 wks",
-                        status: $expConciergeStatus,
-                        note: $expConciergeNote,
-                        isExpanded: $expConciergeExpanded,
-                        hypothesis: "SkyView 22 concierge proactively mentioning Hideout in building tours converts a zero-effort distribution channel. 258 units. Same elevator.",
-                        pass: "Concierge-sourced visit confirmed ('concierge recommended you')",
-                        fail: "No concierge-sourced mentions after 4 weeks of relationship maintenance",
-                        mechanism: "Concierge referrals carry implicit trust from the building relationship. A new resident who hears about Hideout from their concierge arrives warmer than any cold walk-in. Cost: a card stack in the lobby."
-                    )
-                }
-                .padding(.horizontal, metrics.hPad)
-
-                // ── Doctrine (the non-provisional principles) ─────────────────
-                CardView(style: .secondary) {
-                    VStack(alignment: .leading, spacing: metrics.cardSpacing) {
-                        MonoLabel(text: "DOCTRINE — NOT EXPERIMENTS", color: .textMuted, size: 10)
-                        Text("These don't have pass/fail conditions. They're not provisional.")
-                            .font(.sora(metrics.scaledSize(11), weight: .light))
-                            .foregroundColor(.textMuted)
-                            .lineSpacing(2)
-                        VStack(alignment: .leading, spacing: metrics.rowSpacing) {
-                            doctrineRow("Recurring revenue reduces walk-in dependency")
-                            doctrineRow("Pickup-first: production business, not delivery route")
-                            doctrineRow("Nervous-system cost is a real economic input — not soft")
-                            doctrineRow("Hospitality quality is the soul. Other modes weaken without it.")
-                            doctrineRow("Data decides. Romance of the space doesn't excuse bad economics.")
-                        }
-                    }
-                }
-                .padding(.horizontal, metrics.hPad)
-                .padding(.top, 12)
-
-                Spacer(minLength: 100)
-            }
-    }
-
     // MARK: - PLAYBOOK HELPER VIEWS
 
     func scriptRow(target: String, script: String) -> some View {
@@ -1843,10 +1865,138 @@ struct HideoutTabView: View {
         .padding(.vertical, 10)
     }
 
-    // MARK: - INTEL HELPER VIEWS
+} // end HideoutTabView
 
-    func experimentCard(
-        id: String,
+// MARK: - INTEL TAB (isolated — avoids re-rendering full Hideout dashboard on note edits)
+
+struct HideoutIntelTab: View {
+    @Environment(\.hideoutMetrics) private var metrics
+
+    @AppStorage("exp_7am_expanded")       private var exp7amExpanded       = false
+    @AppStorage("exp_sunday_expanded")    private var expSundayExpanded    = false
+    @AppStorage("exp_watermarc_expanded") private var expWatermarcExpanded = false
+    @AppStorage("exp_coldbrew_expanded")  private var expColdBrewExpanded  = false
+    @AppStorage("exp_concierge_expanded") private var expConciergeExpanded = false
+
+    @AppStorage("exp_7am_status")       private var exp7amStatus       = "active"
+    @AppStorage("exp_7am_note")         private var exp7amNote         = ""
+    @AppStorage("exp_sunday_status")    private var expSundayStatus    = "active"
+    @AppStorage("exp_sunday_note")      private var expSundayNote      = ""
+    @AppStorage("exp_watermarc_status") private var expWatermarcStatus = "active"
+    @AppStorage("exp_watermarc_note")   private var expWatermarcNote   = ""
+    @AppStorage("exp_coldbrew_status")   private var expColdBrewStatus  = "pending"
+    @AppStorage("exp_coldbrew_note")    private var expColdBrewNote    = ""
+    @AppStorage("exp_concierge_status") private var expConciergeStatus = "active"
+    @AppStorage("exp_concierge_note")   private var expConciergeNote   = ""
+
+    var body: some View {
+        LazyVStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                MonoLabel(text: "EXPERIMENT LEDGER", color: .warm, size: 10)
+                Text("Provisional hypotheses. Each runs until the data decides, then closes.")
+                    .font(.sora(metrics.scaledSize(12), weight: .light))
+                    .foregroundColor(.textMuted)
+                    .lineSpacing(3)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: metrics.cardSpacing) {
+                    legendDot("ACTIVE", color: .inkGreen)
+                    legendDot("PENDING", color: .inkAmber)
+                    legendDot("CLOSED", color: .textMuted)
+                    Spacer(minLength: 0)
+                }
+            }
+            .padding(.horizontal, metrics.hPad)
+            .padding(.top, 20)
+            .padding(.bottom, 16)
+
+            Rectangle().fill(Color.muted.opacity(0.15)).frame(height: 0.5)
+                .padding(.horizontal, metrics.hPad)
+                .padding(.bottom, 16)
+
+            LazyVStack(spacing: metrics.cardSpacing) {
+                experimentCard(
+                    name: "7AM WEEKDAY OPEN",
+                    signal: "4–6 wks",
+                    status: $exp7amStatus,
+                    note: $exp7amNote,
+                    isExpanded: $exp7amExpanded,
+                    hypothesis: "Earlier open captures building commuters and regulars who'd skip a later start. Tests whether a 7–8AM customer archetype exists in this building population.",
+                    pass: "5+ recurring 7–8AM customer types identified within 4 weeks",
+                    fail: "Zero 7–8AM revenue after 4 full weeks of consistent execution",
+                    mechanism: "Habit formation requires a consistent environmental cue. 7AM open creates that cue. Four weeks is enough to tell whether the archetype exists here — it either forms or it doesn't."
+                )
+                experimentCard(
+                    name: "SUNDAY EXTENSION TO 5PM",
+                    signal: "2 wks",
+                    status: $expSundayStatus,
+                    note: $expSundayNote,
+                    isExpanded: $expSundayExpanded,
+                    hypothesis: "Brice already inhabits the space Sunday afternoons. Extending from 3→5PM captures tail revenue at near-zero incremental cost — Operator Studio mode.",
+                    pass: "Any incremental revenue 3–5PM + stress stays ≤3",
+                    fail: "Stress rises OR zero customers in 3–5PM window after 2 weeks",
+                    mechanism: "If the operator naturally inhabits the asset, compatible monetization costs nothing. The only question is whether the customer population exists in that window. Stress score is the kill signal — if it rises, the model isn't working."
+                )
+                experimentCard(
+                    name: "WATERMARC RESIDENTIAL CAPTURE",
+                    signal: "2 wks",
+                    status: $expWatermarcStatus,
+                    note: $expWatermarcNote,
+                    isExpanded: $expWatermarcExpanded,
+                    hypothesis: "Front desk engagement + leave-behind cards converts luxury neighbors into recurring regulars. The relationship is already warm — front desk proactively suggested the leave-behind.",
+                    pass: "5 attributed visits/week from card redemption or front-desk referral",
+                    fail: "0–1 attributed visits after 2 full weeks of consistent card presence",
+                    mechanism: "Proximity + warm introduction = highest conversion probability of any acquisition channel. Card includes first-visit offer (complimentary drink with breakfast) to lower friction on the initial decision."
+                )
+                experimentCard(
+                    name: "COLD BREW — FIRST RECURRING ACCOUNT",
+                    signal: "60 days",
+                    status: $expColdBrewStatus,
+                    note: $expColdBrewNote,
+                    isExpanded: $expColdBrewExpanded,
+                    hypothesis: "One recurring weekly cold brew pickup account materially changes revenue composition. One invoice can be economically superior to many chaotic walk-ins.",
+                    pass: "2 recurring weekly accounts beyond Jimmy within 60 days",
+                    fail: "No meetings convert after 3 outreach attempts per target",
+                    mechanism: "Pickup-first doctrine: production + scheduled pickup = zero logistics stress. One $45/gallon weekly account = $180/month clean recurring revenue with no table management or route complexity."
+                )
+                experimentCard(
+                    name: "CONCIERGE REFERRAL — SKYVIEW 22",
+                    signal: "4 wks",
+                    status: $expConciergeStatus,
+                    note: $expConciergeNote,
+                    isExpanded: $expConciergeExpanded,
+                    hypothesis: "SkyView 22 concierge proactively mentioning Hideout in building tours converts a zero-effort distribution channel. 258 units. Same elevator.",
+                    pass: "Concierge-sourced visit confirmed ('concierge recommended you')",
+                    fail: "No concierge-sourced mentions after 4 weeks of relationship maintenance",
+                    mechanism: "Concierge referrals carry implicit trust from the building relationship. A new resident who hears about Hideout from their concierge arrives warmer than any cold walk-in. Cost: a card stack in the lobby."
+                )
+            }
+            .padding(.horizontal, metrics.hPad)
+
+            CardView(style: .secondary) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    MonoLabel(text: "DOCTRINE — NOT EXPERIMENTS", color: .textMuted, size: 10)
+                    Text("These don't have pass/fail conditions. They're not provisional.")
+                        .font(.sora(metrics.scaledSize(11), weight: .light))
+                        .foregroundColor(.textMuted)
+                        .lineSpacing(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                    VStack(alignment: .leading, spacing: metrics.rowSpacing) {
+                        doctrineRow("Recurring revenue reduces walk-in dependency")
+                        doctrineRow("Pickup-first: production business, not delivery route")
+                        doctrineRow("Nervous-system cost is a real economic input — not soft")
+                        doctrineRow("Hospitality quality is the soul. Other modes weaken without it.")
+                        doctrineRow("Data decides. Romance of the space doesn't excuse bad economics.")
+                    }
+                }
+            }
+            .padding(.horizontal, metrics.hPad)
+            .padding(.top, 12)
+
+            Spacer(minLength: 100)
+        }
+    }
+
+    private func experimentCard(
         name: String,
         signal: String,
         status: Binding<String>,
@@ -1866,11 +2016,10 @@ struct HideoutTabView: View {
         let isClosed = s == "killed" || s == "complete"
 
         return VStack(spacing: 0) {
-            // ── Header row (always visible) ────────────────────────────────
             Button {
                 isExpanded.wrappedValue.toggle()
             } label: {
-                HStack(spacing: metrics.blockSpacing) {
+                HStack(alignment: .top, spacing: metrics.blockSpacing) {
                     ZStack {
                         Circle().fill(statusColor.opacity(0.15)).frame(width: 32, height: 32)
                         Circle().fill(statusColor).frame(width: 8, height: 8)
@@ -1879,17 +2028,23 @@ struct HideoutTabView: View {
                         Text(name)
                             .font(.system(size: metrics.scaledSize(12), weight: .semibold, design: .monospaced))
                             .foregroundColor(isClosed ? .textMuted : .textPrimary)
-                            .tracking(0.5)
+                            .tracking(0.3)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.9)
+                            .fixedSize(horizontal: false, vertical: true)
                         HStack(spacing: metrics.rowSpacing) {
                             Text(s.uppercased())
                                 .font(.system(size: metrics.scaledSize(10), weight: .medium, design: .monospaced))
                                 .foregroundColor(statusColor)
-                            Text("· SIGNAL \(signal)")
+                                .lineLimit(1)
+                            Text("SIGNAL \(signal)")
                                 .font(.system(size: metrics.scaledSize(10), design: .monospaced))
                                 .foregroundColor(.textMuted)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.85)
                         }
                     }
-                    Spacer()
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     if !note.wrappedValue.isEmpty {
                         Image(systemName: "note.text")
                             .font(.system(size: metrics.scaledSize(12)))
@@ -1905,67 +2060,54 @@ struct HideoutTabView: View {
             }
             .buttonStyle(.plain)
 
-            // ── Expanded body (no transition — avoids layout crash on scroll) ──
             if isExpanded.wrappedValue {
                 VStack(alignment: .leading, spacing: metrics.blockSpacing) {
-
                     Rectangle().fill(Color.muted.opacity(0.12)).frame(height: 0.5)
 
-                    // Hypothesis
                     VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "HYPOTHESIS", color: .textMuted, size: 9)
                         Text(hypothesis)
                             .font(metrics.fontSora(13, weight: .light))
                             .foregroundColor(.textSecond)
                             .lineSpacing(3)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
 
-                    // Pass — full width, no side-by-side (avoids maxWidth: .infinity crash)
                     VStack(alignment: .leading, spacing: metrics.rowSpacing) {
-                        HStack(spacing: metrics.rowSpacing) {
-                            RoundedRectangle(cornerRadius: 1.5)
-                                .fill(Color.inkGreen)
-                                .frame(width: 2, height: 11)
-                            MonoLabel(text: "PASS IF", color: .inkGreen, size: 9)
-                        }
+                        MonoLabel(text: "PASS IF", color: .inkGreen, size: 9)
                         Text(pass)
                             .font(metrics.fontSora(13, weight: .light))
                             .foregroundColor(.inkGreen.opacity(0.85))
-                            .lineSpacing(2.5)
+                            .lineSpacing(3)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(Color.inkGreen.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 10))
 
-                    // Fail — full width
                     VStack(alignment: .leading, spacing: metrics.rowSpacing) {
-                        HStack(spacing: metrics.rowSpacing) {
-                            RoundedRectangle(cornerRadius: 1.5)
-                                .fill(Color.inkRed)
-                                .frame(width: 2, height: 11)
-                            MonoLabel(text: "KILL IF", color: .inkRed, size: 9)
-                        }
+                        MonoLabel(text: "KILL IF", color: .inkRed, size: 9)
                         Text(fail)
                             .font(metrics.fontSora(13, weight: .light))
                             .foregroundColor(.inkRed.opacity(0.85))
-                            .lineSpacing(2.5)
+                            .lineSpacing(3)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(Color.inkRed.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 10))
 
-                    // Mechanism
                     VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         MonoLabel(text: "MECHANISM", color: .textMuted, size: 9)
                         Text(mechanism)
                             .font(metrics.fontSora(13, weight: .light))
                             .foregroundColor(.textMuted)
                             .lineSpacing(3)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
 
-                    // Status picker + note — stacked vertically (avoids HStack TextField crash)
                     VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                         Menu {
                             Button("Active")   { status.wrappedValue = "active" }
@@ -1989,7 +2131,6 @@ struct HideoutTabView: View {
                             .clipShape(Capsule())
                         }
 
-                        // Note field — simple single-line to avoid vertical TextField crash
                         TextField("Note or decision…", text: note)
                             .font(metrics.fontSora(13))
                             .foregroundColor(.textPrimary)
@@ -1999,7 +2140,6 @@ struct HideoutTabView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 10))
                             .tint(.warm)
                     }
-
                 }
                 .padding(.horizontal, 18)
                 .padding(.vertical, 16)
@@ -2013,16 +2153,17 @@ struct HideoutTabView: View {
         )
     }
 
-    func legendDot(_ label: String, color: Color) -> some View {
+    private func legendDot(_ label: String, color: Color) -> some View {
         HStack(spacing: metrics.rowSpacing) {
             Circle().fill(color).frame(width: 6, height: 6)
             Text(label)
                 .font(.system(size: metrics.scaledSize(10), weight: .medium, design: .monospaced))
                 .foregroundColor(.textMuted)
+                .lineLimit(1)
         }
     }
 
-    func doctrineRow(_ text: String) -> some View {
+    private func doctrineRow(_ text: String) -> some View {
         HStack(alignment: .top, spacing: metrics.cardSpacing) {
             RoundedRectangle(cornerRadius: 1)
                 .fill(Color.warm.opacity(0.4))
@@ -2031,11 +2172,11 @@ struct HideoutTabView: View {
             Text(text)
                 .font(metrics.fontSora(13, weight: .light))
                 .foregroundColor(.textSecond)
-                .lineSpacing(2.5)
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
-
-} // end HideoutTabView
+}
 
 // MARK: - REVENUE SPARKLINE
 
@@ -2682,7 +2823,12 @@ struct LogShiftSheet: View {
     }
 
     func save() {
-        let log = HideoutShiftLog()
+        let cal = Calendar.current
+        let logDay = isRetroactive ? selectedDate : Date()
+        let existing = (try? context.fetch(FetchDescriptor<HideoutShiftLog>()))?
+            .first { cal.isDate($0.logDate, inSameDayAs: logDay) }
+
+        let log = existing ?? HideoutShiftLog()
         log.grossRevenue = rv; log.transactionCount = tv; log.stressScore = stressScore
         log.usedStaff = usedStaff; log.tailRevenue = Double(tailRevenue) ?? 0
         log.lostSales = lostSales; log.notes = notes; log.sourceNotes = sourceNotes
@@ -2690,8 +2836,14 @@ struct LogShiftSheet: View {
         log.anchorPhraseUsed = anchorPhraseUsed
         log.experimentDay = isRetroactive ? retroDayNum : experimentDay
         log.repeatCustomerCount = Int(repeatCount) ?? 0; log.newCustomerCount = Int(newCount) ?? 0
-        if isRetroactive { log.date = selectedDate; log.dateOverride = selectedDate }
-        context.insert(log)
+        log.peakBurstUpdated = Int(peakBurst) ?? log.peakBurstUpdated
+        if isRetroactive {
+            log.date = selectedDate
+            log.dateOverride = selectedDate
+        } else if existing == nil {
+            log.date = Date()
+        }
+        if existing == nil { context.insert(log) }
         isPresented = false
     }
 }
@@ -3096,28 +3248,46 @@ struct HideoutTwoColumnLayout<Left: View, Right: View>: View {
     }
 
     var body: some View {
-        GeometryReader { geo in
-            HStack(alignment: .top, spacing: 0) {
-                left
-                    .frame(width: geo.size.width * metrics.hideoutLeftColumnFraction)
+        HStack(alignment: .top, spacing: 0) {
+            left
+                .containerRelativeFrame(.horizontal, count: 5, span: 2, spacing: 0, alignment: .leading)
+                .frame(maxHeight: .infinity, alignment: .topLeading)
 
-                // Gradient divider — matches IPadMasterDetailLayout language
-                LinearGradient(
-                    colors: [
-                        Color.warm.opacity(0.0),
-                        Color.warm.opacity(0.20),
-                        Color.warm.opacity(0.08),
-                        Color.warm.opacity(0.0)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(width: 1)
+            LinearGradient(
+                colors: [
+                    Color.warm.opacity(0.0),
+                    Color.warm.opacity(0.20),
+                    Color.warm.opacity(0.08),
+                    Color.warm.opacity(0.0)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .frame(width: 1)
 
-                right
-                    .frame(maxWidth: .infinity)
-            }
+            right
+                .containerRelativeFrame(.horizontal, count: 5, span: 3, spacing: 0, alignment: .leading)
+                .frame(maxHeight: .infinity, alignment: .topLeading)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+}
+
+// iPad split: right column idle until Scorecard / Playbook / Intel is selected.
+private struct hideoutSplitRightIdle: View {
+    let metrics: AppMetrics
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+            MonoLabel(text: "WORK SURFACE", color: .warm, size: 10)
+            Text("Dashboard stays on the left. Pick Scorecard, Playbook, or Intel.")
+                .font(metrics.fontSora(14, weight: .light))
+                .foregroundColor(.textMuted)
+                .lineSpacing(3)
+        }
+        .padding(.horizontal, metrics.hPad)
+        .padding(.top, metrics.sectionGap)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

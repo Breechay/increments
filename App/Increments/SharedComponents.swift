@@ -38,6 +38,13 @@ struct AppMetrics {
     var titleSize:     CGFloat { (isIPad ? 28 : 20) * typeScale }
     var headlineSize:  CGFloat { (isIPad ? 20 : 15) * typeScale }
     var bodySize:      CGFloat { (isIPad ? 17 : 12) * typeScale }
+    /// You tab long-form prose (Doctrine, Ventures, Manual, Intel) — ~12% smaller on iPad for arm's-length evening read.
+    var youReadBodySize: CGFloat { isIPad ? bodySize * 0.88 : bodySize }
+    var youReadTitleSize: CGFloat { isIPad ? titleSize * 0.90 : titleSize }
+    var youReadHeadlineSize: CGFloat { isIPad ? headlineSize * 0.90 : headlineSize }
+    var youReadLineSpacing: CGFloat { isIPad ? scaledSize(5) : scaledSize(6) }
+    /// Comfortable measure when You iPad reading focus hides the Capital column.
+    var youReadMaxWidth: CGFloat { 720 }
     var captionSize:   CGFloat { (isIPad ? 15 : 11) * typeScale }
     var monoSize:      CGFloat { (isIPad ? 14 : 10) * typeScale }
     var monoSmall:     CGFloat { (isIPad ? 12 : 9) * typeScale }
@@ -65,8 +72,8 @@ struct AppMetrics {
 
     var useWideColumn: Bool { isIPad }
 
-    // Hideout: iPad split — dashboard column narrower so scorecard/playbook breathe.
-    var useTwoColumn: Bool { isIPad }
+    // Hideout: iPad landscape split only — portrait uses single column (two-column in narrow width froze UI).
+    var useTwoColumn: Bool { isIPad && isLandscape }
     var hideoutLeftColumnFraction: CGFloat { 0.40 }
 
     // Hideout header numbers — these are large display figures, capped so they don't
@@ -109,6 +116,18 @@ extension EnvironmentValues {
     }
 }
 
+private struct YouIPadReadingFocusKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    /// You tab iPad: right pane expanded full-width (Capital column hidden).
+    var youIPadReadingFocus: Bool {
+        get { self[YouIPadReadingFocusKey.self] }
+        set { self[YouIPadReadingFocusKey.self] = newValue }
+    }
+}
+
 // Lightweight wrapper — wraps GeometryReader, detects device + orientation, injects metrics.
 // Used once at RootView level; all child views just read from environment.
 struct AppMetricsProvider<Content: View>: View {
@@ -144,6 +163,19 @@ extension View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 self.frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    /// You tab iPad reading pane — wider measure when focus mode hides Capital.
+    func youReadingContentWidth(_ metrics: AppMetrics, focus: Bool) -> some View {
+        Group {
+            if metrics.isIPad && focus {
+                self
+                    .frame(maxWidth: metrics.youReadMaxWidth, alignment: .leading)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            } else {
+                adaptiveContentWidth(metrics)
             }
         }
     }

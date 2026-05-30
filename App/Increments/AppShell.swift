@@ -440,11 +440,9 @@ func resetDailyActionsIfNeeded(context: ModelContext, profile: OperatorProfile, 
 // Add these manually if already seeded. Time blocks show on action cards.
 // DayType "hideout" = Wed–Fri 7AM–5PM, Sat–Sun 7AM–3PM (Sun 5PM from Week 2). "base" = Mon–Tue.
 //
-// EVERY DAY:  6:00 No phone · 6:05 Light · 6:15 Hydrate · 6:20 Creatine
-//             6:30 Move · 6:45 Cold shower · 7:00 Protein · 7:30 Journal
-//             21:00 No screens · 21:15 Evening Shutdown · 22:00 Read
-// HIDEOUT:    6:30 arrive + prep → 6:45 terrace audit → 7:00 slow open → 7:15 Pre-shift behaviors
-//             → 7:30 Priorities → 8:30 Deep work → 12:00 Protein + outside
+// EVERY DAY:  4:30 Wake · no phone · hydrate · creatine · AM stack (Physique) · fasted cardio
+//             ~5:15 Cold shower · ~5:35 Protein · leave ~6:00 · 21:15 sleep target
+// HIDEOUT:    6:30 arrive + prep (terrace + plants) → 7:00 slow open → 7:30 Priorities → 12:00 Protein + outside
 // BASE:       8:00 Mon: Close loop · 8:15 Messages · 8:30 Reset one area
 // WEEKLY:     Sun 14:00 Read long · Sun 15:00 Inbox physical · Mon 8:00 Close loop
 
@@ -455,12 +453,13 @@ func seedMissingCoreActions(context: ModelContext, existing: [Action]) {
         "No social · no news — first hour", "Hydrate", "Creatine",
         "Morning grooming", "Cardio — bike or elliptical", "Protein — first meal",
         "Supplements — midday", "Supplements — dinner", "Magnesium glycinate",
-        "Pre-lift warmup — 20 min", "Strength training — gym", "Post-workout protein",
+        "Pre-lift mobility — 5 min", "Strength training — gym", "Post-workout protein",
         "PM oral care", "No screens — final hour", "Minoxidil", "Sleep by 9:30PM",
-        "Stage tomorrow", "Red light — 10 min", "Scalp massage — 4 min",
+        "Stage tomorrow", "Scalp massage — 4 min",
         "Collagen + vitamin C", "Derma roller — Wednesday", "Derma roller — Sunday",
-        "Review priorities", "Deep work block — 90 min", "Journal — 3 sentences",
+        "Review priorities", "Journal — 3 sentences",
         "Content block \u{2014} Monday",
+        "Terrace + plants — opening prep",
     ]
     let missing = want.subtracting(have)
     guard !missing.isEmpty else { return }
@@ -471,7 +470,7 @@ func seedMissingCoreActions(context: ModelContext, existing: [Action]) {
 func seedMissingSessions(context: ModelContext, existing: [Session]) {
     let have = Set(existing.map { $0.title })
     let want: Set<String> = ["Morning Protocol", "Evening Shutdown", "Whole Human Reset",
-                             "Shutdown Preservation", "Pre-Lift Warmup", "PM Oral Care", "Weekly Reset"]
+                             "Shutdown Preservation", "Pre-Lift Mobility", "PM Oral Care", "Weekly Reset"]
     let missing = want.subtracting(have)
     guard !missing.isEmpty else { return }
     seedDefaultSessions(context: context, onlyTitles: missing)
@@ -519,6 +518,108 @@ func dedupeActionsByTitle(context: ModelContext, actions: [Action]) {
     try? context.save()
 }
 
+/// One shift per calendar day — keeps the richer record when duplicates exist (re-log + seed overlap).
+func hideoutShiftCompleteness(_ shift: HideoutShiftLog) -> Int {
+    var score = 0
+    if shift.grossRevenue > 0 { score += 2 }
+    if shift.transactionCount > 0 { score += 1 }
+    if shift.stressScore > 0 { score += 1 }
+    if !shift.notes.isEmpty { score += 2 }
+    if !shift.sourceNotes.isEmpty { score += 1 }
+    if shift.repeatCustomerCount + shift.newCustomerCount > 0 { score += 1 }
+    if shift.peakBurstUpdated > 0 { score += 1 }
+    if shift.usedScriptedUpsell || shift.recognizedRegular || shift.anchorPhraseUsed { score += 1 }
+    return score
+}
+
+func dedupeHideoutShiftsByDay(context: ModelContext, shifts: [HideoutShiftLog]) {
+    let cal = Calendar.current
+    var keeperByDay: [Date: HideoutShiftLog] = [:]
+    var toDelete: [HideoutShiftLog] = []
+
+    for shift in shifts {
+        let day = cal.startOfDay(for: shift.logDate)
+        if let keeper = keeperByDay[day] {
+            let keepShift = hideoutShiftCompleteness(keeper) >= hideoutShiftCompleteness(shift) ? keeper : shift
+            let dropShift = keepShift === keeper ? shift : keeper
+            keeperByDay[day] = keepShift
+            toDelete.append(dropShift)
+        } else {
+            keeperByDay[day] = shift
+        }
+    }
+
+    guard !toDelete.isEmpty else { return }
+    print("INCREMENTS: removing \(toDelete.count) duplicate Hideout shift(s)")
+    for shift in toDelete { context.delete(shift) }
+    try? context.save()
+}
+
+/// Removes Today stack items retired May 2026 — pre-shift behaviors, deep work block, split terrace/plant.
+func retirePrescribedStackItems(context: ModelContext, actions: [Action], sessions: [Session]) {
+    let retiredActions: Set<String> = [
+        "Pre-shift: load the 4 behaviors",
+        "Deep work block — 90 min",
+        "Plant check — water + prune",
+        "Terrace audit — opening",
+        "Pre-fuel — small",
+        "Pre-lift warmup — 20 min",
+        "Protein before sleep",
+        "Red light — 10 min",
+        "Gratitude — 3 items",
+        "Intentional learning — 15 min",
+        "Epsom salt soak — foot",
+        "Learn 3 regulars",
+        "Coffee craft — one technique",
+        "Menu engineering — weekly",
+        "Progress photos — Sunday",
+        "Contrast shower — post-gym",
+        "Legs up the wall — 5 min",
+        "Nasal breathing — cardio check",
+        "Body scan — 30 sec",
+        "Nail care",
+        "Ear cleaning",
+        "Sleep position — lateral",
+        "20-20-20 — Hideout screens",
+        "Compliment or acknowledge",
+        "Condo 26th floor — balcony reset",
+    ]
+    let retiredSessions: Set<String> = [
+        "Deep Work Block",
+        "Solo Operator Protocol",
+        "Pre-Lift Warmup",
+    ]
+    var changed = false
+    for action in actions where retiredActions.contains(action.title) {
+        context.delete(action)
+        changed = true
+    }
+    for session in sessions where retiredSessions.contains(session.title) {
+        context.delete(session)
+        changed = true
+    }
+    if changed { try? context.save() }
+}
+
+/// Patches Evening Shutdown steps when nutrition doctrine changes (e.g. no pre-sleep protein).
+func refreshEveningShutdownSession(context: ModelContext, sessions: [Session]) {
+    guard let session = sessions.first(where: { $0.title == "Evening Shutdown" }) else { return }
+    let steps = [
+        "8:25 — PM oral care: floss → brush → tongue scraper",
+        "8:28 — Lights to lamps. Phone to other room.",
+        "8:30 — No screens begins",
+        "8:35 — Minoxidil (dry scalp, 45 min dry time needed)",
+        "8:40 — Magnesium glycinate (400mg)",
+        "8:45 — Stage tomorrow: bag packed, outfit set, kitchen staged, app open",
+        "8:50 — Read (physical book, 20+ pages)",
+        "8:55 — Kitchen closed. Light stomach — protein target hit by final meal.",
+        "9:15 — Lights out. Side sleep position.",
+    ]
+    guard session.steps != steps else { return }
+    session.steps = steps
+    try? context.save()
+}
+
 func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
     // (title, system, points, note, cue, recurrence, scheduledBlock, dayTypeRaw)
     // Format: (title, system, points, note, cue, recurrence, scheduledBlock, dayTypeRaw, priorityTierRaw, mechanismNote)
@@ -526,30 +627,26 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
     // mechanismNote = causal mechanism (expandable, why it works this way)
     let defaults: [(String, SystemTag, Int, String?, String, RecurrenceType, String?, String?, String?, String?)] = [
 
-        // ── MORNING ANCHOR — every day (4AM wake) ─────────────────────────────
+        // ── MORNING ANCHOR — every day (4:30 wake target) ─────────────────────
         ("No social · no news — first hour", .cognition, 10,
-         "Increments is the exception. The rule is no consumption — no social feeds, no news, no messages. The first hour is for execution, not input. The first 2 hours shape your dopamine baseline and executive function for the full day. News optimized for anxiety is not neutral input.",
-         "When alarm goes off — open Increments, not Instagram", .daily, "4:00", nil, "anchor", nil),
+         "Increments is the exception. The rule is no consumption — no social feeds, no news, no messages. The first hour is for execution, not input. News optimized for anxiety is not neutral input.",
+         "4:30 wake — open Increments, not Instagram", .daily, "4:30", nil, "anchor", nil),
 
         ("Hydrate",                    .health,        5,
          "500ml before anything. 3L target today.\\nWhile filling: step on scale (post-bathroom, no clothes), glance at Garmin body battery.",
-         "When walking to the kitchen",            .daily,   "4:05",  nil, "anchor", nil),
+         "Right after wake",                       .daily,   "4:32",  nil, "anchor", nil),
 
         ("Open the blinds",            .environment,   5,
-         "Light signal. At 4AM it's dark — open anyway. The act cues wakefulness even before dawn. Environment system: conditions first.",
-         "Walking to kitchen or balcony",          .daily,   "4:10",  nil, nil, nil),
+         "Light signal. Pre-dawn — open anyway. The act cues wakefulness before sunrise.",
+         "Walking to kitchen or balcony",          .daily,   "4:34",  nil, nil, nil),
 
         ("Creatine",                   .health,        5,
-         "5g with water.",
-         "With morning water",                     .daily,   "4:15",  nil, "anchor", "Works by daily saturation, not acute dosing — timing window is flexible. If you miss morning, take it any time that day. Do NOT take with zinc (absorption competition) — that's why zinc is at dinner, not here."),
-
-        ("Pre-fuel — small",           .health,        5,
-         "Banana or half a sourdough slice. Not a meal — just enough to run on. Cardio fuel.",
-         "Before cardio — after hydrate",          .daily,   "4:20",  nil, nil, nil),
+         "5g with water when taking it. Week off is fine — see mechanism note.",
+         "With morning water",                     .daily,   "4:36",  nil, "anchor", "Saturation protocol — 5g/day when active. Initial scale jump is mostly intracellular water (1–3 lb), not fat. A brief pause for scale clarity on a cut is reasonable; resume when ready. Do NOT take with zinc (dinner) — absorption competition."),
 
         ("Cardio — bike or elliptical", .health,      15,
-         "STEADY STATE (default): 35–45 min Zone 2, 65–70% max HR. Fat oxidation peaks here without cortisol load that competes with evening Forge Breechay sessions.\nINTERVAL (1x/week, base days only): 20 min — 8 rounds of 1 min hard / 90 sec easy. Not on hideout days. Not on heavy leg days.\nFasted is fine at this pace. Pre-fuel (banana) only if doing intervals.",
-         "4:30 — before shower, before hideout",   .daily,   "4:30",  nil, nil, nil),
+         "STEADY STATE (default): 35–40 min Zone 2, 130–145 BPM. Fasted default — no pre-cardio carbs.\nOverride: half banana only if body battery <30 or HRV suppressed.\nINTERVAL (1x/week, base days only): 20 min — not on hideout days.",
+         "After core + activation (Physique) — aim done by ~6:00 on Hideout days", .daily, "4:45", nil, nil, nil),
 
         ("Cold exposure — 2 min",      .health,       10,
          "Last 2 minutes of shower cold. Not the whole shower — just the finish.",
@@ -585,11 +682,6 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
          "7:30 — after the door opens and the first rush settles. You arrived at 6:30, the prep is done, now orient.",
          .daily,   "7:30",  "hideout", "anchor", nil),
 
-        ("Deep work block — 90 min",   .cognition,    20,
-         "One thing. Phone in another room. Timer on. No interruptions — let it ring.",
-         "After slow open, when the place is ready",
-         .daily,   "8:30",  "hideout", "anchor", nil),
-
         ("Protein — second hit",       .health,        5,
          "30g. Noon break.",
          "Noon — hideout midday break",            .daily,   "12:00", "hideout", nil, nil),
@@ -599,13 +691,13 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
          "After noon protein on hideout days",     .daily,   "12:15", "hideout", nil, nil),
 
         // Gym — 5PM fixed anchor, building condo gym with Tim
-        ("Pre-lift warmup — 20 min",  .health,       10,
-         "Do this sequence every session before Forge Breechay. Each item addresses a specific failure point:\n1. Hip flexor stretch — 60 sec/side kneeling lunge. Tight hip flexors reduce glute activation in squats. Direct performance impact.\n2. Thoracic spine rotation — 10 reps/side seated. Foundation for pressing + row mechanics. Stiffness here forces shoulder compensation and injury.\n3. Foam roll — quads 60 sec/leg, lats 60 sec/side. Fascial adhesions from daily training limit range of motion and reduce activation efficiency.\n4. Ankle circles + calf raises — 10 circles/direction + 20 slow raises. Foot injury rehab. Restores dorsiflexion that affects squat mechanics.\n5. Dead hang — 30 sec passive. Spine decompression after 10-hour standing shift. Shoulder joint loaded in full range.",
-         "5:00–5:20 PM — gym, before first set",     .daily,  "17:00", nil, nil, nil),
+        ("Pre-lift mobility — 5 min",  .health,       5,
+         "Optional amplifier — not required if first sets feel good.\nHip flexor 60s/side · T-spine rotation 10/side · ankle circles if tibia week feels off.\nAdd dead hang 30s after long Hideout shifts. Full foam-roll protocol only if shoulders turn sticky.",
+         "5:25 PM — gym floor, before first working set", .daily, "17:25", nil, "amplifier", nil),
 
         ("Strength training — gym",    .health,       20,
-         "Building with Tim. Session anchor: mobility first (17:00–17:20), then Forge Breechay. Post-workout protein within 30 min.",
-         "5:30 PM — after mobility warmup",
+         "Building with Tim. Forge Breechay at 5:30. Post-workout protein within 30 min.",
+         "5:30 PM — after optional 5-min mobility",
          .daily,   "17:30", nil, "anchor", nil),
 
         ("Post-workout protein",       .health,        5,
@@ -643,14 +735,15 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
          "After shutdown staging",     .daily,   "20:50", nil, nil, nil),
 
         ("Sleep by 9:30PM",            .health,       10,
-         "End of shutdown corridor. 4AM wake = 6.5 hr ceiling. 9:15–9:30 target. Every system — fat loss, muscle retention, cortisol, HRV — degrades when this slips. Sleep is not a reward; it is a performance input.",
+         "End of shutdown corridor. 4:30 wake = 6.5 hr ceiling. 9:15–9:30 target. Every system — fat loss, muscle retention, cortisol, HRV — degrades when this slips. Sleep is not a reward; it is a performance input.",
          "End of shutdown corridor",        .daily,   "21:15", nil, "anchor", nil),
 
-        // ── HIDEOUT OPERATIONS — behavioral science stack ─────────────────────
-        ("Pre-shift: load the 4 behaviors",  .operations,   10,
-         "1. Primacy — acknowledge every walk-in within 3 seconds.\n2. Choice Architecture — 'Want me to warm a croissant with that?'\n3. Familiarity — which regulars might come in? Know their usual.\n4. Peak-End — '[Name]. Have a great [day]. See you next time.'",
-         "7:15 — after terrace is set, before first customer arrives",              .daily,   "7:15",  "hideout", nil, nil),
+        // ── HIDEOUT PREP — terrace + plants (single pass) ─────────────────────
+        ("Terrace + plants — opening prep", .environment, 10,
+         "One prep pass at arrival: plants first (dry soil, dead leaves, yellowing), then terrace (chairs, surfaces, debris, signage, music). Not two separate slots.",
+         "6:35 — first minutes of Hideout prep window", .daily, "6:35", "hideout", nil, nil),
 
+        // ── HIDEOUT OPERATIONS ────────────────────────────────────────────────
         ("Watermarc relationship touch",     .participation,15,
          "Bring coffee to leasing office. Introduce Hideout. Ask if they'll mention us on tours. Leave cards with concierge. One relationship = potentially dozens of high-value regulars.",
          "First available morning at Hideout",           .weekly,  nil,     "hideout", nil, nil),
@@ -716,11 +809,6 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
          "One thing that's been sitting. A reply, a decision, a task. One — not a list.",
          "Monday morning — first thing",           .weekly,  "8:00",  "base", nil, nil),
 
-        // ── RED LIGHT THERAPY ────────────────────────────────────────────────
-        ("Red light — 10 min",         .health,       10,
-         "Panel 6–12 inches from face + chest. Eyes closed. Do this during hydrate/creatine window.",
-         "During 4:05–4:15 AM hydrate window — before cardio",  .daily, "4:08", nil, "anchor", nil),
-
         // ── SUNLIGHT ON SKIN — at Hideout open ───────────────────────────────
         ("Sunlight — face + arms",     .health,        5,
          "5–10 min direct sun on face and forearms at Hideout open. You're on an outdoor terrace — this is free. Vitamin D synthesis, circadian signal reinforcement, mood. You arrive at 6:30 and you're outdoors during the whole prep window — this is passive during setup. Miami sunrise is ~6:32–7:11 depending on month. Don't wear SPF for this window; apply after.",
@@ -734,12 +822,7 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
         // ── COLLAGEN + VITAMIN C — pre-lift ──────────────────────────────────
         ("Collagen + vitamin C",       .health,       10,
          "10g collagen peptides + vitamin C source (1 cup strawberries covers it) 30–45 min before lifting.",
-         "30–45 min before Forge Breechay — with pre-lift meal",  .daily, "16:45", nil, "amplifier", "Collagen synthesis in connective tissue peaks specifically when collagen peptides AND vitamin C are co-present during mechanical loading — not before, not after. The 30–60 min pre-exercise window is the evidence-based timing. Strawberries cover the vitamin C requirement. Direct relevance: foot injury tendon repair + protecting connective tissue under daily Forge Breechay volume."),
-
-        // ── NASAL BREATHING CHECK — during cardio ────────────────────────────
-        ("Nasal breathing — cardio check",  .health,    5,
-         "At 10 min into cardio: are you breathing through your nose? If not, reduce resistance until you can. Nasal breathing during Zone 2 improves CO2 tolerance, HRV, and nitric oxide production. It's also the best real-time intensity gauge — if you can't nasal breathe, you're above Zone 2. This action is a habit cue, not a task. Once it's automatic, it costs nothing.",
-         "10 min into morning cardio — check and adjust",   .daily, "4:40", nil, "amplifier", "Collagen synthesis in connective tissue peaks specifically when collagen peptides AND vitamin C are co-present during mechanical loading — not before, not after. The 30–60 min pre-exercise window is the evidence-based timing. Strawberries cover the vitamin C requirement. Direct relevance: foot injury tendon repair + protecting connective tissue under daily Forge Breechay volume."),
+         "30–45 min before Forge Breechay — with pre-lift meal",  .daily, "16:45", nil, "amplifier",          "Collagen synthesis in connective tissue peaks specifically when collagen peptides AND vitamin C are co-present during mechanical loading — not before, not after. The 30–60 min pre-exercise window is the evidence-based timing. Strawberries cover the vitamin C requirement. Direct relevance: foot injury tendon repair + protecting connective tissue under daily Forge Breechay volume."),
 
         // ── WEEKLY DEBRIEF — Sunday ──────────────────────────────────────────
         ("Weekly output review",       .operations,   15,
@@ -774,39 +857,14 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
          "Arms, back of neck, any exposed skin. SPF 30 minimum. You're on an outdoor terrace Wed–Sun, arriving at 6:30 in direct morning sun. UVA causes cumulative skin aging regardless of burn — and Miami UVI is high year-round. Apply after the sunlight-on-skin window (6:40 passively during prep) — don't block that first 10 min. Spray SPF is fine for body. Reapply at noon if you're still in direct sun.",
          "6:50 AM — after sunlight window, still in prep, before first customer", .daily, "6:50", "hideout", nil, nil),
 
-        // ══ BODY CARE ═════════════════════════════════════════════════════════
-        ("Body scan — 30 sec",         .health,        5,
-         "In the shower or after. Run hands over scalp, face, chest, back, moles. You're looking for: new moles, changes in existing ones (asymmetry, irregular border, multiple colors, >6mm, raised), unusual lumps, persistent skin changes. Miami sun + outdoor work = elevated melanoma risk. Monthly full check with a partner or mirror for back. Dermatologist annually. This takes 30 seconds and saves lives.",
-         "Monthly — in the shower",                  .none,   nil,     nil, "amplifier", nil),
-
-        ("Nail care",                  .health,        5,
-         "Fingernails: trim straight across, file edges. Toenails: trim straight, not curved — curved edges ingrown. Ingrown toenails with daily cardio and gym are painful and slow recovery. File any rough edges on toenails — friction in shoes causes blisters that interrupt training. Do this after a shower when nails are soft.",
-         "Weekly — after Sunday shower",             .weekly, nil,     nil, "amplifier", nil),
-
-        ("Ear cleaning",               .health,        5,
-         "Cotton tip only on the outer ear — never in the canal. For wax: let warm water into the ear in the shower, tilt to drain. If buildup is significant: Debrox or similar carbamide peroxide drops monthly. Wax buildup causes hearing loss, tinnitus, and mild cognitive fog that most people don't attribute to it. Don't over-clean — ear canal is self-cleaning, outer ear only.",
-         "Monthly — after shower",                   .none,   nil,     nil, "amplifier", nil),
-
         // ══ SLEEP HYGIENE — COMPLETE ══════════════════════════════════════════
         ("Room temperature — set",     .environment,   5,
          "65–68°F (18–20°C). Core body temperature must drop ~1–2°F to initiate and maintain sleep. Hot rooms prevent this drop — they reduce deep sleep and REM regardless of how tired you are. Set AC 30 min before sleep. In Miami, running AC at night is not optional if you care about sleep quality. If you wake at 3AM feeling hot, room temp is the culprit.",
          "8:15 PM — before no-screens window",       .daily,  "20:15", nil, nil, nil),
 
         ("Stage tomorrow",             .environment,  10,
-         "4 things, 4 minutes: (1) Gym bag packed and by door — including collagen, pre-lift snack, any supplements. (2) Tomorrow's outfit on the chair. (3) Kitchen staged — creatine + magnesium out, water bottle filled. (4) App open to Today so first action is visible at 4AM. Every decision you eliminate from the 4AM window is a direct performance upgrade.",
+         "4 things, 4 minutes: (1) Gym bag packed and by door — including collagen, pre-lift snack, any supplements. (2) Tomorrow's outfit on the chair. (3) Kitchen staged — creatine + magnesium out, water bottle filled. (4) App open to Today so first action is visible at 4:30. Every decision you eliminate from the morning window is a direct performance upgrade.",
          "8:45 PM — during shutdown",                .daily,  "20:45", nil, "anchor", nil),
-
-        ("Sleep position — lateral",   .health,        5,
-         "Side sleeping (left preferred) improves glymphatic clearance — the brain's overnight waste removal system. Reduces snoring, reduces acid reflux, reduces spinal load vs. back sleeping. Pillow between knees if hip alignment is off. Not a hard rule but worth defaulting to. Left side specifically improves lymphatic drainage.",
-         "One-time read — internalize as default",             .none,  nil, nil, nil, nil),
-
-        ("Intentional learning — 15 min", .cognition, 15,
-         "15 min of deliberate skill or knowledge acquisition. Not passive consumption — active learning: a book chapter with notes, a course with pause-and-test, a skill practice session. Domains that compound for you: business operations, behavioral psychology, design, coffee craft, plant care. This is different from your reading habit (which is for deep engagement). This is targeted upskilling. Fits in commute or Hideout quiet window.",
-         "Commute or Hideout quiet window",          .daily,  nil,     nil, "amplifier", nil),
-
-        ("Gratitude — 3 items",        .cognition,     5,
-         "Write or say 3 specific things. Not 'grateful for health' — 'grateful that my foot is healing faster than expected.' Specificity is what produces the neurological effect (prefrontal cortex activation, reduced amygdala reactivity). Evidence base is strong across multiple trial designs. Skeptics: you're wrong. 60 seconds, same time each day. Pairs naturally with your 3-sentence journal.",
-         "With morning journal — 5:45 AM",           .daily,  "5:47",  nil, "amplifier", nil),
 
         ("Weekly financial check",     .operations,   10,
          "10 min. Not a full review — just: what came in this week, what went out, what's the shift from target, is there a decision needed before next week. For Hideout: is weekly revenue trending toward stability band or above. For personal: any irregular expense requiring adjustment. This is pattern maintenance, not anxiety management. Calm, factual, 10 min.",
@@ -817,75 +875,19 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
          "Fingertips only — no nails, no palm, no tool. Firm circular pressure, not scratching. Zones in order: temples, crown, occiput (back of skull), sides. 4 full minutes — use a timer once to calibrate what it feels like, then it becomes automatic. Mechanism: mechanical stress on dermal papilla cells triggers gene expression for thicker hair shaft diameter. 24-week study showed statistically significant thickness increase at 4 min/day. Optimal windows: (1) in the shower during conditioner dwell time — warm water and vasodilation amplify blood flow to follicles; (2) immediately after applying minoxidil on treatment nights — massage distributes the solution from drop sites across the zone and increases follicular absorption. Don't do it dry on an irritated or flaking scalp — wet is gentler. Scalp massager tools feel good but reduce feedback; fingertips let you feel tension, tender spots, and areas of poor circulation.",
          "In the shower — during conditioner dwell time",  .daily, nil,  nil, nil, nil),
 
-        ("20-20-20 — Hideout screens", .health,        5,
-         "Every 20 min of screen work: look at something 20 feet away for 20 seconds. The outdoor terrace makes this effortless — look at the horizon. Reduces digital eye strain and slows myopia progression. Use customer transitions as the natural cue.",
-         "During Hideout screen work — every 20 min", .daily, nil,  "hideout", "amplifier", nil),
-
         ("Send one meaningful message", .participation, 10,
          "One message to one person that requires thought. Not a reaction, not a reply to a notification — an initiated message with actual content. Check in on someone's specific situation. Share something relevant to them specifically. Make a plan. This is relationship maintenance as a repeatable action. It takes 2 minutes. Over time, your network cohesion is the sum of these small acts.",
          "Any natural transition in the day",        .daily,  nil,     nil, nil, nil),
 
-        ("Compliment or acknowledge",  .participation,  5,
-         "One genuine, specific compliment or acknowledgment per day — customer, staff, anyone. Not 'great job' — 'I noticed how you handled that situation, that was thoughtful.' Specificity is what makes it land. This is also a behavioral science tool for Hideout: customers who feel genuinely seen return at higher rates. It's not manipulation — it's just noticing and saying it.",
-         "During Hideout shift or in the day",       .daily,  nil,     "hideout", "amplifier", nil),
-
-        // ══ ENVIRONMENT — ADVANCED ════════════════════════════════════════════
-        ("Plant check — water + prune", .environment,   5,
-         "Quick pass: any dry soil, any dead leaves, any yellowing. You arrive at 6:30 — this is the first 5 min of the prep window before opening. Living plants in the terrace environment directly affect: air quality (marginal but real), visual appeal for customers (significant), and your own state entering the shift. A dead or struggling plant is an environmental disorder signal.",
-         "6:30 AM arrival — first 5 min of Hideout prep",          .daily,  "6:35",  "hideout", nil, nil),
-
-        ("Terrace audit — opening",    .environment,  10,
-         "Final 15 min of the prep window: chairs aligned, table surfaces clean, any debris from wind or overnight, plants upright, signage correct, music on. You arrive at 6:30 — you have 30 min before the door opens. This is the last thing in that window. Environmental coherence is the gateway system: a well-set terrace changes customer perception within seconds of arrival, before they've tasted anything.",
-         "6:45 AM — 15 min before open. Last prep window item.",         .daily,  "6:45",  "hideout", nil, nil),
-
-        ("Condo 26th floor — balcony reset", .environment, 5,
-         "Weekly: sweep balcony, wipe rail, remove any items that drifted there. The 26th floor has different environmental conditions — wind-driven particulates, salt air, higher UV exposure on furniture. Monthly: check any outdoor items for corrosion or wear. Your home environment starts from the moment you step outside — keep it clean.",
-         "Weekly — Sunday or Monday base day",       .weekly, nil,     nil, nil, nil),
-
-        // ══ BODY COMPOSITION TRACKING ═════════════════════════════════════════
-        ("Progress photos — Sunday",   .health,        5,
-         "Same conditions: morning light, same pose (front, side, back), same location. Lighting variation kills comparability — use the same spot every week. Photos capture what the scale misses: body composition changes while weight stays flat are common during recomp. At 12–13% body fat targeting 8–10%, the visual delta will be significant over 8–12 weeks. Document it.",
-         "Sunday morning — same location and lighting", .weekly, nil,  nil, "amplifier", nil),
-
+        // ── BODY COMPOSITION TRACKING ═════════════════════════════════════════
         ("Training log — post session", .health,       10,
          "After every Forge Breechay session: log weights for each main movement. Note any week-over-week PR — that number is the competition signal. Memory underestimates actual lifts by ~8–12%. Progressive overload during a cut is what signals muscle retention. 2 minutes per session.",
          "Immediately after Forge Breechay — before shower", .daily, "18:45", nil, "amplifier", nil),
-
-        // ══ RECOVERY TOOLS ════════════════════════════════════════════════════
-        ("Contrast shower — post-gym", .health,       10,
-         "After post-lift shower: finish with 30 sec cold, then 30 sec warm, repeat 3x, end cold. Different from the morning cold finish — this is a recovery protocol. Mechanism: vasoconstriction/vasodilation cycling increases blood flow to muscles, reduces DOMS, and clears metabolic byproducts. Takes 3 extra minutes. Evidence is moderate but consistent for subjective recovery and DOMS reduction. Use on high-volume leg days especially.",
-         "End of post-gym shower — 3 extra minutes", .daily,  "19:00", nil, "amplifier", nil),
-
-        ("Legs up the wall — 5 min",   .health,        5,
-         "Lie on floor, legs straight up wall, 5 minutes. After 10-hour active shift + gym: venous return from legs is impaired, feet swell, leg fatigue accumulates. This posture reverses hydrostatic pressure, drains interstitial fluid from lower limbs, and produces measurable parasympathetic activation (HR drop, cortisol reduction). Do it during the post-workout wind-down. Free, takes no equipment.",
-         "After post-workout meal — before shutdown. 5 minutes, no equipment.",  .daily,  "19:40", nil, "amplifier", nil),
-
-        ("Epsom salt soak — foot",     .health,       10,
-         "20 min warm water + 2 cups epsom salt, foot submerged. Magnesium sulfate transdermal absorption reduces local inflammation and muscle tension. Directly relevant to foot injury recovery. Do 2–3x per week, post-gym. Add a few drops of lavender oil if you have it — mild analgesic and parasympathetic activator. This should be a wind-down ritual, not a chore.",
-         "Post-gym, 2–3x weekly — wind-down ritual",  .none,  nil,     nil, "amplifier", nil),
 
         // ══ NUTRITION — GAPS ══════════════════════════════════════════════════
         ("Electrolytes — midday",      .health,        5,
          "Sodium + potassium + magnesium mid-shift. Options: pinch of sea salt in water bottle, coconut water (has potassium), LMNT or similar packet. With daily Zone 2 cardio + 10-hour active outdoor shift in Miami heat, sweat losses are significant. Signs of electrolyte deficit: afternoon headache, muscle cramps, flat lifts, brain fog by 3PM. This is often what people misidentify as 'low energy.'",
          "Midday at Hideout — 12:30 PM with protein meal", .daily, "12:30", "hideout", nil, nil),
-
-
-        ("Protein before sleep",       .health,        5,
-         "20–30g slow-digesting protein 30 min before sleep. Options from your stack: 1 cup regular milk (~8g) + 1 tbsp almond butter, or a small pumpkin seed protein shake in milk. Casein and milk protein digest slowly overnight — providing amino acids during the 6.5 hour fast when muscle protein synthesis peaks (GH pulses during deep sleep). Don't skip this if your total daily protein is under 190g.",
-         "30 min before sleep — 8:45–9:00 PM",      .daily,  "20:55", nil, nil, nil),
-
-        // ══ SOCIAL / HIDEOUT CRAFT ════════════════════════════════════════════
-        ("Learn 3 regulars",           .participation, 10,
-         "Identify 3 regulars you don't yet know by name. Learn: name, usual order, something specific about them (job, morning routine, why they come). Use the primacy-familiarity-peak-end protocol you already have — but this seeds the database. A café regulars network is a compounding asset. Each known regular has a referral value of 5–10 new customers over time if they feel genuinely known.",
-         "During first Hideout hour — observe and note", .weekly, nil, "hideout", "amplifier", nil),
-
-        ("Coffee craft — one technique", .participation, 10,
-         "One week, one technique. Spend 10 min learning: extraction variables, milk texturing, a latte art form, filter method, cold brew ratio. Whatever you're weakest on. Craft knowledge compounds into menu development, pricing confidence, and customer education — all of which increase average ticket. The learning cost is near-zero (you're already making coffee). The ROI is significant.",
-         "Any quiet window at Hideout",              .weekly, nil,     "hideout", "amplifier", nil),
-
-        ("Menu engineering — weekly",  .operations,   10,
-         "10 min: which item had the highest margin this week, which had the lowest. Which item do you push most (primacy bias in the upsell script) and is it the highest margin one? Menu engineering is the highest-leverage business lever for a solo café — no extra labor, no extra rent, just better routing of customer choice. This is behavioral economics applied to the register.",
-         "Monday base day — Hideout review",         .weekly, "9:30",  "base", nil, nil),
 
         // ── MEAL RAIL — full day sequence, timing matters for cut adherence ────────────
         // These appear on Today so the full wake→cardio→protein→meals→gym→shutdown arc is visible.
@@ -918,9 +920,9 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
          "Post-training anabolic window is real and narrow for this context. Insulin sensitivity in muscle is highest in the 30–45 min post-exercise window. Carbohydrate + protein together here produces a greater anabolic response than protein alone. Miss this window and muscle glycogen replenishment is slower, muscle protein synthesis signal is blunted. On a cut this matters more, not less — you have less margin. ~480 kcal · 42g P."),
 
         ("Final meal",                  .health,       5,
-         "120–150g roasted chicken · avocado · spinach/arugula · olive oil.\nChicken + avocado + greens. Kitchen closed at 8:30 PM.",
+         "120–150g roasted chicken · avocado · spinach/arugula · olive oil.\nChicken + avocado + greens. Kitchen closed at 8:30 PM — no pre-sleep protein.",
          "7:30–8:00 PM — before shutdown corridor",   .daily,  "19:30", nil, nil,
-         "Last anabolic signal of the day. Protein before sleep supports overnight muscle protein synthesis — particularly important during a cut when catabolism risk is higher. Avocado provides monounsaturated fat for testosterone substrate. Closing the kitchen by 8:30 PM protects the 9:30 PM sleep target. ~480 kcal · 50g P."),
+         "Last protein anchor of the day — ~50g here plus post-lift shake covers the 190g target. Kitchen closed by 8:30 supports sleep and a light stomach. No casein or bedtime shake required when daily protein is distributed across earlier meals."),
 
     ]
     for (title, system, points, note, cue, recurrence, block, dayType, tier, mechanism) in defaults {
@@ -941,19 +943,17 @@ func seedDefaultSessions(context: ModelContext, onlyTitles: Set<String>? = nil) 
             "Morning Protocol",
             .health,
             [
-                "4:00 — No phone. Open blinds.",
-                "4:05 — Water (500ml) + weigh in (post-bathroom) + Garmin HRV glance",
-                "4:08 — Red light (10 min while hydrating)",
-                "4:15 — Creatine (5g)",
-                "4:20 — Pre-fuel: banana or half sourdough",
-                "4:30 — Cardio: Zone 2 bike/elliptical 35–40 min",
+                "4:30 — Wake. No phone. Open blinds.",
+                "4:32 — Water (500ml) + weigh in (post-bathroom) + Garmin HRV glance",
+                "4:36 — Creatine (5g) — skip if on planned pause",
+                "4:40 — Core + AM activation (Physique tabs) — then fasted cardio 35–40 min",
                 "5:15 — Cold finish (last 2 min of shower cold)",
                 "5:18 — Grooming corridor: cleanse → niacinamide → eye cream → SPF → lip balm → body lotion → deodorant → brush teeth AM",
                 "5:35 — Protein first meal (30g minimum)",
-                "5:45 — Journal (3 sentences) + Gratitude (3 specific items)",
-                "5:50 — Morning light on commute"
+                "5:45 — Journal (3 sentences)",
+                "Leave ~6:00 on Hideout days"
             ],
-            "4:00 AM wake",
+            "4:30 AM wake target",
             .daily
         ),
         (
@@ -967,7 +967,7 @@ func seedDefaultSessions(context: ModelContext, onlyTitles: Set<String>? = nil) 
                 "8:40 — Magnesium glycinate (400mg)",
                 "8:45 — Stage tomorrow: bag packed, outfit set, kitchen staged, app open",
                 "8:50 — Read (physical book, 20+ pages)",
-                "8:55 — Protein before sleep if total protein under 190g",
+                "8:55 — Kitchen closed. Light stomach — protein target hit by final meal.",
                 "9:15 — Lights out. Side sleep position."
             ],
             "8:25 PM — hard start",
@@ -1052,35 +1052,6 @@ func seedDefaultSessions(context: ModelContext, onlyTitles: Set<String>? = nil) 
             "Base days — after morning anchor, before ops work. Not during hideout shifts.",
             .daily
         ),
-        // NEW v2.2 — Deep Work: the 90-min block as a session with setup steps
-        (
-            "Deep Work Block",
-            .cognition,
-            [
-                "Define the one thing — write it down",
-                "Close all tabs except what's needed",
-                "Phone off or in another room",
-                "Timer: 90 min",
-                "No interruptions — let it ring"
-            ],
-            "After Cognitive Sharpening",
-            .daily
-        ),
-        // SOLO OPERATOR PROTOCOL — behavioral science pre-shift primer
-        // Based on: Primacy Effect, Choice Architecture, Familiarity Principle, Peak-End Rule
-        // Run before opening — loads the four behaviors mentally before the first customer
-        (
-            "Solo Operator Protocol",
-            .operations,
-            [
-                "Primacy: ready to acknowledge every walk-in within 3 seconds",
-                "Choice Architecture: scripted upsell ready — 'Want me to warm a croissant with that?'",
-                "Familiarity: which regulars might come in today? Their usual?",
-                "Peak-End: anchor phrase ready — '[Name]. Have a great [day]. See you next time.'"
-            ],
-            "Before opening — 7AM or 10AM weekends",
-            .daily
-        ),
         // WATERMARC OUTREACH — highest-ROI visibility play per strategy brief
         (
             "Watermarc relationship touch",
@@ -1096,17 +1067,15 @@ func seedDefaultSessions(context: ModelContext, onlyTitles: Set<String>? = nil) 
         ),
 
         (
-            "Pre-Lift Warmup",
+            "Pre-Lift Mobility",
             .health,
             [
-                "Hip flexor — 60 sec/side kneeling lunge. Unlocks glute activation.",
-                "Thoracic rotation — 10 reps/side. Foundation for pressing mechanics.",
-                "Foam roll — quads 60 sec/leg, lats 60 sec/side. Clears fascial adhesions.",
-                "Ankle circles — 10 each direction each foot. Foot injury rehab.",
-                "Calf raises — 20 slow on step edge, full range. Dorsiflexion restoration.",
-                "Dead hang — 30 sec passive. Spine decompression after standing shift."
+                "Hip flexor — 60 sec/side kneeling lunge",
+                "Thoracic rotation — 10 reps/side seated",
+                "Ankle circles — 10 each direction (tibia weeks)",
+                "Dead hang — 30 sec optional after long Hideout shift"
             ],
-            "Gym arrival — before first working set",
+            "5:25 PM — before first working set (optional)",
             .daily
         ),
 
@@ -1586,6 +1555,8 @@ struct RootView: View {
                 seedDefaultActions(context: context)
             } else {
                 dedupeActionsByTitle(context: context, actions: actions)
+                retirePrescribedStackItems(context: context, actions: actions, sessions: sessions)
+                refreshEveningShutdownSession(context: context, sessions: sessions)
                 seedMissingCoreActions(context: context, existing: actions)
             }
             if sessions.isEmpty {
@@ -1598,7 +1569,11 @@ struct RootView: View {
             if financialStates.isEmpty { context.insert(FinancialState()) }
             // Seed Week 1 solo experiment data (May 13–17, 2026) if no shifts exist.
             // Gated on hideoutShifts.isEmpty — only runs on fresh install or after data wipe.
-            if hideoutShifts.isEmpty { seedWeek1Shifts(context: context) }
+            if hideoutShifts.isEmpty {
+                seedWeek1Shifts(context: context)
+            } else {
+                dedupeHideoutShiftsByDay(context: context, shifts: hideoutShifts)
+            }
             // Seed partner accounts — Jimmy (active) + pipeline prospects from brief.
             if partnerAccounts.isEmpty { seedDefaultPartnerAccounts(context: context) }
             if let p = profiles.first {
@@ -1764,9 +1739,23 @@ enum SchemaV9: VersionedSchema {
     }
 }
 
+enum SchemaV10: VersionedSchema {
+    static var versionIdentifier = Schema.Version(10, 0, 0)
+    // V10 adds physique practice logs + TibiaRecoveryLog Phase 2 gate fields.
+    static var models: [any PersistentModel.Type] {
+        [Action.self, Habit.self, OperatorProfile.self,
+         DailyLog.self, WorkTrack.self, RecoveryPhase.self, CognitionLog.self,
+         Session.self, MaintenanceItem.self, HydrationLog.self, FinancialState.self,
+         ConsultReceipt.self, HideoutShiftLog.self, FridaySignalLog.self,
+         PartnerAccount.self, TibiaRecoveryLog.self,
+         DistributionWeek.self, DecisionLedger.self,
+         CoreCompletionLog.self, AMActivationLog.self]
+    }
+}
+
 enum INCREMENTSMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
-        [SchemaV1.self, SchemaV4.self, SchemaV6.self, SchemaV7.self, SchemaV8.self, SchemaV9.self]
+        [SchemaV1.self, SchemaV4.self, SchemaV6.self, SchemaV7.self, SchemaV8.self, SchemaV9.self, SchemaV10.self]
     }
     static var stages: [MigrationStage] {
         [
@@ -1775,6 +1764,7 @@ enum INCREMENTSMigrationPlan: SchemaMigrationPlan {
             .lightweight(fromVersion: SchemaV6.self, toVersion: SchemaV7.self),
             .lightweight(fromVersion: SchemaV7.self, toVersion: SchemaV8.self),
             .lightweight(fromVersion: SchemaV8.self, toVersion: SchemaV9.self),
+            .lightweight(fromVersion: SchemaV9.self, toVersion: SchemaV10.self),
         ]
     }
 }
@@ -1799,7 +1789,8 @@ struct INCREMENTSApp: App {
             Session.self, MaintenanceItem.self, HydrationLog.self, FinancialState.self,
             ConsultReceipt.self, HideoutShiftLog.self, FridaySignalLog.self,
             PartnerAccount.self, TibiaRecoveryLog.self,
-            DistributionWeek.self, DecisionLedger.self
+            DistributionWeek.self, DecisionLedger.self,
+            CoreCompletionLog.self, AMActivationLog.self
         ])
         let cloudConfig = ModelConfiguration(
             schema: schema,
