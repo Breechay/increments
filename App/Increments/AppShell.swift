@@ -556,8 +556,8 @@ func dedupeHideoutShiftsByDay(context: ModelContext, shifts: [HideoutShiftLog]) 
 }
 
 /// Removes Today stack items retired May 2026 — pre-shift behaviors, deep work block, split terrace/plant.
-func retirePrescribedStackItems(context: ModelContext, actions: [Action], sessions: [Session]) {
-    let retiredActions: Set<String> = [
+enum PrescribedStackRetirement {
+    static let retiredActionTitles: Set<String> = [
         "Pre-shift: load the 4 behaviors",
         "Deep work block — 90 min",
         "Plant check — water + prune",
@@ -584,17 +584,70 @@ func retirePrescribedStackItems(context: ModelContext, actions: [Action], sessio
         "Compliment or acknowledge",
         "Condo 26th floor — balcony reset",
     ]
-    let retiredSessions: Set<String> = [
+
+    static let retiredSessionTitles: Set<String> = [
         "Deep Work Block",
         "Solo Operator Protocol",
         "Pre-Lift Warmup",
     ]
+
+    /// Catches legacy titles and CloudKit variants not in the exact retire set.
+    static func isRetiredActionTitle(_ title: String) -> Bool {
+        if retiredActionTitles.contains(title) { return true }
+        let t = title.lowercased()
+        if t.hasPrefix("pre-shift") { return true }
+        if t.hasPrefix("plant check") { return true }
+        if t.contains("terrace audit") { return true }
+        if t.contains("pre-lift warmup") { return true }
+        if t.contains("protein before sleep") { return true }
+        if t.contains("deep work block") { return true }
+        if t.hasPrefix("pre-fuel") { return true }
+        return false
+    }
+
+    static func isRetiredSessionTitle(_ title: String) -> Bool {
+        retiredSessionTitles.contains(title)
+    }
+
+    /// Dedupe, retire legacy clutter, patch sessions, seed any missing core rows.
+    /// Fetches fresh from the store so CloudKit imports after launch are cleaned too.
+    static func normalize(context: ModelContext) {
+        let actions = (try? context.fetch(FetchDescriptor<Action>())) ?? []
+        let sessions = (try? context.fetch(FetchDescriptor<Session>())) ?? []
+
+        dedupeActionsByTitle(context: context, actions: actions)
+        dedupeSessionsByTitle(context: context, sessions: sessions)
+
+        let actionsAfterDedupe = (try? context.fetch(FetchDescriptor<Action>())) ?? []
+        let sessionsAfterDedupe = (try? context.fetch(FetchDescriptor<Session>())) ?? []
+
+        var changed = false
+        for action in actionsAfterDedupe where isRetiredActionTitle(action.title) {
+            context.delete(action)
+            changed = true
+        }
+        for session in sessionsAfterDedupe where isRetiredSessionTitle(session.title) {
+            context.delete(session)
+            changed = true
+        }
+        if changed { try? context.save() }
+
+        refreshEveningShutdownSession(context: context, sessions: (try? context.fetch(FetchDescriptor<Session>())) ?? [])
+
+        let remainingActions = (try? context.fetch(FetchDescriptor<Action>())) ?? []
+        let remainingSessions = (try? context.fetch(FetchDescriptor<Session>())) ?? []
+        seedMissingCoreActions(context: context, existing: remainingActions)
+        seedMissingSessions(context: context, existing: remainingSessions)
+    }
+}
+
+func retirePrescribedStackItems(context: ModelContext, actions: [Action], sessions: [Session]) {
     var changed = false
-    for action in actions where retiredActions.contains(action.title) {
+    for action in actions where PrescribedStackRetirement.isRetiredActionTitle(action.title) {
         context.delete(action)
         changed = true
     }
-    for session in sessions where retiredSessions.contains(session.title) {
+    for session in sessions where PrescribedStackRetirement.isRetiredSessionTitle(session.title) {
         context.delete(session)
         changed = true
     }
@@ -926,6 +979,7 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
 
     ]
     for (title, system, points, note, cue, recurrence, block, dayType, tier, mechanism) in defaults {
+        if PrescribedStackRetirement.isRetiredActionTitle(title) { continue }
         if let filter = onlyTitles, !filter.contains(title) { continue }
         let action = Action(
             title: title, system: system, points: points,
@@ -1553,18 +1607,13 @@ struct RootView: View {
             }
             if actions.isEmpty {
                 seedDefaultActions(context: context)
-            } else {
-                dedupeActionsByTitle(context: context, actions: actions)
-                retirePrescribedStackItems(context: context, actions: actions, sessions: sessions)
-                refreshEveningShutdownSession(context: context, sessions: sessions)
-                seedMissingCoreActions(context: context, existing: actions)
             }
             if sessions.isEmpty {
                 seedDefaultSessions(context: context)
-            } else {
-                dedupeSessionsByTitle(context: context, sessions: sessions)
-                seedMissingSessions(context: context, existing: sessions)
             }
+            // Always normalize — retire legacy rows, dedupe CloudKit ghosts, seed missing core.
+            // Skipping when actions.isEmpty was leaving post-wipe / iCloud re-import clutter visible.
+            PrescribedStackRetirement.normalize(context: context)
             if maintenanceItems.isEmpty { seedDefaultMaintenance(context: context) }
             if financialStates.isEmpty { context.insert(FinancialState()) }
             // Seed Week 1 solo experiment data (May 13–17, 2026) if no shifts exist.
@@ -1603,9 +1652,16 @@ struct RootView: View {
                     resetDailyActionsIfNeeded(context: context, profile: p, actions: actions, sessions: sessions)
                     restoreSystemLastActivity(state: state, actions: actions)
                 }
+                // CloudKit may import stale actions after foreground — re-normalize once sync settles.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    PrescribedStackRetirement.normalize(context: context)
+                }
             } else if newPhase == .background {
                 cloudSync.pushLocalDefaultsToCloud()
             }
+        }
+        .onChange(of: cloudKitMonitor.lastUpdated) { _, _ in
+            PrescribedStackRetirement.normalize(context: context)
         }
         } // end AppMetricsProvider
     }
