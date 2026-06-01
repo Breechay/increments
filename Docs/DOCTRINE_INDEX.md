@@ -13,6 +13,9 @@ This is **canonical infrastructure** for agents and future builds — not market
 | Any INCREMENTS task | This index → targeted doc below |
 | Weekly operator audit / “should we add…” | `FORM-iOS/docs/BRICE_OS/CONDUCT_FILTER.md` (cross-repo; not INCREMENTS voice) |
 | Night-read — deficiency vs another room | `FORM-iOS/docs/BRICE_OS/ANOTHER_ROOM_LENS.md` · You → Doctrine → Operator |
+| Study — operator pattern manual (PDF) | `FORM-iOS/docs/BRICE_OS/BRICE_OPERATOR_MANUAL.md` |
+| What I Want (markdown) | `WHAT_I_WANT.md` · You → Want |
+| Cinema / film taste | `CINEMATIC_DOCTRINE.md` · full PDF: `../cinematic_doctrine_v11.pdf` |
 | Product / strategy question | `PRODUCT_DOCTRINE.md` |
 | Copy, Wendy, presence lines | `VOICE_DOCTRINE.md` → `INCREMENTS_Voice_Doctrine.md` (examples) |
 | Tab ownership, modes, surface contracts | `PRODUCT_ARCHITECTURE.md` |

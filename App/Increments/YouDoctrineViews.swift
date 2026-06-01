@@ -246,6 +246,16 @@ struct DoctrineOperatorReading: View {
             )
 
             DoctrineSubsection(
+                label: "SUNDAY · FREQUENCY",
+                accent: .warm,
+                paragraphs: [
+                    "Not a life problem — a Sunday problem. Mon–Tue and Wed–Sat already feed stewardship, competence, craft, execution. The quiet room becomes audible when operational noise drops.",
+                    "Sunday is not for company. Sunday is for frequency. Sometimes people, sometimes a film, sometimes a museum or one long walk — sometimes nobody. Criterion: Does this room nourish the part of me that spent the week in stewardship?",
+                    "Stop spending envoy budget on nice and available. One excellent conversation every few weeks may be enough. Pattern manual: BRICE_OS/BRICE_OPERATOR_MANUAL.md."
+                ]
+            )
+
+            DoctrineSubsection(
                 label: "BUY-IN · MECHANISM",
                 accent: .violetLight,
                 paragraphs: [
