@@ -243,6 +243,7 @@ struct DoctrineOperatorReading: View {
                     "When restless, one question only: Am I experiencing deficiency, or am I noticing another room? Follow-up: Is the house failing, or is the house standing? The house is standing — that is why you are looking out the window.",
                     "Rooms are not escapes: another room is not an argument against the current room. The anchor held. The meal nourished. A new room becomes visible because the old room succeeded — not because it failed.",
                     "Audibility, not absence: the problem was not missing a person, city, or philosophy. It was missing context for dormant parts to become audible again.",
+                    "Quiet desires becoming audible is often a sign the system is healthier, not hungrier — the house got quiet enough to hear them, not a need to escape.",
                     "Survival test: when something lights you up — film, city, person, conversation — do you hear I need to change my life, or Oh, that room is still here? No audit. No checkbox. Mac: BRICE_OS/ANOTHER_ROOM_LENS.md."
                 ]
             )
