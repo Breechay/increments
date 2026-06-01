@@ -235,6 +235,17 @@ struct DoctrineOperatorReading: View {
             )
 
             DoctrineSubsection(
+                label: "ANOTHER ROOM",
+                accent: .warm,
+                paragraphs: [
+                    "The meal is good. There are other flavors. The anchors worked. Another room.",
+                    "Not a habit. A reinterpretation of a recurring feeling. Before: something is missing. After: something else exists. Concentration is not deprivation. Curiosity is not dissatisfaction. Expansion is not escape.",
+                    "When restless, one question only: Am I experiencing deficiency, or am I noticing another room? Follow-up: Is the house failing, or is the house standing? The house is standing — that is why you are looking out the window.",
+                    "Survival test: when something lights you up — film, city, person, conversation — do you hear I need to change my life, or Oh, that room is still here? No audit. No checkbox. Mac: BRICE_OS/ANOTHER_ROOM_LENS.md."
+                ]
+            )
+
+            DoctrineSubsection(
                 label: "BUY-IN · MECHANISM",
                 accent: .violetLight,
                 paragraphs: [
