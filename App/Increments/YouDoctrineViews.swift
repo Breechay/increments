@@ -224,6 +224,17 @@ struct DoctrineOperatorReading: View {
             )
 
             DoctrineSubsection(
+                label: "CONDUCT FILTER",
+                accent: .inkGreen,
+                paragraphs: [
+                    "First principles: competence under load, restraint, silence as data, conduct over story. When in doubt: make competence visible and remove explanation.",
+                    "Weekly audit — 15 minutes, Monday morning or Sunday evening. Today → Habits → Conduct audit. Maintenance surfaces the same item when the interval is due.",
+                    "Pick one product you touched: did you add explanation where conduct should carry? fill a slot without evidence? expand scope before the last layer proved? One line each on business, coaching, relationships. Close by naming one deletion for the next week.",
+                    "Before TestFlight or any major ship: delete filter on one surface — if removed, is conduct still clear? Full checklist on Mac: BRICE_OS/CONDUCT_FILTER.md."
+                ]
+            )
+
+            DoctrineSubsection(
                 label: "BUY-IN · MECHANISM",
                 accent: .violetLight,
                 paragraphs: [

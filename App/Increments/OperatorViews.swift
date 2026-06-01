@@ -1379,9 +1379,18 @@ struct HabitsViewEmbed: View {
             ("Movement", .health, "After clearing desk surface", "10 min walk"),
             ("No Phone First Hour", .cognition, "When waking", "Phone stays face-down"),
             ("Night Routine", .environment, "After final meal", "Lights dimmed, one reset"),
+            (ConductFilterSeed.title, .cognition, ConductFilterSeed.cue, ConductFilterSeed.minimumScope),
         ]
         for (title, system, cue, minimum) in defaults {
-            context.insert(Habit(title: title, system: system, cue: cue, minimumScope: minimum))
+            let habit = Habit(
+                title: title,
+                system: system,
+                frequency: title == ConductFilterSeed.title ? .weekly : .daily,
+                cue: cue,
+                minimumScope: minimum
+            )
+            if title == ConductFilterSeed.title { habit.notes = ConductFilterSeed.auditNotes }
+            context.insert(habit)
         }
     }
 }

@@ -4485,10 +4485,19 @@ struct HabitsView: View {
             ("No Phone First Hour", .cognition, "When waking", "Phone stays face-down"),
             ("Night Routine", .environment, "After final meal", "Lights dimmed, one reset"),
             ("Money Touch", .operations, "After first coffee", "Open one financial task"),
-            ("Apartment Reset", .environment, "After docking at primary seated position", "One area only")
+            ("Apartment Reset", .environment, "After docking at primary seated position", "One area only"),
+            (ConductFilterSeed.title, .cognition, ConductFilterSeed.cue, ConductFilterSeed.minimumScope),
         ]
         for (title, system, cue, minimum) in defaults {
-            context.insert(Habit(title: title, system: system, cue: cue, minimumScope: minimum))
+            let habit = Habit(
+                title: title,
+                system: system,
+                frequency: title == ConductFilterSeed.title ? .weekly : .daily,
+                cue: cue,
+                minimumScope: minimum
+            )
+            if title == ConductFilterSeed.title { habit.notes = ConductFilterSeed.auditNotes }
+            context.insert(habit)
         }
     }
 }
@@ -4507,6 +4516,10 @@ struct HabitCard: View {
                         if !habit.cue.isEmpty {
                             Text("When: \(habit.cue)").font(metrics.fontMono(12)).foregroundColor(.textMuted).tracking(0.3)
                         }
+                        if habit.frequency == .weekly {
+                            Text(habit.frequency.displayLabel.uppercased())
+                                .font(metrics.fontMono(10)).foregroundColor(.textMuted).tracking(0.8)
+                        }
                     }
                     Spacer()
                     SystemBadge(system: habit.system)
@@ -4517,6 +4530,14 @@ struct HabitCard: View {
                         Image(systemName: "minus.circle").font(.system(size: metrics.scaledSize(11))).foregroundColor(.violetLight)
                         Text("Minimum: \(habit.minimumScope)").font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond)
                     }
+                }
+
+                if let notes = habit.notes, !notes.isEmpty {
+                    Text(notes)
+                        .font(metrics.fontSora(12, weight: .light))
+                        .foregroundColor(.textMuted)
+                        .lineSpacing(3)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 HStack(spacing: metrics.cardSpacing) {

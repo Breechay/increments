@@ -330,6 +330,46 @@ func seedDefaultPartnerAccounts(context: ModelContext) {
 
 
 
+// MARK: - Conduct filter (BRICE_OS — weekly audit habit + maintenance)
+
+enum ConductFilterSeed {
+    static let title = "Conduct audit"
+    static let cue = "Monday 8:00 AM or Sunday 7:00 PM"
+    static let minimumScope = "15 min — one product audit + name one deletion"
+    static let auditNotes = """
+    Weekly audit:
+    • One product: no lesson-voice, no empty slots, defer scope
+    • Business / coaching / relationships: one line each
+    • Name one deletion for next week
+    Delete filter before ship: competence visible? restraint? conduct clear without this line?
+    Mac: FORM-iOS/docs/BRICE_OS/CONDUCT_FILTER.md
+    """
+}
+
+func seedMissingConductFilterItems(context: ModelContext, maintenance: [MaintenanceItem], habits: [Habit]) {
+    let maintTitles = Set(maintenance.map(\.title))
+    if !maintTitles.contains(ConductFilterSeed.title) {
+        context.insert(MaintenanceItem(
+            title: ConductFilterSeed.title,
+            system: .cognition,
+            intervalDays: 7,
+            notes: ConductFilterSeed.auditNotes
+        ))
+    }
+    let habitTitles = Set(habits.map(\.title))
+    if !habitTitles.contains(ConductFilterSeed.title) {
+        let habit = Habit(
+            title: ConductFilterSeed.title,
+            system: .cognition,
+            frequency: .weekly,
+            cue: ConductFilterSeed.cue,
+            minimumScope: ConductFilterSeed.minimumScope
+        )
+        habit.notes = ConductFilterSeed.auditNotes
+        context.insert(habit)
+    }
+}
+
 func seedDefaultMaintenance(context: ModelContext) {
     let defaults: [(String, SystemTag, Int)] = [
         // Environment
@@ -350,13 +390,15 @@ func seedDefaultMaintenance(context: ModelContext) {
         ("Testosterone panel",      .health,       180),
         // Operations
         ("Weekly reset",            .operations,    7),
+        (ConductFilterSeed.title,   .cognition,      7),
         ("Financial review",        .operations,    7),
         ("Espresso machine deep clean", .operations, 7),
         ("Grinder calibration",     .operations,   14),
         ("App subscription audit",  .operations,   90),
     ]
     for (title, system, interval) in defaults {
-        context.insert(MaintenanceItem(title: title, system: system, intervalDays: interval))
+        let notes = title == ConductFilterSeed.title ? ConductFilterSeed.auditNotes : ""
+        context.insert(MaintenanceItem(title: title, system: system, intervalDays: interval, notes: notes))
     }
 }
 
@@ -1585,6 +1627,7 @@ struct RootView: View {
 
     @Query private var sessions: [Session]
     @Query private var maintenanceItems: [MaintenanceItem]
+    @Query private var habits: [Habit]
     @Query private var financialStates: [FinancialState]
 
     var body: some View {
@@ -1615,6 +1658,7 @@ struct RootView: View {
             // Skipping when actions.isEmpty was leaving post-wipe / iCloud re-import clutter visible.
             PrescribedStackRetirement.normalize(context: context)
             if maintenanceItems.isEmpty { seedDefaultMaintenance(context: context) }
+            seedMissingConductFilterItems(context: context, maintenance: maintenanceItems, habits: habits)
             if financialStates.isEmpty { context.insert(FinancialState()) }
             // Seed Week 1 solo experiment data (May 13–17, 2026) if no shifts exist.
             // Gated on hideoutShifts.isEmpty — only runs on fresh install or after data wipe.
