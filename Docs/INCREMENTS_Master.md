@@ -656,9 +656,11 @@ Computed from real SwiftData: avg first action hour · morning execution rate ·
 
 30-day solo experiment. Started May 13, 2026. $3.5k monthly gap. Loan decision June 13. Bands: survival <$520 · stability $590 · comfort $650 · growth $750+.
 
+**Identity:** Neighborhood infrastructure. The product is conditions — food and coffee are infrastructure. Canonical doctrine: `hideout-ops-console/docs/HIDEOUT_HOUSE_DOCTRINE.md`.
+
 **Schedule (current):** Wed–Fri 7AM–5PM, Sat–Sun 10AM–3PM. Mon–Tue base days.
 
-**Physical context:** Lives on 26th floor of condo building. Hideout is an elevated outdoor terrace café on the second floor of the same building. Commute is internal — elevator down, short walk. Natural light and open air environment at the hideout. Factor into environment/output correlation.
+**Physical context:** Lives on 26th floor of condo building. Hideout is an elevated outdoor terrace on the second floor of the same building. Commute is internal — elevator down, short walk. Natural light and open air environment. Factor into environment/output correlation.
 
 **Operator schedule:**
 - Wake: 4:30 AM

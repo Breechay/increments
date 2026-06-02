@@ -430,11 +430,22 @@ struct DoctrineHideoutReading: View {
                 label: "FOUR MODES · ONE ASSET",
                 accent: .warm,
                 paragraphs: [
-                    "Hideout operates as four different businesses depending on the day and the season.",
-                    "Neighborhood café: the daily anchor, regulars, the outdoor terrace, the reputation that took six years to build.",
-                    "Distribution vehicle: every Monday block, every GBP post, every card in a building lobby is Hideout operating as reach.",
-                    "Recovery asset: the solo experiment tests the operational floor without staff — what the business is at its minimum.",
-                    "Eventually, brand: the name and reputation that make the other ventures legible. Which mode is running today changes what decisions are correct."
+                    "Hideout operates as four modes sharing one asset — not a café with side projects.",
+                    "Hospitality: walk-in conditions — food and coffee as daily infrastructure, not the identity of the place.",
+                    "Neighborhood infrastructure: the house embedded in Edgewater — residents, concierge, dog walkers, routine capture.",
+                    "Recurring partnerships: supplier mode — cold brew accounts, office drops, clean invoices over chaotic walk-ins.",
+                    "Operator studio: leverage when economics allow — planning, product work, photography. Which mode is running today changes what decisions are correct."
+                ]
+            )
+
+            DoctrineSubsection(
+                label: "THE HOUSE · STEWARDSHIP",
+                accent: .warm,
+                paragraphs: [
+                    "Hideout is neighborhood infrastructure. The product is conditions — a living room where different worlds coexist peacefully.",
+                    "The next evolution is not more authorship. It is stewardship: compatible contributors add rooms; Brice edits whether they belong.",
+                    "Test for any addition: does this increase atmosphere or increase inventory? Atmosphere may grow. Inventory must stay constrained.",
+                    "Economic freedom and a gift to the neighborhood are the two purposes. Food is infrastructure serving both."
                 ]
             )
 

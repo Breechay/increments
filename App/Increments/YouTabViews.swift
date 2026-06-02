@@ -213,8 +213,8 @@ struct VenturesTabView: View {
                 kicker: "HIDEOUT MIAMI",
                 kickerColor: .warm,
                 status: "Active · Solo experiment",
-                headline: "Neighborhood café. Edgewater. Six years. The original venture.",
-                body: "Hideout is a 4.7-star outdoor café on the Edgewater corridor. The product is correct — consistent food, real quality, outdoor terrace, regulars. The current constraint is threshold conversion and residential memory encoding: people who find it love it. The bottleneck is find.\n\nThe solo experiment runs Hideout without staff to test operational floor, revenue stability, and what the experience is without the full crew. The stability target is $590/day average.\n\nHideout App (separate build): customer relationship capture — repeat orders, Sunday lineup, private events, B2B gallons. INCREMENTS Hideout tab tracks this solo experiment; the app holds demand the floor cannot keep in memory.",
+                headline: "Neighborhood infrastructure. Edgewater. Six years. The house Brice stewards.",
+                body: "Hideout is a 4.7-star outdoor terrace on the Edgewater corridor. The product is conditions — food and coffee are infrastructure, not the point. Regulars, open air, six years of reputation. The current constraint is threshold conversion and residential memory encoding: people who find it love it. The bottleneck is find.\n\nThe solo experiment runs Hideout without staff to test operational floor, revenue stability, and what the house produces at minimum. The stability target is $590/day average.\n\nHideout App (separate build): customer relationship capture — repeat orders, Sunday lineup, private events, B2B gallons. INCREMENTS Hideout tab tracks this solo experiment; the app holds demand the floor cannot keep in memory.",
                 distributionSection: hideoutDistribution,
                 signalSummary: hideoutSignalSummary
             )

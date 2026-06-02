@@ -289,7 +289,7 @@ struct HideoutTabView: View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: metrics.scaledSize(6)) {
                 // Kicker — single line, no wrapping
-                MonoLabel(text: "HIDEOUT MIAMI · SOLO", color: .warm, size: metrics.monoSmall)
+                MonoLabel(text: "HIDEOUT MIAMI · HOUSE", color: .warm, size: metrics.monoSmall)
                     .lineLimit(1)
 
                 // Day number — compact, won't overflow
@@ -366,7 +366,7 @@ struct HideoutTabView: View {
             VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                 HStack(spacing: metrics.rowSpacing) {
                     MonoLabel(text: "HIDEOUT MIAMI", color: .warm, size: metrics.monoSmall)
-                    MonoLabel(text: "SOLO EXPERIMENT", color: .textMuted, size: metrics.monoSmall)
+                    MonoLabel(text: "HOUSE · SOLO EXPERIMENT", color: .textMuted, size: metrics.monoSmall)
                 }
                 Text("Day \(experimentDay)")
                     .font(.system(size: metrics.displaySize, weight: .bold, design: .monospaced))
@@ -2902,7 +2902,7 @@ struct WeeklyRevenueCompositionSheet: View {
     }
 
     let sources: [(label: String, note: String, revKey: String)] = [
-        ("WALK-IN HOSPITALITY",  "Classic café traffic. The baseline.",                      "walkin"),
+        ("WALK-IN HOSPITALITY",  "Food as infrastructure. Daily conditions.",                      "walkin"),
         ("REGULAR LOCALS",       "Customers you recognise. Retention signal.",               "regular"),
         ("WATERMARC REFERRALS",  "Card redemptions + front-desk referrals.",                 "watermarc"),
         ("PARTNERSHIP / PICKUP", "Jimmy, recurring accounts, any invoice revenue.",           "partnership"),
@@ -2964,7 +2964,7 @@ struct WeeklyRevenueCompositionSheet: View {
                     VStack(spacing: 0) {
                         wrcRow(
                             label: "WALK-IN HOSPITALITY",
-                            note: "Classic café traffic. The baseline.",
+                            note: "Food as infrastructure. Daily conditions.",
                             stressContext: "Batch arrivals = real ceiling. Solo stress threshold is ≤5.",
                             prevRev: prevWalkinRev,
                             rev: $walkinRev, stress: $walkinStress,
