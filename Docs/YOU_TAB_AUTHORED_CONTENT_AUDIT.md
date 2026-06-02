@@ -50,6 +50,26 @@ This is why action notes contain mechanism. It is adherence infrastructure, not 
 
 The limit: this mechanic does not require monitoring infrastructure, progress displays, or accumulation counters. You already trust the science. Seeing reps accumulate does not increase adherence. It adds cognitive weight without value.
 
+### ANOTHER ROOM
+
+The meal is good. There are other flavors. The anchors worked. Another room. The room worked because it worked.
+
+Audibility, not absence. Audibility vs acquisition: recognition, not obligation — I can still hear this, not I need more of this.
+
+A new room becoming audible is not an argument against the current room. It is evidence the current room worked.
+
+Survival test: deficiency or Oh, that room is still here? Mac: BRICE_OS/ANOTHER_ROOM_LENS.md.
+
+### SUNDAY · FREQUENCY
+
+Not a life problem — a Sunday problem. Wrong question: who is available? Correct: what room am I entering?
+
+Never say yes to a person before yes to a room. Room → Person.
+
+Tier A: Wynwood members club, listening room, architecture events, indie cinema, museum openings, lectures/salons. Selection: people taking something seriously without making a spectacle of themselves.
+
+Casa Neos (June 2026): diagnostic — good people, wrong room, availability mistaken for alignment.
+
 ---
 
 ## DOCTRINE · OPERATOR · Why distribution is the gap

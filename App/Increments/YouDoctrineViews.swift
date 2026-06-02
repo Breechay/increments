@@ -243,7 +243,9 @@ struct DoctrineOperatorReading: View {
                     "When restless, one question only: Am I experiencing deficiency, or am I noticing another room? Follow-up: Is the house failing, or is the house standing? The house is standing — that is why you are looking out the window.",
                     "Rooms are not escapes: another room is not an argument against the current room. The anchor held. The meal nourished. A new room becomes visible because the old room succeeded — not because it failed.",
                     "Audibility, not absence: the problem was not missing a person, city, or philosophy. It was missing context for dormant parts to become audible again.",
+                    "Audibility vs acquisition: wrong read — I need more of this. Right read — I can still hear this. Recognition, not obligation. Travel, cinema, camps, architecture — often reminders, not instructions.",
                     "Quiet desires becoming audible is often a sign the system is healthier, not hungrier — the house got quiet enough to hear them, not a need to escape.",
+                    "A new room becoming audible is not an argument against the current room. It is evidence the current room worked.",
                     "Survival test: when something lights you up — film, city, person, conversation — do you hear I need to change my life, or Oh, that room is still here? No audit. No checkbox. Mac: BRICE_OS/ANOTHER_ROOM_LENS.md."
                 ]
             )
@@ -253,7 +255,9 @@ struct DoctrineOperatorReading: View {
                 accent: .warm,
                 paragraphs: [
                     "Not a life problem — a Sunday problem. Mon–Tue and Wed–Sat already feed stewardship, competence, craft, execution. The quiet room becomes audible when operational noise drops.",
-                    "Sunday is not for company. Sunday is for frequency. Sometimes people, sometimes a film, sometimes a museum or one long walk — sometimes nobody. Criterion: Does this room nourish the part of me that spent the week in stewardship?",
+                    "Wrong question: who is available? Correct question: what room am I entering? Good people in the wrong room still underfeed. Casa Neos (June 2026) was a diagnostic — availability mistaken for alignment.",
+                    "Sunday is not for company. Sunday is for frequency. Never say yes to a person before yes to a room. Room → Person, not Person → Room.",
+                    "Tier A signal environments: Wynwood members club, listening room, architecture and design events, independent cinema, museum openings, lectures and salons. Criterion: people taking something seriously without making a spectacle of themselves.",
                     "Stop spending envoy budget on nice and available. One excellent conversation every few weeks may be enough. Pattern manual: BRICE_OS/BRICE_OPERATOR_MANUAL.md."
                 ]
             )
