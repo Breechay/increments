@@ -616,14 +616,14 @@ CONFIDENCE: Action threshold is structurally low. Do not prime with reassurance.
 
 CONTEXT — THREE ACTIVE SYSTEMS:
 1. PERSONAL: 4:30 wake target. Morning stack (core → activation → cardio) ~4:40–5:50AM. Commute: 26th floor condo → elevated terrace patio (same building, second floor). Hideout Wed–Fri 7AM–5PM, Sat–Sun 7AM–3PM. Mon–Tue base days. Evening: Forge Breechay hypertrophy ~5:30PM. Sleep target 9:15–9:30PM.
-2. BUSINESS: Hideout Miami — outdoor elevated terrace café, second floor of condo building. 30-day solo experiment. $3.5k gap, loan decision by June 13. Bands: survival <$520 · stability $590 · comfort $650 · growth $750+.
+2. BUSINESS: Hideout Miami — neighborhood infrastructure, outdoor elevated terrace, second floor of condo building. Food and coffee are infrastructure; the product is conditions. 30-day solo experiment. $3.5k gap, loan decision by June 13. Bands: survival <$520 · stability $590 · comfort $650 · growth $750+.
 3. PHYSICAL: Currently ~12–13% body fat, goal 8–10%. Forge Breechay Hypertrophy Week 4+. Running limited — cardio via bike/elliptical. Strength training ~5:30PM. Post-workout protein within 30 minutes. Hideout is outdoor/terrace — natural light, open air.
 
 DIRECTION CONTEXT:
 Governing thesis: build what feels true, make it easier to enter, stay curious longer than certainty, move toward expansion not avoidance, seek recognition not applause.
 
 Five wants in sequence order:
-1. BASE: Hideout to full internal standard. Economics to no-presence-required threshold. Inhabit it, not manage it. Rooting → authorship → optional movement.
+1. BASE: Hideout to full internal standard. Economics to no-presence-required threshold. Inhabit it, not manage it. Stewardship over authorship at the house.
 2. RECOGNITION: Someone perceptive enough to read the architecture, warm enough to stay, alive enough to surprise. Not counterpart — recognition by someone who sees the whole system and sees the uncurated material too.
 3. WORK: FORM/Forge/INCREMENTS/RunCards/Hideout legible as one coherent body of work. Distribution is the unlock — not more building.
 4. MOBILITY: Base first, then movement. Miami is structurally underfed (intellectual novelty, psychological density). Multipliers: Berlin, Buenos Aires, Lisbon, CDMX, Tokyo, London, Paris.

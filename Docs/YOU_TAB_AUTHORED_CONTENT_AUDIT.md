@@ -100,7 +100,7 @@ Inner ambient kickers (phone): OPERATOR · DISTRIBUTION · HIDEOUT MIAMI · FORM
 
 ### THREE JOBS
 
-Monday block plants Hideout and one app-content clip before the café opens — fixed sequence, no decisions at execution time.
+Monday block plants Hideout and one app-content clip before open — fixed sequence, no decisions at execution time.
 
 Mid-week you append one sentence to the Decision Ledger when something real happened. Friday after close you log eight to ten minutes of signal.
 
@@ -141,15 +141,23 @@ Section title: Night read
 
 ### FOUR MODES · ONE ASSET
 
-Hideout operates as four different businesses depending on the day and the season.
+Hideout operates as four modes sharing one asset — not a café with side projects.
 
-Neighborhood café: the daily anchor, regulars, the outdoor terrace, the reputation that took six years to build.
+Hospitality: walk-in conditions — food and coffee as daily infrastructure, not the identity of the place.
 
-Distribution vehicle: every Monday block, every GBP post, every card in a building lobby is Hideout operating as reach.
+Neighborhood infrastructure: the house embedded in Edgewater — residents, concierge, dog walkers, routine capture.
 
-Recovery asset: the solo experiment tests the operational floor without staff — what the business is at its minimum.
+Recurring partnerships: supplier mode — cold brew accounts, office drops, clean invoices over chaotic walk-ins.
 
-Eventually, brand: the name and reputation that make the other ventures legible. Which mode is running today changes what decisions are correct.
+Operator studio: leverage when economics allow — planning, product work, photography. Which mode is running today changes what decisions are correct.
+
+### THE HOUSE · STEWARDSHIP
+
+Hideout is neighborhood infrastructure. The product is conditions — a living room where different worlds coexist peacefully.
+
+The next evolution is not more authorship. It is stewardship: compatible contributors add rooms; Brice edits whether they belong.
+
+Test for any addition: does this increase atmosphere or increase inventory? Atmosphere may grow. Inventory must stay constrained.
 
 ### NERVOUS SYSTEM ECONOMICS
 
@@ -169,9 +177,9 @@ First clean recurring pickup is when a first-timer returns without being prompte
 
 ### THRESHOLD BOARDS
 
-The column boards are not signage. They are a threshold decision surface. The person at the corridor entrance has already noticed the café. The board resolves hesitation — a reason that costs nothing and risks nothing.
+The column boards are not signage. They are a threshold decision surface. The person at the corridor entrance has already noticed Hideout. The board resolves hesitation — a reason that costs nothing and risks nothing.
 
-FIRST TIME? START HERE does not sell the café. It removes the barrier to entering.
+FIRST TIME? START HERE does not sell the menu. It removes the barrier to entering.
 
 Five states at the threshold: unaware — content and GBP work here. Aware and hesitant — boards work here. Curious but uncertain — menu and first visual do the work. Decided — execution. Returning — the recurring pickup problem.
 
@@ -381,7 +389,7 @@ Distribution is not marketing. Marketing is the story you tell about the product
 
 Marketing thinking produces the wrong instincts. Marketing says: more reach, bigger audience, louder message. Distribution thinking says: right seed, right surface, right mechanism, enough reps.
 
-A Watermarc card placed in a luxury building across the street is not marketing. It is a seed with a specific mechanism — a resident picks it up, keeps it, and uses it when they want a reason to try the café on a Tuesday morning. That mechanism either works or it does not. The signal tells you which.
+A Watermarc card placed in a luxury building across the street is not marketing. It is a seed with a specific mechanism — a resident picks it up, keeps it, and uses it when they want a reason to try Hideout on a Tuesday morning. That mechanism either works or it does not. The signal tells you which.
 
 ### REPS · SIGNAL · ADJUSTMENT
 
@@ -393,15 +401,15 @@ Adjustment is what happens when signal is consistently absent after enough reps 
 
 ### WHY MOST DISTRIBUTION FAILS
 
-The first reason is inconsistency. The seed gets planted once and you move on. Distribution requires repetition because the mechanism depends on exposure frequency. A third-exposure café wins, not a first-exposure one. Most efforts fail before the third exposure because the first exposure was expected to produce signal.
+The first reason is inconsistency. The seed gets planted once and you move on. Distribution requires repetition because the mechanism depends on exposure frequency. A third-exposure place wins, not a first-exposure one. Most efforts fail before the third exposure because the first exposure was expected to produce signal.
 
-The second reason is wrong surface. The seed is planted where the mechanism does not connect to the target person. TikTok algorithmic discovery for a neighborhood café is a weak surface — the person who discovers a café on TikTok is not the person who becomes a regular. GBP and physical seeds in residential buildings are strong surfaces because the mechanism connects directly to the behavior.
+The second reason is wrong surface. The seed is planted where the mechanism does not connect to the target person. TikTok algorithmic discovery for a neighborhood house is a weak surface — the person who discovers a terrace on TikTok is not the person who becomes a regular. GBP and physical seeds in residential buildings are strong surfaces because the mechanism connects directly to the behavior.
 
 The third reason is premature optimization. You change the approach before enough reps have run to produce readable signal. Week three feels like failure. Week eight starts to show pattern. Changing in week three resets the clock. One variable, after sufficient reps — that protocol exists to prevent premature optimization.
 
 ### GOOGLE BUSINESS PROFILE
 
-GBP is the most important single surface for Hideout. It is where people searching for a café in Edgewater land. Photos, posts, and review responses directly affect whether a search converts to a visit. This is not social media. It is local search infrastructure. It compounds. A well-maintained profile from two years ago is still producing signal today.
+GBP is the most important single surface for Hideout. It is where people searching for coffee in Edgewater land. Photos, posts, and review responses directly affect whether a search converts to a visit. This is not social media. It is local search infrastructure. It compounds. A well-maintained profile from two years ago is still producing signal today.
 
 ### PHYSICAL SEEDS
 
@@ -429,23 +437,23 @@ The distribution muscle develops through reps. It is not there yet. That is corr
 
 Kicker: HIDEOUT MIAMI  
 Status: Active · Solo experiment  
-Headline: Neighborhood café. Edgewater. Six years. The original venture.
+Headline: Neighborhood infrastructure. Edgewater. Six years. The house Brice stewards.
 
 Body:
 
-Hideout is a 4.7-star outdoor café on the Edgewater corridor. The product is correct — consistent food, real quality, outdoor terrace, regulars. The current constraint is threshold conversion and residential memory encoding: people who find it love it. The bottleneck is find.
+Hideout is a 4.7-star outdoor terrace on the Edgewater corridor. The product is conditions — food and coffee are infrastructure, not the point. Regulars, open air, six years of reputation. The current constraint is threshold conversion and residential memory encoding: people who find it love it. The bottleneck is find.
 
 The solo experiment runs Hideout without staff to test operational floor, revenue stability, and what the experience is without the full crew. The stability target is $590/day average.
 
 Distribution night read section label: NIGHT READ · DISTRIBUTION
 
-Hideout operates as four businesses depending on the day and season. Neighborhood café: daily anchor, regulars, six-year reputation. Distribution vehicle: every Monday block, every card in a lobby. Recovery asset: the solo experiment tests the floor without staff. Brand: the name that makes the other ventures legible. Which mode is running changes what decisions are correct.
+Hideout operates as four modes sharing one asset. Hospitality: walk-in infrastructure. Neighborhood infrastructure: the house in Edgewater flows. Recurring partnerships: supplier mode. Operator studio: leverage when economics allow. Which mode is running changes what decisions are correct.
 
 Nervous system economics: every interaction costs something from your nervous system and produces something. High-volume throughput days generate revenue but draw from the same pool as coaching, building, and thinking. Without staff, every transaction is a direct exchange. The question is not only whether you hit the revenue target but what that cost, and whether it was worth it.
 
 Two true levers: threshold conversion — the gap between walk-past and walk-in. First clean recurring pickup — a first-timer returns without being prompted. Both compound. Neither is fast. Seeds planted now build the memory that produces the second visit in three weeks.
 
-Column boards are a threshold decision surface, not signage. The person at the corridor has already noticed the café. FIRST TIME? START HERE removes the barrier — it does not sell. Most effort belongs on aware-and-hesitant states, not unaware.
+Column boards are a threshold decision surface, not signage. The person at the corridor has already noticed Hideout. FIRST TIME? START HERE removes the barrier — it does not sell. Most effort belongs on aware-and-hesitant states, not unaware.
 
 Partnership sequence: Expansive Biscayne first — professional audience, one warm introduction. Salon next door second — warm relationship, script running. Watermarc pacing — slow seed over months. Different time horizons, not interchangeable.
 

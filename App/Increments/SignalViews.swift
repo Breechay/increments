@@ -217,7 +217,7 @@ struct SignalTabView: View {
                         Image(systemName: "camera.fill")
                             .font(.system(size: metrics.scaledSize(9)))
                             .foregroundColor(.inkAmber)
-                        Text("Film before unlocking · empty café")
+                        Text("Film before unlocking · empty terrace")
                             .font(.mono(metrics.monoSmall))
                             .foregroundColor(.inkAmber)
                     }
@@ -230,7 +230,7 @@ struct SignalTabView: View {
                     .padding(.bottom, -4)
 
                 mondayStepWithDrawer(week: week, index: 0,
-                    label: "Film — 7-shot sequence, empty café",
+                    label: "Film — 7-shot sequence, empty terrace",
                     done: week.hideoutFilmed) {
                     week.hideoutFilmed = true
                 } drawer: { shotListDrawer }
@@ -687,7 +687,7 @@ struct SignalTabView: View {
     private var shotListDrawer: some View {
         doctrineDrawer(id: "shots", title: "7-SHOT SEQUENCE") {
             VStack(alignment: .leading, spacing: metrics.scaledSize(6)) {
-                Text("Empty café · morning light · natural audio on espresso only. Solo-executable. No substitutions.")
+                Text("Empty terrace · morning light · natural audio on espresso only. Solo-executable. No substitutions.")
                     .font(.sora(metrics.captionSize))
                     .foregroundColor(.textMuted)
                 VStack(alignment: .leading, spacing: 3) {

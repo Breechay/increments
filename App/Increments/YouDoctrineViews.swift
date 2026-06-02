@@ -358,7 +358,7 @@ struct DoctrineDistributionReading: View {
                 label: "THREE JOBS",
                 accent: .inkGreen,
                 paragraphs: [
-                    "Monday block plants Hideout and one app-content clip before the café opens — fixed sequence, no decisions at execution time.",
+                    "Monday block plants Hideout and one app-content clip before open — fixed sequence, no decisions at execution time.",
                     "Mid-week you append one sentence to the Decision Ledger when something real happened. Friday after close you log eight to ten minutes of signal.",
                     "After eight weeks of Friday logs, read them once and change one thing if warranted. No progress UI, no dot counters, no motivational copy."
                 ]
@@ -473,8 +473,8 @@ struct DoctrineHideoutReading: View {
                 label: "THRESHOLD BOARDS",
                 accent: .warm,
                 paragraphs: [
-                    "The column boards are not signage. They are a threshold decision surface. The person at the corridor entrance has already noticed the café. The board resolves hesitation — a reason that costs nothing and risks nothing.",
-                    "FIRST TIME? START HERE does not sell the café. It removes the barrier to entering.",
+                    "The column boards are not signage. They are a threshold decision surface. The person at the corridor entrance has already noticed Hideout. The board resolves hesitation — a reason that costs nothing and risks nothing.",
+                    "FIRST TIME? START HERE does not sell the menu. It removes the barrier to entering.",
                     "Five states at the threshold: unaware — content and GBP work here. Aware and hesitant — boards work here. Curious but uncertain — menu and first visual do the work. Decided — execution. Returning — the recurring pickup problem.",
                     "Most distribution effort should target states two and three, not state one."
                 ]
@@ -635,7 +635,7 @@ struct DistributionCrashCourseReading: View {
                     "The wrong definition: posting content, social media, marketing, making noise, persuasion, audience building. That definition produces the wrong instincts.",
                     "The right definition: distribution is how the right person repeatedly encounters your product in a context that makes action easy.",
                     "Read that again. Three parts: the right person, repeatedly, in a context that makes action easy. All three matter. Most distribution fails because one of the three is wrong.",
-                    "A Watermarc card in a luxury building across the street is distribution. A resident picks it up, keeps it, and uses it when they want a reason to try the café on a Tuesday morning. Right person — a resident within walking distance. Repeatedly — the card stays in their wallet. Context makes action easy — they already want coffee, they just needed a reason to try somewhere new.",
+                    "A Watermarc card in a luxury building across the street is distribution. A resident picks it up, keeps it, and uses it when they want a reason to try Hideout on a Tuesday morning. Right person — a resident within walking distance. Repeatedly — the card stays in their wallet. Context makes action easy — they already want coffee, they just needed a reason to try somewhere new.",
                     "An Instagram reel is not automatically distribution. It might reach the right person. It might not be repeated. The context might be wrong. It can be distribution. It is not automatically distribution."
                 ]
             )
@@ -682,9 +682,9 @@ struct DistributionCrashCourseReading: View {
                         accent: .warm,
                         paragraphs: [
                             "Stop asking: how do I make content? Start asking: how does an Edgewater resident become a regular?",
-                            "The actual path: walks dog past Hideout, notices the café, does not enter. Sees the board again two weeks later. Later searches coffee near me on Google. Sees the profile — 4.7 stars, photos, a recent post. Comes in. Likes it. Returns the following Tuesday.",
+                            "The actual path: walks dog past Hideout, notices the terrace, does not enter. Sees the board again two weeks later. Later searches coffee near me on Google. Sees the profile — 4.7 stars, photos, a recent post. Comes in. Likes it. Returns the following Tuesday.",
                             "That path has multiple contact points: the physical space, the board, the Google profile. Distribution is improving each point on that path. The board is distribution. GBP is distribution. Watermarc cards are distribution. The salon partnership is distribution.",
-                            "Instagram? Maybe. But it is weak compared to local mechanisms because the person most likely to become a Hideout regular is not discovering neighborhood cafés on TikTok. They are walking past, searching nearby, or hearing from someone who goes.",
+                            "Instagram? Maybe. But it is weak compared to local mechanisms because the person most likely to become a Hideout regular is not discovering places on TikTok. They are walking past, searching nearby, or hearing from someone who goes.",
                             "The bottleneck is not awareness. It is the gap between noticing and entering. The boards, the GBP, the cards — they all compress that gap. That is the job."
                         ]
                     )
@@ -727,8 +727,8 @@ struct DistributionCrashCourseReading: View {
                         label: "WHY MOST DISTRIBUTION FAILS",
                         accent: .inkAmber,
                         paragraphs: [
-                            "Inconsistency. The seed gets planted once and the operator moves on. Distribution depends on exposure frequency. A third-exposure café wins, not a first-exposure one. Most efforts collapse before the third exposure because the first exposure produced no visible signal and the operator concluded the approach was wrong.",
-                            "Wrong surface. The seed lands where the mechanism does not connect the right person to the product. TikTok for a neighborhood café: the person who discovers a café on TikTok is not the person who becomes a regular. The mechanism is wrong. GBP for the same café: the person searching coffee near me in Edgewater is exactly the target. Same product, different surface, completely different mechanism quality.",
+                            "Inconsistency. The seed gets planted once and the operator moves on. Distribution depends on exposure frequency. A third-exposure place wins, not a first-exposure one. Most efforts collapse before the third exposure because the first exposure produced no visible signal and the operator concluded the approach was wrong.",
+                            "Wrong surface. The seed lands where the mechanism does not connect the right person to the product. TikTok for a neighborhood house: the person who discovers a terrace on TikTok is not the person who becomes a regular. The mechanism is wrong. GBP for the same place: the person searching coffee near me in Edgewater is exactly the target. Same product, different surface, completely different mechanism quality.",
                             "Premature optimization. The approach changes before enough reps have run to produce readable signal. Week three feels like failure because nothing visible has happened. Week eight starts to show pattern. Week twelve confirms it. Changing the approach in week three resets the clock and guarantees you will never read the week-three-through-eight signal."
                         ]
                     )
@@ -737,7 +737,7 @@ struct DistributionCrashCourseReading: View {
                         label: "SURFACES · LOCAL SEARCH",
                         accent: .warm,
                         paragraphs: [
-                            "For Hideout, GBP is the most important single surface. Full stop. It is where people searching for a café in Edgewater land. Photos, posts, and review responses directly affect whether that search converts to a visit.",
+                            "For Hideout, GBP is the most important single surface. Full stop. It is where people searching for coffee in Edgewater land. Photos, posts, and review responses directly affect whether that search converts to a visit.",
                             "This is not social media. It is local search infrastructure. It compounds invisibly — a well-maintained profile from two years ago is still producing signal today. Every photo added, every review responded to, every post published is a rep that stays in the system indefinitely. Most of Hideout's competition has weak GBP. That is an advantage available right now."
                         ]
                     )

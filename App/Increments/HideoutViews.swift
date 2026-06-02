@@ -1572,7 +1572,7 @@ struct HideoutTabView: View {
                         Rectangle().fill(Color.muted.opacity(0.15)).frame(height: 0.5)
                         scriptRow(
                             target: "Leasing Welcome",
-                            script: "We'd love to be the café you mention to new residents — we can put together a simple move-in welcome."
+                            script: "We'd love to be the terrace you mention to new residents — we can put together a simple move-in welcome."
                         )
                     }
                 }
@@ -1931,7 +1931,7 @@ struct HideoutIntelTab: View {
                     status: $expSundayStatus,
                     note: $expSundayNote,
                     isExpanded: $expSundayExpanded,
-                    hypothesis: "Brice already inhabits the space Sunday afternoons. Extending from 3→5PM captures tail revenue at near-zero incremental cost — Operator Studio mode.",
+                    hypothesis: "The house is already inhabited Sunday afternoons. Extending from 3→5PM captures tail revenue at near-zero incremental cost — one room running longer, not a new program.",
                     pass: "Any incremental revenue 3–5PM + stress stays ≤3",
                     fail: "Stress rises OR zero customers in 3–5PM window after 2 weeks",
                     mechanism: "If the operator naturally inhabits the asset, compatible monetization costs nothing. The only question is whether the customer population exists in that window. Stress score is the kill signal — if it rises, the model isn't working."

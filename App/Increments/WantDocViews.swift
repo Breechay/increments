@@ -451,7 +451,7 @@ enum WantDocContent {
     // MARK: The five things
 
     static let theBase: [String] = [
-        "Hideout — every corner brought to internal standard. Garden, kitchen, bathroom, all of it. Refined. Alive. Intentional. Grown over time, not manufactured instantly. The process is enjoyable because it's lived in — authorship, not perfectionism.",
+        "Hideout — every corner brought to internal standard. Garden, kitchen, bathroom, all of it. Refined. Alive. Intentional. Grown over time, not manufactured instantly. Stewardship — compatible contributors add rooms; you edit what belongs.",
         "The structure underneath: Rooting → authorship → optional movement. Financially: healthy enough that constant physical presence isn't required. Freedom of movement while the base holds itself.",
         "What this requires: every physical corner brought to standard, sequenced not rushed. Economics crossing the threshold where it runs without daily presence. The distinction between managing it and inhabiting it — the latter is what's wanted."
     ]
