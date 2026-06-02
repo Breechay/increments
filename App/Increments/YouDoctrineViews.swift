@@ -449,9 +449,9 @@ struct DoctrineHideoutReading: View {
                     "Hideout is neighborhood infrastructure. The product is conditions — a living room where different worlds coexist peacefully.",
                     "The next evolution is not more authorship. It is stewardship: compatible contributors add rooms; Brice edits whether they belong.",
                     "Test for any addition: does this increase atmosphere or increase inventory? Atmosphere may grow. Inventory must stay constrained.",
-                    "Compatible steward: not customer, employee, or contractor — someone who cares about the outcome, brings expertise the house lacks, adds signal without noise. First example: Matteo (flowers, plants, horticulture). Other rooms can come to the house; you do not have to leave to encounter them.",
-                    "Old filter: does this match my vision? New filter: does this strengthen the house? Selective permeability — not everyone belongs.",
-                    "Three phases: build the room (authorship required) → make the room work (systems, economics) → the room becomes audible (hear other rooms + compatible stewards add rooms inside the house).",
+                    "Compatible steward: not customer, employee, or contractor — selection framework in COMPATIBLE_STEWARD_FRAMEWORK.md. Contributes before asked, outcome over credit, atmosphere not inventory.",
+                    "Old filter: does this match my vision? New filter: does this strengthen the house? Atmosphere law: ATMOSPHERE_GOVERNANCE.md — I love this, but it still has to feel calm.",
+                    "Three phases: build the room → make the room work → room becomes audible. Root OS across all projects: ROOT_OPERATING_SYSTEM.md.",
                     "Economic freedom and a gift to the neighborhood are the two purposes. Food is infrastructure serving both."
                 ]
             )
