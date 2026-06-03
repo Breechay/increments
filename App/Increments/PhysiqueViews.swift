@@ -14,7 +14,7 @@ struct PhysiqueTabView: View {
 
     @State private var selectedSection = 0
     @State private var expandedDay: String? = nil
-    let sections = ["Target", "Cut", "Core", "AM Stack", "Program", "Cardio", "Sculpt", "Signals", "Failures", "Adjust"]
+    let sections = ["Target", "Cut", "Core", "AM Stack", "Program", "Cardio", "Sculpt", "Skin", "Signals", "Failures", "Adjust"]
 
     @Environment(\.appMetrics) private var metrics
 
@@ -96,8 +96,9 @@ struct PhysiqueTabView: View {
                                 case 4: programSection
                                 case 5: cardioSection
                                 case 6: sculptSection
-                                case 7: adherenceSection
-                                case 8: failuresSection
+                                case 7: skinSection
+                                case 8: adherenceSection
+                                case 9: failuresSection
                                 default: adjustSection
                                 }
                             }
@@ -132,8 +133,9 @@ struct PhysiqueTabView: View {
                                 case 4: programSection
                                 case 5: cardioSection
                                 case 6: sculptSection
-                                case 7: adherenceSection
-                                case 8: failuresSection
+                                case 7: skinSection
+                                case 8: adherenceSection
+                                case 9: failuresSection
                                 default: adjustSection
                                 }
                             }
@@ -1044,7 +1046,107 @@ struct PhysiqueTabView: View {
         .padding(.top, 8)
     }
 
-    // MARK: - 6. SIGNALS
+    // MARK: - 7. SKIN — even tone · Miami · daily reference
+
+    var skinSection: some View {
+        VStack(spacing: metrics.blockSpacing) {
+
+            CardView {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    HStack(spacing: metrics.cardSpacing) {
+                        Rectangle().fill(Color.inkGreen).frame(width: 3, height: 28).clipShape(RoundedRectangle(cornerRadius: 1.5))
+                        MonoLabel(text: "EVEN TONE · COMBINATION SKIN", color: .inkGreen, size: 10)
+                    }
+                    Text("Normal-to-combination. T-zone reads oily in Miami heat; cheeks and jaw more balanced. Goal: even tone and texture — not a product collection. Daily execution lives in Today → Whole Human Reset and Shutdown Preservation.")
+                        .font(metrics.fontSora(13, weight: .light)).foregroundColor(.textSecond).lineSpacing(3)
+                    Text("Visible change: ~6–8 weeks of consistent rotation. Patch test new actives. Post-workout: cleanse face — sweat + SPF residue accelerates uneven tone.")
+                        .font(.system(size: metrics.scaledSize(11), design: .monospaced)).foregroundColor(.textMuted).lineSpacing(2.5)
+                }
+            }
+            .padding(.horizontal, metrics.hPad)
+
+            CardView(style: .secondary) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    MonoLabel(text: "MORNING — 5–7 MIN", color: .inkGreen, size: 10)
+                    skinStepRow("1", "Cleanse", "Cetaphil · lukewarm · 60–90 sec · pat dry")
+                    skinStepRow("2", "Vitamin C", "10–15% L-ascorbic · 3–5 drops · wait 30–60 sec")
+                    skinStepRow("3", "Moisturizer", "Light · face + neck · damp skin")
+                    skinStepRow("4", "SPF", "Two-finger dose · face, neck, ears, hands · last step")
+                    Text("Morning sunlight at Hideout (6:40) happens before SPF — intentional. Apply SPF after that window.")
+                        .font(metrics.fontSora(12, weight: .light)).foregroundColor(.textMuted).lineSpacing(2)
+                }
+            }
+            .padding(.horizontal, metrics.hPad)
+
+            CardView {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    MonoLabel(text: "PM WEEKLY ROTATION", color: .inkGreen, size: 10)
+                    Text("One treatment per night. Never stack retinol + exfoliant same night.")
+                        .font(metrics.fontSora(12, weight: .light)).foregroundColor(.textMuted).lineSpacing(2)
+                    skinRotationRow("Mon", "Niacinamide", "10% · press into dry skin after cleanse")
+                    skinRotationRow("Tue", "Glycolic AHA", "8–10% · thin layer · dry face")
+                    skinRotationRow("Wed", "Retinol", "Pea-sized · dry skin 10 min post-cleanse")
+                    skinRotationRow("Thu", "Niacinamide", "Same as Monday")
+                    skinRotationRow("Fri", "BHA", "Paula's Choice · pores + texture")
+                    skinRotationRow("Sat", "Retinol", "Same as Wednesday")
+                    skinRotationRow("Sun", "Rest", "Cleanse + moisturizer only")
+                }
+            }
+            .padding(.horizontal, metrics.hPad)
+
+            CardView(style: .secondary) {
+                VStack(alignment: .leading, spacing: metrics.cardSpacing) {
+                    MonoLabel(text: "TONE + TEXTURE NOTES", color: .textMuted, size: 10)
+                    signalRow("Post-shave bumps", "Single-blade or electric where possible. Azelaic acid 10% on irritated zones — not same night as retinol.", .inkAmber)
+                    signalRow("Under-eye dullness", "Caffeine eye cream · ring finger · rice-grain amount · before moisturizer.", .inkGreen)
+                    signalRow("Still uneven after 8 weeks", "Optional: alpha arbutin on non-retinol nights — pigmentation-specific, not daily default.", .inkAmber)
+                    signalRow("Body lotion timing", "Within 3 min of shower on damp skin — elbows, feet, shins. Same rule as face.", .inkGreen)
+                }
+            }
+            .padding(.horizontal, metrics.hPad)
+
+            Spacer(minLength: 100)
+        }
+        .padding(.top, 8)
+    }
+
+    private func skinStepRow(_ step: String, _ label: String, _ detail: String) -> some View {
+        HStack(alignment: .top, spacing: metrics.rowSpacing) {
+            Text(step)
+                .font(metrics.fontMono(11))
+                .foregroundColor(.inkGreen.opacity(0.7))
+                .frame(width: metrics.scaledSize(18))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label)
+                    .font(metrics.fontSora(14, weight: .medium))
+                    .foregroundColor(.textPrimary)
+                Text(detail)
+                    .font(metrics.fontSora(12, weight: .light))
+                    .foregroundColor(.textMuted)
+                    .lineSpacing(2)
+            }
+        }
+    }
+
+    private func skinRotationRow(_ day: String, _ treatment: String, _ detail: String) -> some View {
+        HStack(alignment: .top, spacing: metrics.cardSpacing) {
+            Text(day.uppercased())
+                .font(metrics.fontMono(10))
+                .foregroundColor(.inkGreen)
+                .frame(width: metrics.scaledSize(36), alignment: .leading)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(treatment)
+                    .font(metrics.fontSora(13, weight: .medium))
+                    .foregroundColor(.textPrimary)
+                Text(detail)
+                    .font(metrics.fontSora(11, weight: .light))
+                    .foregroundColor(.textMuted)
+            }
+            Spacer()
+        }
+    }
+
+    // MARK: - 8. SIGNALS
 
     var adherenceSection: some View {
         VStack(spacing: metrics.blockSpacing) {

@@ -874,13 +874,13 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
         //  "Same as Wednesday. Diluted blend only. Leave overnight if tolerated. Wash Monday morning.",
         //  "Before bed — Sunday", .weekly, nil, nil, nil),
 
-        // PLANNED — full-face retinoid (purchase when capital allows)
-        // ("Retinol — Monday",  .health, 15,
-        //  "Full-face retinoid only — not eye cream. Cleanse first. Wait 10-20 min until skin fully dry. Pea-sized only. Dot forehead, cheeks, chin. Avoid eyelids, nostril folds, corners of mouth. Moisturize after. Start 2x weekly. No BHA same night.",
-        //  "After PM cleanse — Monday night", .weekly, nil, nil, nil),
-        // ("Retinol — Thursday", .health, 15,
-        //  "Same as Monday. Cleanse → dry 10-20 min → pea-sized retinoid → moisturize. No BHA same night.",
-        //  "After PM cleanse — Thursday night", .weekly, nil, nil, nil),
+        // PLANNED — full-face retinoid (purchase when capital allows) — now Wed/Sat in rotation
+        ("Retinol — Wednesday",  .health, 15,
+         "Full-face retinoid only — not eye cream. Cleanse first. Wait 10-20 min until skin fully dry. Pea-sized only. Dot forehead, cheeks, chin. Avoid eyelids, nostril folds, corners of mouth. Moisturize after. No BHA or glycolic same night.",
+         "After PM cleanse — Wednesday night", .weekly, nil, nil, nil),
+        ("Retinol — Saturday", .health, 15,
+         "Same as Wednesday. Cleanse → dry 10-20 min → pea-sized retinoid → moisturize. No exfoliant same night.",
+         "After PM cleanse — Saturday night", .weekly, nil, nil, nil),
 
         // PLANNED — finasteride consult (next capital deployment after 90-day stack run)
         // Crown + top pattern = androgenic thinning. Minoxidil supports growth.
@@ -944,9 +944,9 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
          "Monday and Thursday shower",               .weekly, nil,     nil, nil, nil),
 
         // ══ SKIN — ADVANCED PROTOCOL ══════════════════════════════════════════
-        ("Glycolic acid — Thursday PM", .health,      10,
-         "AHA exfoliant, 8–10%. Apply to dry face after PM cleanse. Thin layer, avoid eye area. Unlike BHA (Friday, oil-soluble, targets pores), glycolic AHA is water-soluble and targets surface texture, fine lines, and pigmentation. Alternating AHA Thursday and BHA Friday gives exfoliation coverage without overlap. Don't combine with retinoids same night. Rinse thoroughly next morning.",
-         "Thursday PM — after cleanse, before moisturizer",  .weekly, nil,  nil, nil, nil),
+        ("Glycolic acid — Tuesday PM", .health,      10,
+         "AHA exfoliant, 8–10%. Apply to dry face after PM cleanse. Thin layer, avoid eye area. Targets surface texture, fine lines, and pigmentation. Alternating with BHA Friday gives exfoliation coverage without overlap. Don't combine with retinoids same night.",
+         "Tuesday PM — after cleanse, before moisturizer",  .weekly, nil,  nil, nil, nil),
 
         ("Body SPF — exposed areas",   .health,       10,
          "Arms, back of neck, any exposed skin. SPF 30 minimum. You're on an outdoor terrace Wed–Sun, arriving at 6:30 in direct morning sun. UVA causes cumulative skin aging regardless of burn — and Miami UVI is high year-round. Apply after the sunlight-on-skin window (6:40 passively during prep) — don't block that first 10 min. Spray SPF is fine for body. Reapply at noon if you're still in direct sun.",
@@ -1074,9 +1074,9 @@ func seedDefaultSessions(context: ModelContext, onlyTitles: Set<String>? = nil) 
             .health,
             [
                 "Face cleanse — Cetaphil Gentle Cleanser. Wet face first. Pea-sized amount. Fingertips only — no washcloth (too abrasive). Circular motion 60–90 sec, all zones including hairline and jawline. Rinse with lukewarm water — not hot, not cold. Pat dry, never rub. Damp skin is ideal for the next step — don't wait for fully dry.",
-                "Niacinamide serum — apply to damp skin immediately after cleanse. 3–4 drops, press into skin with palm, don't rub. Cover full face, neck, upper chest. Wait 30 sec before next product — niacinamide needs brief contact time before being layered over. This is the highest-evidence non-prescription skincare ingredient for this skin type and Miami conditions.",
+                "Vitamin C serum — 10–15% L-ascorbic. Apply after cleanse on dry or slightly damp skin. 3–5 drops, press into face and neck. Wait 30–60 sec before moisturizer. Antioxidant layer for even tone and Miami UV recovery — separate from pre-lift collagen vitamin C (that's internal).",
                 "Eye cream — ring finger only, always. Index and middle fingers apply too much pressure to periorbital skin (thinnest on the body — ages fastest). Tap, don't rub or drag. Start at outer corner, tap inward along orbital bone. Under-eye and brow bone. Amount: rice grain per eye. Apply before moisturizer so it contacts skin directly.",
-                "Moisturize — Cetaphil Moisturizing Cream or Lotion. Damp skin absorbs 4–5x better than dry — this is the reason to moisturize immediately after cleanse, not 10 minutes later. Face + neck + décolletage. Upward strokes. Don't tug downward. Don't forget the neck — it shows age as fast as the face and gets no SPF from face application alone.",
+                "Moisturizer — Cetaphil Moisturizing Cream or Lotion. Damp skin absorbs 4–5x better than dry. Face + neck + décolletage. Upward strokes. Niacinamide moves to PM rotation nights (Mon/Thu) — not stacked in AM unless skipping Vit C.",
                 "SPF — non-negotiable. Two-finger-length rule: squeeze SPF along index and middle fingers, that's the correct dose for face + neck. Apply face first, then neck, ears (including behind ears — often burned), backs of hands. Miami UV index is 10–11 year-round. UVA ages skin regardless of burning; you don't need to feel the sun to be damaged. Apply last — over moisturizer, under makeup if any.",
                 "Lip balm SPF 30+ — lips have zero melanin. They sunburn faster than any other facial skin and are a primary site for squamous cell carcinoma. Separate application from face SPF because lips need a dedicated product. EltaMD UV Lip Balm or similar. Reapply after eating, drinking, at midday. Takes 3 seconds.",
                 "Body lotion — apply to still-damp skin within 3 minutes of shower. This is the mechanism: damp skin traps moisture as lotion seals it in; dry skin just sits on top. Full sweep: arms (elbows need extra — the skin is thicker and drier), shoulders, chest, stomach, back of knees, shins, feet. Feet especially — daily standing and walking dries the heel fast. Cetaphil or similar fragrance-free. Takes 90 seconds done right.",
@@ -1091,8 +1091,10 @@ func seedDefaultSessions(context: ModelContext, onlyTitles: Set<String>? = nil) 
             .health,
             [
                 "Face cleanse — PM cleanse is more important than AM. You're removing SPF (which oxidizes during the day and becomes mildly irritating), sweat, environmental pollutants, and any sebum buildup. Cetaphil Gentle Cleanser. Same technique: lukewarm water, circular motion 60–90 sec, pat dry. Do NOT skip this because you're tired — sleeping in oxidized SPF and sweat accelerates skin aging more than almost anything else.",
-                "Niacinamide (optional PM) — if not using retinol or glycolic acid tonight. If you are, skip niacinamide on those nights — the combination isn't harmful but it's redundant. On plain nights, apply same as AM.",
-                "Glycolic acid (Thursday PM) / BHA (Friday PM) — apply to dry face, 10–15 min after cleanse. Glycolic (AHA): thin layer, full face except eye area. Don't overdo — more is not better, more is irritating. BHA: same. Both are leave-on treatments, not rinse-off. Don't combine with retinol same night. In Miami heat and humidity, start with lowest concentration and build up.",
+                "PM weekly rotation — one treatment only: Mon niacinamide · Tue glycolic AHA · Wed retinol · Thu niacinamide · Fri BHA · Sat retinol · Sun rest (cleanse + moisturizer). Never retinol + exfoliant same night. Full detail: Physique → Skin.",
+                "Niacinamide (Mon/Thu PM) — 10% · 3–4 drops · dry skin after cleanse. Skip on retinol and exfoliant nights.",
+                "Glycolic acid (Tue PM) / BHA (Fri PM) — apply to dry face, 10–15 min after cleanse. Thin layer, avoid eye area. Leave-on — not rinse-off. Don't combine with retinol same night.",
+                "Retinol (Wed/Sat PM) — pea-sized · dry skin 10–20 min post-cleanse · dot forehead, cheeks, chin · avoid eyes and mouth corners · moisturizer after.",
                 "Moisturize PM — can be heavier than AM moisturizer since no SPF needed and skin repairs overnight. Cetaphil is fine. Apply to slightly damp skin after any treatment products.",
                 "Body lotion — feet especially. Heel fissures develop from daily standing; applying lotion PM and wearing socks overnight (even briefly) prevents cracking that becomes painful during cardio. Arms, elbows, knees if you skipped AM.",
                 "Floss first — floss before brushing, always. Reason: flossing releases interdental plaque and bacteria; brushing then sweeps them away. If you brush first, flossing moves bacteria around but doesn't clear them. C-shape around each tooth, below gumline, gentle vertical motion. Water flosser is fine as substitute — equally effective if used correctly.",
