@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - WANT DOC VIEWS
 // You → Want segment — reading surface for direction document.
 // Static prose. Not a tracking surface. Not interactive beyond open questions.
-// Content source: What I Want v6 · compiled 2026
+// Content source: What I Want v7 · compiled 2026
 // Register: same as Doctrine — evening read, arm's-distance iPad, prose not bullets.
 // Accent: violetLight (You tab primary) + warm (personal/relational content)
 //
@@ -86,6 +86,13 @@ struct WantDocThesisBlock: View {
                     .foregroundColor(.textMuted.opacity(0.75))
                     .lineSpacing(metrics.isIPad ? metrics.youReadLineSpacing : metrics.scaledSize(5))
                     .fixedSize(horizontal: false, vertical: true)
+
+                Text(WantDocContent.thesisExtension)
+                    .font(.sora(metrics.isIPad ? metrics.youReadBodySize * 0.84 : metrics.bodySize * 0.88, weight: .light))
+                    .foregroundColor(.textMuted.opacity(0.65))
+                    .lineSpacing(metrics.isIPad ? metrics.youReadLineSpacing : metrics.scaledSize(5))
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, metrics.scaledSize(8))
             }
             .padding(metrics.scaledSize(12))
             .background(Color.surface2.opacity(0.5))
@@ -442,17 +449,21 @@ enum WantDocContent {
         "Make it easier to enter.",
         "Stay curious longer than certainty.",
         "Move toward expansion, not avoidance.",
-        "Seek recognition, not applause."
+        "Seek recognition, not applause.",
+        "Seek surprise, not impress."
     ]
 
     static let thesisOperator: String =
-        "Build the authored base. Make the world more permeable. Stay open longer than your first classification. Use movement as multiplication, not escape. Find witness, not merely admiration."
+        "Build the authored base. Make the world more permeable. Allow the base itself to become more than you could have authored alone. Stay open longer than your first classification. Use movement as multiplication, not escape. Find witness, not merely admiration."
+
+    static let thesisExtension: String =
+        "The house itself can become a source of surprise. Interesting rooms remain out there — and sometimes a room arrives at the base. Stewardship produces discovery, not only deduction. Another room audible in life ≠ steward status at Hideout."
 
     // MARK: The five things
 
     static let theBase: [String] = [
-        "Hideout — every corner brought to internal standard. Garden, kitchen, bathroom, all of it. Refined. Alive. Intentional. Grown over time, not manufactured instantly. Stewardship — compatible contributors add rooms; you edit what belongs.",
-        "The structure underneath: Rooting → authorship → optional movement. Financially: healthy enough that constant physical presence isn't required. Freedom of movement while the base holds itself.",
+        "Hideout — every corner brought to internal standard. Garden, kitchen, bathroom, all of it. Refined. Alive. Intentional. Grown over time, not manufactured instantly. Stewardship — compatible contributors add rooms; you edit what belongs. The base can surprise you — not only by holding, but by becoming more than you authored alone.",
+        "The structure underneath: Rooting → authorship → optional movement → stewardship. Financially: healthy enough that constant physical presence isn't required. Freedom of movement while the base holds itself.",
         "What this requires: every physical corner brought to standard, sequenced not rushed. Economics crossing the threshold where it runs without daily presence. The distinction between managing it and inhabiting it — the latter is what's wanted."
     ]
 
@@ -475,8 +486,9 @@ enum WantDocContent {
 
     static let theRooms: [String] = [
         "The nutrient set: intellectual novelty, psychological density, cultural seriousness, strange collisions, people who are sharp and curious and don't perform.",
+        "Underneath: show me a room I couldn't have built myself — surprise, not impress, validate, or admire.",
         "Miami feeds: beauty, bodies, energy, physical culture. Miami underfed: intellectual novelty, psychological density, genuine strange collisions. The boredom is structural, not personal.",
-        "Environments worth scouting when the base allows: Berlin, Buenos Aires, Lisbon/Porto, Mexico City, Tokyo, London, Paris. These are multipliers — environmental heuristics, not salvation destinations."
+        "Environments worth scouting when the base allows: Berlin, Buenos Aires, Lisbon/Porto, Mexico City, Tokyo, London, Paris. These are multipliers — environmental heuristics, not salvation destinations. And watch the base: sometimes the interesting room arrives at the house, not only out there."
     ]
 
     // MARK: Counterpart

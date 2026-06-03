@@ -1,9 +1,9 @@
-# What I Want — v6
+# What I Want — v7
 
 **Role:** Direction document — human + operator register.  
-**Status:** May 2026  
+**Status:** June 2026  
 **Canonical in app:** `App/Increments/WantDocViews.swift` (`WantDocContent`) — update Swift and this file together.  
-**PDF export:** `INCREMENTS/what_i_want_v6.pdf` (local, may be untracked)  
+**PDF export:** `INCREMENTS/what_i_want_v7.pdf` (local, regenerate when ready)  
 **Compressed in:** `FORM-iOS/docs/BRICE_OS/BRICE_OPERATOR_MANUAL.md` Appendix B
 
 **On device:** INCREMENTS → You → Want
@@ -19,8 +19,11 @@
 - Stay curious longer than certainty.
 - Move toward expansion, not avoidance.
 - Seek recognition, not applause.
+- Seek surprise, not impress.
 
-**Operator:** Build the authored base. Make the world more permeable. Stay open longer than your first classification. Use movement as multiplication, not escape. Find witness, not merely admiration.
+**Operator:** Build the authored base. Make the world more permeable. Allow the base itself to become more than you could have authored alone. Stay open longer than your first classification. Use movement as multiplication, not escape. Find witness, not merely admiration.
+
+**v7 extension:** The house itself can become a source of surprise. Interesting rooms remain out there — cities, listening rooms, unusual minds. The addition: sometimes a room **arrives**. Stewardship produces possibilities you would not have generated. That is discovery, not deduction. Another room audible in life ≠ steward status at Hideout — exploration stays wide; the house stays selective.
 
 ---
 
@@ -30,9 +33,9 @@
 
 Hideout — every corner to internal standard. Garden, kitchen, bathroom — refined, alive, intentional. Grown over time, not manufactured instantly.
 
-Structure: Rooting → authorship → optional movement. Financially healthy enough that constant physical presence isn’t required. Freedom of movement while the base holds.
+Structure: Rooting → authorship → optional movement → **stewardship** (others add rooms; you edit). Financially healthy enough that constant physical presence isn’t required. Freedom of movement while the base holds.
 
-Requires: physical corners to standard (sequenced, not rushed); economics crossing threshold; **inhabiting** vs managing.
+Requires: physical corners to standard (sequenced, not rushed); economics crossing threshold; **inhabiting** vs managing. The base can surprise you — not only by holding, but by becoming more than you authored alone.
 
 ### 2. The recognition
 
@@ -58,9 +61,11 @@ Miami: structural diagnosis may be accurate **and** confirmation bias may operat
 
 Nutrient set: intellectual novelty, psychological density, cultural seriousness, strange collisions, sharp curious people who don’t perform.
 
+Underneath: **show me a room I couldn’t have built myself** — surprise, not impress, validate, or admire. Competence stopped being interesting a long time ago.
+
 Miami feeds: beauty, bodies, energy, physical culture. Underfed: novelty, density, strange collisions.
 
-Scout when base allows: Berlin, Buenos Aires, Lisbon/Porto, Mexico City, Tokyo, London, Paris — heuristics, not salvation.
+Scout when base allows: Berlin, Buenos Aires, Lisbon/Porto, Mexico City, Tokyo, London, Paris — heuristics, not salvation. And watch the base: sometimes the interesting room arrives at the house, not only out there.
 
 ---
 
