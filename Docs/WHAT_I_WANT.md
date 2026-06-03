@@ -3,7 +3,7 @@
 **Role:** Direction document — human + operator register.  
 **Status:** June 2026  
 **Canonical in app:** `App/Increments/WantDocViews.swift` (`WantDocContent`) — update Swift and this file together.  
-**PDF export:** `INCREMENTS/what_i_want_v7.pdf` (local, regenerate when ready)  
+**PDF export:** `INCREMENTS/what_i_want_v7.pdf` · regenerate: `./regenerate_what_i_want_pdf.sh` (from this folder)  
 **Compressed in:** `FORM-iOS/docs/BRICE_OS/BRICE_OPERATOR_MANUAL.md` Appendix B
 
 **On device:** INCREMENTS → You → Want

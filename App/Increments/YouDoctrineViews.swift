@@ -235,6 +235,17 @@ struct DoctrineOperatorReading: View {
             )
 
             DoctrineSubsection(
+                label: "DIRECTION · WHAT I WANT v7",
+                accent: .violetLight,
+                paragraphs: [
+                    "Seek surprise, not impress — not validate, not admire. Underneath culture, travel, architecture: show me a room I couldn't have built myself.",
+                    "Build the authored base. Make the world permeable. Allow the base to become more than you could have authored alone.",
+                    "The house itself can become a source of surprise — sometimes a room arrives at the base, not only out there. Stewardship produces discovery, not only deduction.",
+                    "Another room audible in life ≠ steward status at Hideout. Exploration stays wide; the house stays selective. Full prose: You → Want."
+                ]
+            )
+
+            DoctrineSubsection(
                 label: "ANOTHER ROOM",
                 accent: .warm,
                 paragraphs: [

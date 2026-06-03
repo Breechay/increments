@@ -1,6 +1,6 @@
 # INCREMENTS — Canonical Doctrine Index
 
-**Status:** May 2026 · Product identity codified after navigation, voice, and tiering passes.
+**Status:** June 2026 · Product identity codified after navigation, voice, and tiering passes.
 
 This is **canonical infrastructure** for agents and future builds — not marketing, not a pitch deck.
 
@@ -16,6 +16,8 @@ This is **canonical infrastructure** for agents and future builds — not market
 | Study — operator pattern manual (PDF) | `FORM-iOS/docs/BRICE_OS/BRICE_OPERATOR_MANUAL.md` |
 | Direction of travel (browser) | `FORM-iOS/docs/BRICE_OS/brice_operator_console.html` |
 | What I Want (markdown) | `WHAT_I_WANT.md` · You → Want |
+| What I Want (PDF) | `../what_i_want_v7.pdf` · `./regenerate_what_i_want_pdf.sh` |
+| Root OS (all projects) | `FORM-iOS/docs/BRICE_OS/ROOT_OPERATING_SYSTEM.md` |
 | Cinema / film taste | `CINEMATIC_DOCTRINE.md` · full PDF: `../cinematic_doctrine_v11.pdf` |
 | Product / strategy question | `PRODUCT_DOCTRINE.md` |
 | Copy, Wendy, presence lines | `VOICE_DOCTRINE.md` → `INCREMENTS_Voice_Doctrine.md` (examples) |
