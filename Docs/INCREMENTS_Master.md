@@ -15,7 +15,7 @@
 | `CapitalViews.swift` | ~690 | CapitalTabView, EditCapitalStateSheet, ProfileTabView |
 | `YouTabViews.swift` | — | YouView, VenturesTabView, IntelTabView, YouFieldManualView |
 | `YouDoctrineViews.swift` | — | YouDoctrineTabView — Operator, Distribution, Hideout, FORM night read |
-| `WantDocViews.swift` | — | WantDocTabView — You → Want segment (What I Want v6 direction doc) |
+| `WantDocViews.swift` | — | WantDocTabView — You → Want segment (What I Want v7 direction doc) |
 | `OperatorViews.swift` | ~1,710 | BriefTabView, ConsultView, FocusMode, SettingsTabView, Today embed wrappers (dead Mission Control / Dossier / Cognition Lab removed May 2026) |
 | `HideoutViews.swift` | ~640 | HideoutTabView, ShiftLogRow, EditShiftSheet, LogShiftSheet |
 | `AppShell.swift` | ~1,280 | CustomTabBar, seed data, daily reset, LaunchSequenceView, OnboardingView, RootView, app entry, schema migration |
