@@ -13,6 +13,7 @@ This is **canonical infrastructure** for agents and future builds — not market
 | Any INCREMENTS task | This index → targeted doc below |
 | Weekly operator audit / “should we add…” | `FORM-iOS/docs/BRICE_OS/CONDUCT_FILTER.md` (cross-repo; not INCREMENTS voice) |
 | Night-read — deficiency vs another room | `FORM-iOS/docs/BRICE_OS/ANOTHER_ROOM_LENS.md` · You → Doctrine → Operator |
+| Night-read — contact / aliveness | `FORM-iOS/docs/BRICE_OS/PARTICIPATION_ORIENTATION.md` · contact · permeability · contact technologies |
 | Study — operator pattern manual (PDF) | `FORM-iOS/docs/BRICE_OS/BRICE_OPERATOR_MANUAL.md` |
 | Direction of travel (browser) | `FORM-iOS/docs/BRICE_OS/brice_operator_console.html` |
 | What I Want (markdown) | `WHAT_I_WANT.md` · You → Want |
@@ -71,6 +72,7 @@ This is **canonical infrastructure** for agents and future builds — not market
 | **`FORM-iOS/docs/BRICE_OS/README.md`** | BRICE-OS read order (kernel → active reality → distribution) |
 | **`FORM-iOS/docs/BRICE_OS/CONDUCT_FILTER.md`** | Operator first principles + 15-min weekly audit + delete filter (habit / agents) |
 | **`FORM-iOS/docs/BRICE_OS/ANOTHER_ROOM_LENS.md`** | Interpretive lens — four lines; no habit, no agents |
+| **`FORM-iOS/docs/BRICE_OS/PARTICIPATION_ORIENTATION.md`** | Orientation — contact; aliveness not achievement; participation as mechanism |
 | **`FORM-iOS/docs/BRICE_OS/BRICE_PHYSIQUE_AGENT_BRIEF.md`** | **Physique / Forge Sculpt / cut / nutrition agent handoff** (paste for Claude/Cursor) |
 | **`FORM-iOS/docs/FORGE_SCULPT_PHASE_TRANSITION_AGENT_PROMPT.md`** | **Week 4+ / Phase 2 transition** — multi-agent prompt after Phase 1 closes |
 | **`FORM-iOS/docs/BRICE_OS/DISTRIBUTION_OPERATING_SYSTEM.md`** | Cross-venture distribution OS (Hideout · FORM · Forge) |

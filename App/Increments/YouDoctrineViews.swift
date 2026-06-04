@@ -262,6 +262,18 @@ struct DoctrineOperatorReading: View {
             )
 
             DoctrineSubsection(
+                label: "CONTACT · ALIVENESS",
+                accent: .warm,
+                paragraphs: [
+                    "What is life for? Contact — not survival, success, or legacy as the center. Participation is how contact is lived. Aliveness, not achievement.",
+                    "Construction → recognition → permeability. Restraint made you clear enough for life to reach you again — not harder, more reachable.",
+                    "Money adds optionality; PRs are moments. The café, a city, music, architecture, conversation — contact with what is alive. Other flavors: more contact, not deficiency.",
+                    "Design question: what environments increase contact? Café, Sunday, Tokyo, museum, dinner table, coaching — contact technologies. Light-bearer: help experience become available, not own the dawn.",
+                    "Life is not to win or complete. It is to participate in what is true, beautiful, alive, real. Full night-read: BRICE_OS/PARTICIPATION_ORIENTATION.md."
+                ]
+            )
+
+            DoctrineSubsection(
                 label: "SUNDAY · FREQUENCY",
                 accent: .warm,
                 paragraphs: [

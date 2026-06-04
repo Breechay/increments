@@ -60,6 +60,16 @@ A new room becoming audible is not an argument against the current room. It is e
 
 Survival test: deficiency or Oh, that room is still here? Mac: BRICE_OS/ANOTHER_ROOM_LENS.md.
 
+### CONTACT · ALIVENESS
+
+What is life for? Contact. Participation = mechanism. Aliveness, not achievement.
+
+Construction → recognition → permeability. Restraint: clear enough for life to reach you again.
+
+Design: what environments increase contact? (ecosystems, not goal stacks). Light-bearer: make experience available.
+
+Mac: BRICE_OS/PARTICIPATION_ORIENTATION.md.
+
 ### SUNDAY · FREQUENCY
 
 Not a life problem — a Sunday problem. Wrong question: who is available? Correct: what room am I entering?
