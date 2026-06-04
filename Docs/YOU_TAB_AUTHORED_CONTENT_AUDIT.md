@@ -68,7 +68,7 @@ Construction → recognition → permeability. Restraint: clear enough for life 
 
 Design: what environments increase contact? (ecosystems, not goal stacks). Light-bearer: make experience available.
 
-Mac: BRICE_OS/PARTICIPATION_ORIENTATION.md (incl. unforced contact · echo · field signal in ACTIVE_REALITY).
+Mac: BRICE_OS/PARTICIPATION_ORIENTATION.md · BRICE_OS/REALITY_TOUCHES.md (echo ledger · Gabriel field signal in ACTIVE_REALITY).
 
 ### SUNDAY · FREQUENCY
 
