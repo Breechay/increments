@@ -13,7 +13,7 @@ This is **canonical infrastructure** for agents and future builds — not market
 | Any INCREMENTS task | This index → targeted doc below |
 | Weekly operator audit / “should we add…” | `FORM-iOS/docs/BRICE_OS/CONDUCT_FILTER.md` (cross-repo; not INCREMENTS voice) |
 | Night-read — deficiency vs another room | `FORM-iOS/docs/BRICE_OS/ANOTHER_ROOM_LENS.md` · You → Doctrine → Operator |
-| Night-read — contact / aliveness | `FORM-iOS/docs/BRICE_OS/PARTICIPATION_ORIENTATION.md` · contact · permeability · contact technologies |
+| Night-read — contact / aliveness | `FORM-iOS/docs/BRICE_OS/PARTICIPATION_ORIENTATION.md` · contact · unforced · echo · permeability · contact technologies |
 | Study — operator pattern manual (PDF) | `FORM-iOS/docs/BRICE_OS/BRICE_OPERATOR_MANUAL.md` |
 | Direction of travel (browser) | `FORM-iOS/docs/BRICE_OS/brice_operator_console.html` |
 | What I Want (markdown) | `WHAT_I_WANT.md` · You → Want |

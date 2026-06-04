@@ -269,6 +269,7 @@ struct DoctrineOperatorReading: View {
                     "Construction → recognition → permeability. Restraint made you clear enough for life to reach you again — not harder, more reachable.",
                     "Money adds optionality; PRs are moments. The café, a city, music, architecture, conversation — contact with what is alive. Other flavors: more contact, not deficiency.",
                     "Design question: what environments increase contact? Café, Sunday, Tokyo, museum, dinner table, coaching — contact technologies. Light-bearer: help experience become available, not own the dawn.",
+                    "Unforced: protect conditions, don't force outcomes. Proximity and practice before role — don't convert a real moment into a growth playbook. Echo: faith-first build now returns human-sized consequences; tend what reality hands back.",
                     "Life is not to win or complete. It is to participate in what is true, beautiful, alive, real. Full night-read: BRICE_OS/PARTICIPATION_ORIENTATION.md."
                 ]
             )

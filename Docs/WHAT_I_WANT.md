@@ -25,7 +25,7 @@
 
 **v7 extension:** The house itself can become a source of surprise. Interesting rooms remain out there — cities, listening rooms, unusual minds. The addition: sometimes a room **arrives**. Stewardship produces possibilities you would not have generated. That is discovery, not deduction. Another room audible in life ≠ steward status at Hideout — exploration stays wide; the house stays selective.
 
-**Orientation (June 2026):** *What is life for?* — contact; participation is the mechanism; aliveness, not achievement. Permeability, contact technologies, light-bearer as role in contact — `FORM-iOS/docs/BRICE_OS/PARTICIPATION_ORIENTATION.md`. Pairs with Another Room lens; not a sixth want.
+**Orientation (June 2026):** *What is life for?* — contact; participation is the mechanism; aliveness, not achievement. Unforced contact (protect conditions, don't force outcomes); echo phase (stewardship when work meets unplanned people). Permeability, contact technologies, light-bearer — `FORM-iOS/docs/BRICE_OS/PARTICIPATION_ORIENTATION.md`. Pairs with Another Room lens; not a sixth want.
 
 ---
 
