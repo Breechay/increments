@@ -65,11 +65,33 @@ struct HideoutTabView: View {
     @AppStorage("growth_video_filmed")       private var growthVideoFilmed       = false
     @AppStorage("growth_video_posted")       private var growthVideoPosted       = false
 
-    // Hideout App — operator milestones (sync with Documents/HideoutApp/HIDEOUT_EXECUTION_CHECKLIST.md)
-    @AppStorage("hideout_app_photos_shot")    private var hideoutAppPhotosShot    = false
-    @AppStorage("hideout_app_on_device")       private var hideoutAppOnDevice      = false
-    @AppStorage("hideout_app_real_user_test") private var hideoutAppRealUserTest  = false
-    @AppStorage("hideout_app_nfc_qr")         private var hideoutAppNFCQR         = false
+    // Hideout App — operator milestones (sync with Documents/HideoutApp/docs/APP_STORE_READINESS.md)
+    @AppStorage("hideout_app_photos_shot")           private var hideoutAppPhotosShot           = false
+    @AppStorage("hideout_app_on_device")              private var hideoutAppOnDevice             = false
+    @AppStorage("hideout_app_real_user_test")        private var hideoutAppRealUserTest         = false
+    @AppStorage("hideout_app_nfc_qr")                private var hideoutAppNFCQR                = false
+    // Mode B — neighborhood physical
+    @AppStorage("hideout_app_skyview_qr")            private var hideoutAppSkyviewQR            = false
+    @AppStorage("hideout_app_watermarc_cards")       private var hideoutAppWatermarcCards       = false
+    @AppStorage("hideout_app_salon_stand")            private var hideoutAppSalonStand           = false
+    @AppStorage("hideout_app_sunday_exit_card")      private var hideoutAppSundayExitCard       = false
+    @AppStorage("hideout_app_gbp_photos")            private var hideoutAppGBPPhotos            = false
+    // Mode C — B2B standing orders
+    @AppStorage("hideout_app_office_breakfast_trial") private var hideoutAppOfficeBreakfastTrial = false
+    @AppStorage("hideout_app_jimmy_e2e")             private var hideoutAppJimmyE2E             = false
+    @AppStorage("hideout_app_b2b_admin_jimmy")       private var hideoutAppB2BAdminJimmy        = false
+    @AppStorage("hideout_app_square_auto_charge")    private var hideoutAppSquareAutoCharge     = false
+    @AppStorage("hideout_app_second_recurring")      private var hideoutAppSecondRecurring      = false
+    // App Store / ship
+    @AppStorage("hideout_app_prod_payment")          private var hideoutAppProdPayment          = false
+    @AppStorage("hideout_app_build_bump")            private var hideoutAppBuildBump            = false
+    @AppStorage("hideout_app_privacy_url")          private var hideoutAppPrivacyURL           = false
+    @AppStorage("hideout_app_screenshots")          private var hideoutAppScreenshots          = false
+    @AppStorage("hideout_app_connect_metadata")      private var hideoutAppConnectMetadata      = false
+    @AppStorage("hideout_app_apple_pay_portal")      private var hideoutAppApplePayPortal       = false
+    @AppStorage("hideout_app_universal_links")       private var hideoutAppUniversalLinks       = false
+    @AppStorage("hideout_app_sunday_published")      private var hideoutAppSundayPublished      = false
+    @AppStorage("hideout_app_regulars_smoke")        private var hideoutAppRegularsSmoke        = false
 
     // Weekly Revenue Composition — persisted notes per source (current week)
     @AppStorage("wrc_week_label")          private var wrcWeekLabel          = ""
@@ -441,85 +463,138 @@ struct HideoutTabView: View {
         }
     }
 
-    private var hideoutAppContextCard: some View {
-        let milestones: [(String, Binding<Bool>)] = [
-            ("Product photos shot (5 items)", $hideoutAppPhotosShot),
-            ("Fonts + build verified on device", $hideoutAppOnDevice),
-            ("Real customer test order (sandbox OK)", $hideoutAppRealUserTest),
-            ("NFC sticker + QR card at counter", $hideoutAppNFCQR),
+    private var hideoutAppLaunchSections: [(String, Color, [(String, String, Binding<Bool>)])] {
+        [
+            ("PRE-SQUARE · DEVICE", .textMuted, [
+                ("Product photos shot (5 items)", "Cold Brew, Healer, Banana Bread, Açaí, Egg Toast — square crop", $hideoutAppPhotosShot),
+                ("Fonts + build verified on device", "Run scripts/download-fonts.sh · build on physical iPhone", $hideoutAppOnDevice),
+                ("Real customer test order (sandbox OK)", "Full path: menu → cart → Square sandbox payment → confirmation", $hideoutAppRealUserTest),
+                ("NFC sticker + QR at counter", "URL: hideoutmiami.com/app?source=nfc · card at register", $hideoutAppNFCQR),
+            ]),
+            ("MODE B · NEIGHBORHOOD (NO CODE)", .inkTeal, [
+                ("SkyView lobby card stand", "QR → hideoutmiami.com/app?source=skyview · same-building copy in app", $hideoutAppSkyviewQR),
+                ("Watermarc leave-behind cards", "Concierge tours · QR ?source=watermarc · 2-min walk copy", $hideoutAppWatermarcCards),
+                ("Salon stand (A Better You)", "Staff mention + small stand · ?source=neighbor", $hideoutAppSalonStand),
+                ("Sunday exit card", "Weekday bridge card handed at Sunday Morning exit", $hideoutAppSundayExitCard),
+                ("GBP photos + weekly post", "6 photos min · hours · menu hero · no engagement bait", $hideoutAppGBPPhotos),
+            ]),
+            ("MODE C · B2B STANDING (NO CODE)", .warm, [
+                ("One office breakfast trial", "Expansive or SkyView tenant · Wed 8AM · 8 persons · measure repeat", $hideoutAppOfficeBreakfastTrial),
+                ("Jimmy 3-gal order end-to-end", "Customer name Jimmy · Confirm standing order → Square payment", $hideoutAppJimmyE2E),
+                ("Admin: create Jimmy B2B account", "Admin → B2B accounts → Jimmy template · linked name Jimmy", $hideoutAppB2BAdminJimmy),
+                ("Square off-session charge test", "Sandbox: saved card on file · auto-charge standing order", $hideoutAppSquareAutoCharge),
+                ("Second recurring account", "Beyond Jimmy · 60-day target · office or gallon rhythm", $hideoutAppSecondRecurring),
+            ]),
+            ("APP STORE · SHIP (NO CODE)", .inkAmber, [
+                ("Production payment + refund", "One real $5 order · refund in Square dashboard", $hideoutAppProdPayment),
+                ("Bump build number", "HideoutApp.xcodeproj · CURRENT_PROJECT_VERSION before upload", $hideoutAppBuildBump),
+                ("Privacy URL live", "docs/HIDEOUT_PRIVACY_POLICY.html → hideoutmiami.com/privacy", $hideoutAppPrivacyURL),
+                ("6 App Store screenshots", "Today, Order, Catering, Sunday, Account, Admin — 6.7\" + 6.1\"", $hideoutAppScreenshots),
+                ("Connect metadata + privacy labels", "Square (payment) + Anthropic (recommendations) declared", $hideoutAppConnectMetadata),
+                ("Apple Pay portal setup", "Follow docs/APPLE_PAY_SETUP.md — Developer + Square cert", $hideoutAppApplePayPortal),
+                ("Universal Links on site", "Upload docs/apple-app-site-association to hideoutmiami.com/.well-known/", $hideoutAppUniversalLinks),
+                ("Publish Sunday lineup in admin", "Before any Sunday marketing · isPublished gate on Today", $hideoutAppSundayPublished),
+                ("5 regulars device smoke test", "Reorder, closed-state pickup, configure sheet, catering lead time", $hideoutAppRegularsSmoke),
+            ]),
         ]
-        let done = milestones.filter { $0.1.wrappedValue }.count
+    }
+
+    private var hideoutAppContextCard: some View {
+        let sections = hideoutAppLaunchSections
+        let allItems = sections.flatMap(\.2)
+        let done = allItems.filter { $0.2.wrappedValue }.count
+        let total = allItems.count
 
         return CardView(style: .secondary) {
             VStack(alignment: .leading, spacing: metrics.cardSpacing) {
-                MonoLabel(text: "HIDEOUT APP · CUSTOMER SURFACE", color: .inkTeal, size: 10)
-                Text("Separate build from this tab. Relationship capture — reorder, Sunday, event requests, B2B gallons. Dependability over excitement.")
+                MonoLabel(text: "HIDEOUT APP · LAUNCH CHECKLIST", color: .inkTeal, size: 10)
+                Text("All no-code ops in one place. Code lives in Documents/HideoutApp. Today tab also has maintenance rows with full notes.")
                     .font(metrics.fontSora(13, weight: .light))
                     .foregroundColor(.textSecond)
                     .lineSpacing(2)
                 HStack(spacing: metrics.rowSpacing) {
-                    MonoLabel(text: "BUILT ✅", color: .inkGreen, size: 9)
-                    MonoLabel(text: "SQUARE ❌", color: .inkRed, size: 9)
+                    MonoLabel(text: "MODE B/C IN APP ✅", color: .inkGreen, size: 9)
+                    MonoLabel(text: "SQUARE SANDBOX", color: .inkAmber, size: 9)
                     Spacer()
-                    Text("\(done)/\(milestones.count)")
+                    Text("\(done)/\(total)")
                         .font(.system(size: metrics.scaledSize(10), weight: .semibold, design: .monospaced))
-                        .foregroundColor(done == milestones.count ? .inkGreen : .inkAmber)
+                        .foregroundColor(done == total ? .inkGreen : .inkAmber)
                 }
                 VStack(alignment: .leading, spacing: metrics.rowSpacing) {
                     HStack(alignment: .top, spacing: metrics.cardSpacing) {
-                        MonoLabel(text: "THIS TAB", color: .warm, size: 9)
+                        MonoLabel(text: "METRICS", color: .inkRed, size: 9)
                             .frame(width: metrics.scaledSize(72), alignment: .leading)
-                        Text("Solo experiment ops · shift log · playbook · Friday signal")
-                            .font(metrics.fontSora(12, weight: .light))
-                            .foregroundColor(.textMuted)
-                            .lineSpacing(2)
-                    }
-                    HStack(alignment: .top, spacing: metrics.cardSpacing) {
-                        MonoLabel(text: "HIDEOUT APP", color: .inkTeal, size: 9)
-                            .frame(width: metrics.scaledSize(72), alignment: .leading)
-                        Text("Customer + admin on device · pre-Square · repo: Documents/HideoutApp")
-                            .font(metrics.fontSora(12, weight: .light))
+                        Text("5 SkyView/Watermarc visits/week (2-wk test) · 2 recurring B2B beyond Jimmy · Friday WRC review")
+                            .font(metrics.fontSora(11, weight: .light))
                             .foregroundColor(.textMuted)
                             .lineSpacing(2)
                     }
                 }
                 Rectangle().fill(Color.muted.opacity(0.2)).frame(height: 0.5)
-                MonoLabel(text: "PRE-SQUARE MILESTONES", color: .textMuted, size: 9)
-                VStack(spacing: 0) {
-                    ForEach(milestones.indices, id: \.self) { idx in
-                        let item = milestones[idx]
-                        Button {
-                            withAnimation(.spring(response: 0.25)) { item.1.wrappedValue.toggle() }
-                        } label: {
-                            HStack(alignment: .top, spacing: metrics.cardSpacing) {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .fill(item.1.wrappedValue ? Color.inkGreen.opacity(0.15) : Color.surface)
-                                        .frame(width: 18, height: 18)
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .stroke(item.1.wrappedValue ? Color.inkGreen : Color.muted.opacity(0.4), lineWidth: 1.5)
-                                        .frame(width: 18, height: 18)
-                                    if item.1.wrappedValue {
-                                        Image(systemName: "checkmark")
-                                            .font(.system(size: metrics.scaledSize(9), weight: .bold))
-                                            .foregroundColor(.inkGreen)
-                                    }
-                                }
-                                Text(item.0)
-                                    .font(.sora(metrics.scaledSize(11), weight: .light))
-                                    .foregroundColor(item.1.wrappedValue ? .textMuted : .textSecond)
-                                    .lineSpacing(2)
-                                    .strikethrough(item.1.wrappedValue, color: .textMuted.opacity(0.5))
-                                Spacer()
-                            }
-                            .padding(.vertical, 7)
-                        }
-                        .buttonStyle(.plain)
-                        if idx < milestones.count - 1 {
-                            Rectangle().fill(Color.muted.opacity(0.1)).frame(height: 0.5)
+                ForEach(sections.indices, id: \.self) { sIdx in
+                    let section = sections[sIdx]
+                    let sectionDone = section.2.filter { $0.2.wrappedValue }.count
+                    MonoLabel(text: "\(section.0) · \(sectionDone)/\(section.2.count)", color: section.1, size: 9)
+                    VStack(spacing: 0) {
+                        ForEach(section.2.indices, id: \.self) { idx in
+                            hideoutLaunchChecklistRow(
+                                title: section.2[idx].0,
+                                detail: section.2[idx].1,
+                                isDone: section.2[idx].2,
+                                isLast: idx == section.2.count - 1
+                            )
                         }
                     }
+                    if sIdx < sections.count - 1 {
+                        Rectangle().fill(Color.muted.opacity(0.15)).frame(height: 0.5)
+                            .padding(.vertical, metrics.rowSpacing)
+                    }
                 }
+            }
+        }
+    }
+
+    private func hideoutLaunchChecklistRow(
+        title: String,
+        detail: String,
+        isDone: Binding<Bool>,
+        isLast: Bool
+    ) -> some View {
+        Button {
+            withAnimation(.spring(response: 0.25)) { isDone.wrappedValue.toggle() }
+        } label: {
+            HStack(alignment: .top, spacing: metrics.cardSpacing) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(isDone.wrappedValue ? Color.inkGreen.opacity(0.15) : Color.surface)
+                        .frame(width: 18, height: 18)
+                    RoundedRectangle(cornerRadius: 4)
+                        .stroke(isDone.wrappedValue ? Color.inkGreen : Color.muted.opacity(0.4), lineWidth: 1.5)
+                        .frame(width: 18, height: 18)
+                    if isDone.wrappedValue {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: metrics.scaledSize(9), weight: .bold))
+                            .foregroundColor(.inkGreen)
+                    }
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.sora(metrics.scaledSize(11), weight: .light))
+                        .foregroundColor(isDone.wrappedValue ? .textMuted : .textSecond)
+                        .strikethrough(isDone.wrappedValue, color: .textMuted.opacity(0.5))
+                    Text(detail)
+                        .font(.sora(metrics.scaledSize(10), weight: .light))
+                        .foregroundColor(.textMuted)
+                        .lineSpacing(2)
+                }
+                Spacer()
+            }
+            .padding(.vertical, 7)
+        }
+        .buttonStyle(.plain)
+        .overlay(alignment: .bottom) {
+            if !isLast {
+                Rectangle().fill(Color.muted.opacity(0.1)).frame(height: 0.5)
             }
         }
     }

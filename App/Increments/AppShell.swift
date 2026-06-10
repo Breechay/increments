@@ -346,6 +346,114 @@ enum ConductFilterSeed {
     """
 }
 
+enum ComputerMaintenanceSeed {
+    static let hygieneTitle = "Computer hygiene — Mac"
+    static let chatTitle = "Telegram + WhatsApp — auto-download"
+    static let hygieneNotes = """
+    30 min max. Quit Telegram, WhatsApp, Messages first.
+
+    Telegram: Settings → Data and Storage → Auto-Download → Photos/Videos OFF (Wi‑Fi only at most). Use Clear Cache monthly.
+    WhatsApp: Settings → Storage → manage; disable auto-download for photos, audio, video.
+    Messages: System Settings → General → Storage → Messages → delete large attachments.
+    Or run ~/Documents/clear-messages-attachments.sh in Terminal (needs Full Disk Access for Terminal).
+
+    Dev: Xcode → Platforms → delete unused iOS runtimes; simulators → delete unavailable.
+    Caches: Spotify, Adobe media cache, Cursor state.vscdb if it grows past ~5 GB.
+
+    Media only — never delete Telegram postbox DB or WhatsApp ChatStorage.sqlite.
+    """
+    static let chatNotes = """
+    Verify auto-download is still off in both apps:
+    Telegram → Data and Storage → Auto-Download.
+    WhatsApp → Settings → Storage and data → Media auto-download → No Media.
+    """
+}
+
+enum HideoutAppLaunchSeed {
+    static let items: [(title: String, notes: String)] = [
+        ("Hideout · SkyView lobby QR", """
+        Physical: card stand in SkyView 22 lobby (ground floor near mail).
+        QR URL: https://hideoutmiami.com/app?source=skyview
+        App shows: "Same building · patio in 2 minutes."
+        Success metric: ask 5 SkyView tenants if they scanned — log in Friday WRC.
+        """),
+        ("Hideout · Watermarc leave-behind", """
+        Physical: 10 cards for concierge tours — hand to prospects at tour end.
+        QR URL: https://hideoutmiami.com/app?source=watermarc
+        App shows: "2-minute walk · terrace pickup."
+        Pair with: one Instagram story when card stock is placed (not before).
+        """),
+        ("Hideout · Salon counter stand", """
+        Physical: small stand at A Better You — staff one-liner: "Hideout is two minutes, app for reorder."
+        QR URL: https://hideoutmiami.com/app?source=neighbor
+        No discount. No streak. Relationship compression only.
+        """),
+        ("Hideout · Sunday exit card", """
+        Physical: printed card at Sunday Morning checkout — weekday hours + app QR.
+        QR URL: https://hideoutmiami.com/app?source=village
+        Bridges Sunday crowd to Wed–Fri cafe rhythm. One caramel element on card design.
+        """),
+        ("Hideout · Office breakfast trial", """
+        Target: Expansive Miami or one SkyView tenant office (8 persons min).
+        Product: Office Breakfast Package · $16/person · Egg Toast included.
+        In app: Catering → Within 2 blocks → Office breakfast (or B2B standing after trial).
+        Log outcome in Hideout tab partnership sprint when converted to weekly.
+        """),
+        ("Hideout · Jimmy B2B end-to-end", """
+        Admin iPad: B2B accounts → Jimmy template (3 gal Original Cold Brew).
+        Customer device: set name "Jimmy" → Catering tab shows standing order widget.
+        Tap Confirm standing order → 48hr lead pickup → Square sandbox payment.
+        Ref: Documents/HideoutApp/HIDEOUT_EXECUTION_CHECKLIST.md
+        """),
+        ("Hideout · App Store privacy URL", """
+        Upload docs/HIDEOUT_PRIVACY_POLICY.html to hideoutmiami.com/privacy
+        Paste URL in App Store Connect → App Privacy → Privacy Policy URL.
+        Also link from app Account tab if not already live.
+        """),
+        ("Hideout · Universal Links (AASA)", """
+        Upload docs/apple-app-site-association to:
+        https://hideoutmiami.com/.well-known/apple-app-site-association
+        (no file extension, application/json, no redirect)
+        Paths: /app*, /order*, /catering*
+        Verify: developer.apple.com → App Search Validation Tool
+        """),
+        ("Hideout · Apple Pay portal", """
+        Follow Documents/HideoutApp/docs/APPLE_PAY_SETUP.md step by step:
+        1. Apple Developer → Merchant ID
+        2. Payment Processing Certificate → upload to Square Dashboard
+        3. Entitlements already in HideoutApp.entitlements
+        4. Test on physical device with sandbox card
+        """),
+        ("Hideout · Production payment smoke", """
+        Before TestFlight external: one real menu order on production Square.
+        Amount: smallest item + tip optional. Refund immediately in Square Dashboard.
+        Confirm: order appears in Square Orders, confirmation in app, lastOrder persists after relaunch.
+        Bump CURRENT_PROJECT_VERSION in Xcode before upload.
+        """),
+        ("Hideout · 5 regulars smoke test", """
+        Ask 5 known regulars (not staff): install TestFlight → reorder last order → configure modifier item → closed cafe pickup copy → catering 48hr lead.
+        Note friction in Hideout tab audit ledger. Fix only blockers — no feature creep.
+        """),
+        ("Hideout · Friday WRC review", """
+        Weekly Revenue Composition card on Hideout tab — fill walk-in, Watermarc, concierge, partnership, Sunday tail.
+        Target: 5 neighborhood-attributed visits/week for 2 weeks (Mode B experiment).
+        Target: 2 recurring B2B accounts beyond Jimmy within 60 days (Mode C).
+        """),
+    ]
+}
+
+func seedHideoutAppLaunchMaintenance(context: ModelContext, maintenance: [MaintenanceItem]) {
+    let titles = Set(maintenance.map(\.title))
+    for item in HideoutAppLaunchSeed.items where !titles.contains(item.title) {
+        context.insert(MaintenanceItem(
+            title: item.title,
+            system: .operations,
+            intervalDays: 0,
+            notes: item.notes
+        ))
+    }
+}
+
 func seedMissingConductFilterItems(context: ModelContext, maintenance: [MaintenanceItem], habits: [Habit]) {
     let maintTitles = Set(maintenance.map(\.title))
     if !maintTitles.contains(ConductFilterSeed.title) {
@@ -354,6 +462,22 @@ func seedMissingConductFilterItems(context: ModelContext, maintenance: [Maintena
             system: .cognition,
             intervalDays: 7,
             notes: ConductFilterSeed.auditNotes
+        ))
+    }
+    if !maintTitles.contains(ComputerMaintenanceSeed.hygieneTitle) {
+        context.insert(MaintenanceItem(
+            title: ComputerMaintenanceSeed.hygieneTitle,
+            system: .operations,
+            intervalDays: 30,
+            notes: ComputerMaintenanceSeed.hygieneNotes
+        ))
+    }
+    if !maintTitles.contains(ComputerMaintenanceSeed.chatTitle) {
+        context.insert(MaintenanceItem(
+            title: ComputerMaintenanceSeed.chatTitle,
+            system: .operations,
+            intervalDays: 90,
+            notes: ComputerMaintenanceSeed.chatNotes
         ))
     }
     let habitTitles = Set(habits.map(\.title))
@@ -395,9 +519,17 @@ func seedDefaultMaintenance(context: ModelContext) {
         ("Espresso machine deep clean", .operations, 7),
         ("Grinder calibration",     .operations,   14),
         ("App subscription audit",  .operations,   90),
+        (ComputerMaintenanceSeed.hygieneTitle, .operations, 30),
+        (ComputerMaintenanceSeed.chatTitle,      .operations, 90),
     ]
     for (title, system, interval) in defaults {
-        let notes = title == ConductFilterSeed.title ? ConductFilterSeed.auditNotes : ""
+        let notes: String
+        switch title {
+        case ConductFilterSeed.title: notes = ConductFilterSeed.auditNotes
+        case ComputerMaintenanceSeed.hygieneTitle: notes = ComputerMaintenanceSeed.hygieneNotes
+        case ComputerMaintenanceSeed.chatTitle: notes = ComputerMaintenanceSeed.chatNotes
+        default: notes = ""
+        }
         context.insert(MaintenanceItem(title: title, system: system, intervalDays: interval, notes: notes))
     }
 }
@@ -877,10 +1009,10 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
         // PLANNED — full-face retinoid (purchase when capital allows) — now Wed/Sat in rotation
         ("Retinol — Wednesday",  .health, 15,
          "Full-face retinoid only — not eye cream. Cleanse first. Wait 10-20 min until skin fully dry. Pea-sized only. Dot forehead, cheeks, chin. Avoid eyelids, nostril folds, corners of mouth. Moisturize after. No BHA or glycolic same night.",
-         "After PM cleanse — Wednesday night", .weekly, nil, nil, nil),
+         "After PM cleanse — Wednesday night", .weekly, nil, nil, nil, nil),
         ("Retinol — Saturday", .health, 15,
          "Same as Wednesday. Cleanse → dry 10-20 min → pea-sized retinoid → moisturize. No exfoliant same night.",
-         "After PM cleanse — Saturday night", .weekly, nil, nil, nil),
+         "After PM cleanse — Saturday night", .weekly, nil, nil, nil, nil),
 
         // PLANNED — finasteride consult (next capital deployment after 90-day stack run)
         // Crown + top pattern = androgenic thinning. Minoxidil supports growth.
@@ -1661,6 +1793,7 @@ struct RootView: View {
             PrescribedStackRetirement.normalize(context: context)
             if maintenanceItems.isEmpty { seedDefaultMaintenance(context: context) }
             seedMissingConductFilterItems(context: context, maintenance: maintenanceItems, habits: habits)
+            seedHideoutAppLaunchMaintenance(context: context, maintenance: maintenanceItems)
             if financialStates.isEmpty { context.insert(FinancialState()) }
             // Seed Week 1 solo experiment data (May 13–17, 2026) if no shifts exist.
             // Gated on hideoutShifts.isEmpty — only runs on fresh install or after data wipe.
