@@ -390,7 +390,8 @@ enum HideoutAppLaunchSeed {
         """),
         ("Hideout · Sunday exit card", """
         Physical: printed card at Sunday Morning checkout — weekday hours + app QR.
-        QR URL: https://hideoutmiami.com/app?source=village
+        QR URL: https://hideoutmiami.com/app?source=weekday
+        Opens Today (weekday pickup) — NOT ?source=village (that opens Sunday tab).
         Bridges Sunday crowd to Wed–Fri cafe rhythm. One caramel element on card design.
         """),
         ("Hideout · Office breakfast trial", """

@@ -475,7 +475,7 @@ struct HideoutTabView: View {
                 ("SkyView lobby card stand", "QR → hideoutmiami.com/app?source=skyview · same-building copy in app", $hideoutAppSkyviewQR),
                 ("Watermarc leave-behind cards", "Concierge tours · QR ?source=watermarc · 2-min walk copy", $hideoutAppWatermarcCards),
                 ("Salon stand (A Better You)", "Staff mention + small stand · ?source=neighbor", $hideoutAppSalonStand),
-                ("Sunday exit card", "Weekday bridge card handed at Sunday Morning exit", $hideoutAppSundayExitCard),
+                ("Sunday exit card", "Hand at Sunday exit · QR ?source=weekday (opens Today, not Sunday tab)", $hideoutAppSundayExitCard),
                 ("GBP photos + weekly post", "6 photos min · hours · menu hero · no engagement bait", $hideoutAppGBPPhotos),
             ]),
             ("MODE C · B2B STANDING (NO CODE)", .warm, [
