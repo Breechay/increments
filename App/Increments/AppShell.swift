@@ -9,27 +9,25 @@ struct CustomTabBar: View {
     let showTimeline: Bool   // kept for API compat, unused now
     @Environment(\.appMetrics) private var metrics
 
+    /// Tab indices — Operate mode (Jul 2026). Use constants when deep-linking.
+    static let tabOperate = 0
+    static let tabPark = 1
+
     var tabs: [(String, String)] {
         [
-            ("scope",              "Now"),
-            ("calendar",           "Today"),
-            ("list.bullet.indent", "Protocols"),
-            ("figure.run",         "Physique"),
-            ("building.2",         "Hideout"),
-            ("antenna.radiowaves.left.and.right", "Signal"),
-            ("person",             "You"),
-            ("staroflife",         "Recovery"),
+            ("scope", "Operate"),
+            ("archivebox", "Park"),
         ]
     }
 
     // Tab bar: compact on iPad — content scales up, chrome stays down.
-    var iconSizeActive:   CGFloat { metrics.isIPad ? 17 : 19 }
-    var iconSizeInactive: CGFloat { metrics.isIPad ? 15 : 17 }
-    var labelSize:        CGFloat { metrics.isIPad ? 9 : 10 }
-    var bubbleSize:       CGFloat { metrics.isIPad ? 30 : 36 }
-    var iconFrameH:       CGFloat { metrics.isIPad ? 24 : 28 }
-    var topPad:           CGFloat { metrics.isIPad ? 5 : 10 }
-    var bottomPad:        CGFloat { metrics.isIPad ? 2 : 4 }
+    var iconSizeActive:   CGFloat { metrics.isIPad ? 19 : 22 }
+    var iconSizeInactive: CGFloat { metrics.isIPad ? 17 : 20 }
+    var labelSize:        CGFloat { metrics.isIPad ? 11 : 12 }
+    var bubbleSize:       CGFloat { metrics.isIPad ? 34 : 40 }
+    var iconFrameH:       CGFloat { metrics.isIPad ? 28 : 32 }
+    var topPad:           CGFloat { metrics.isIPad ? 8 : 12 }
+    var bottomPad:        CGFloat { metrics.isIPad ? 4 : 6 }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -481,18 +479,8 @@ func seedMissingConductFilterItems(context: ModelContext, maintenance: [Maintena
             notes: ComputerMaintenanceSeed.chatNotes
         ))
     }
-    let habitTitles = Set(habits.map(\.title))
-    if !habitTitles.contains(ConductFilterSeed.title) {
-        let habit = Habit(
-            title: ConductFilterSeed.title,
-            system: .cognition,
-            frequency: .weekly,
-            cue: ConductFilterSeed.cue,
-            minimumScope: ConductFilterSeed.minimumScope
-        )
-        habit.notes = ConductFilterSeed.auditNotes
-        context.insert(habit)
-    }
+    _ = habits // retired — Conduct audit is a weekly Action, not a Habit
+    seedDefaultActions(context: context, onlyTitles: Set([ConductFilterSeed.title]))
 }
 
 func seedDefaultMaintenance(context: ModelContext) {
@@ -611,12 +599,10 @@ func resetDailyActionsIfNeeded(context: ModelContext, profile: OperatorProfile, 
 
 // MARK: - SEED DATA
 
-// PRESCRIBED WEEK SCHEDULE (v2.4 + 6:30 arrival update):
-// Add these manually if already seeded. Time blocks show on action cards.
-// DayType "hideout" = Wed–Fri 7AM–5PM, Sat–Sun 7AM–3PM (Sun 5PM from Week 2). "base" = Mon–Tue.
-//
-// EVERY DAY:  4:30 Wake · no phone · hydrate · creatine · AM stack (Physique) · fasted cardio
-//             ~5:15 Cold shower · ~5:35 Protein · leave ~6:00 · 21:15 sleep target
+// PRESCRIBED WEEK SCHEDULE (Jul 2026):
+// EVERY DAY:  5:00 Wake · no phone · hydrate · creatine · AM stack (Physique) · fasted cardio
+//             Mon/Fri: Rod Panorama 6:15 AM (coaching) — compress/skip AM cardio
+//             ~5:45 Cold shower · ~6:05 Protein · leave ~6:30 Hideout · 21:15 sleep target
 // HIDEOUT:    6:30 arrive + prep (terrace + plants) → 7:00 slow open → 7:30 Priorities → 12:00 Protein + outside
 // BASE:       8:00 Mon: Close loop · 8:15 Messages · 8:30 Reset one area
 // WEEKLY:     Sun 14:00 Read long · Sun 15:00 Inbox physical · Mon 8:00 Close loop
@@ -634,7 +620,8 @@ func seedMissingCoreActions(context: ModelContext, existing: [Action]) {
         "Collagen + vitamin C", "Derma roller — Wednesday", "Derma roller — Sunday",
         "Review priorities", "Journal — 3 sentences",
         "Content block \u{2014} Monday",
-        "Terrace + plants — opening prep",
+        "Rod — Panorama · Monday",
+        "Rod — Panorama · Friday",
     ]
     let missing = want.subtracting(have)
     guard !missing.isEmpty else { return }
@@ -808,6 +795,8 @@ enum PrescribedStackRetirement {
         if changed { try? context.save() }
 
         refreshEveningShutdownSession(context: context, sessions: (try? context.fetch(FetchDescriptor<Session>())) ?? [])
+        refreshJul2026OperatorSchedule(context: context)
+        refreshJul2026TrimPass(context: context)
 
         let remainingActions = (try? context.fetch(FetchDescriptor<Action>())) ?? []
         let remainingSessions = (try? context.fetch(FetchDescriptor<Session>())) ?? []
@@ -848,6 +837,179 @@ func refreshEveningShutdownSession(context: ModelContext, sessions: [Session]) {
     try? context.save()
 }
 
+private let jul2026ScheduleRefreshKey = "increments_schedule_refresh_jul2026_v1"
+
+/// One-time patch: 5:00 wake, Rod Panorama Mon/Fri, growth-era copy. Runs on every normalize until keyed.
+func refreshJul2026OperatorSchedule(context: ModelContext) {
+    guard !UserDefaults.standard.bool(forKey: jul2026ScheduleRefreshKey) else { return }
+
+    let actions = (try? context.fetch(FetchDescriptor<Action>())) ?? []
+    let actionPatches: [(match: String, block: String?, cue: String?, note: String?)] = [
+        ("No social · no news — first hour", "5:00", "5:00 wake — open Increments, not Instagram", nil),
+        ("Hydrate", "5:02", nil, nil),
+        ("Open the blinds", "5:04", nil, nil),
+        ("Creatine", "5:06", nil, nil),
+        ("Cardio — bike or elliptical", "5:15", nil,
+         "STEADY STATE: 35–40 min Zone 2. Skip Mon/Fri mornings — Rod at Panorama 6:15. Optional 20 min only if time before leave."),
+        ("Cold exposure — 2 min", "5:45", nil, nil),
+        ("Morning grooming", "5:48", nil, nil),
+        ("Protein — first meal", "6:05", nil, nil),
+        ("Journal — 3 sentences", "6:10", nil, nil),
+        ("Morning light exposure", "6:12", nil,
+         "Real sunlight when available. On Hideout days, full sun at terrace open (7AM). Civil twilight ~6:00 in summer."),
+        ("Sleep by 9:30PM", nil, nil,
+         "End of shutdown corridor. 5:00 wake = 6.5 hr ceiling. 9:15–9:30 target."),
+        ("Stage tomorrow", nil, nil,
+         "Bag packed · outfit set · kitchen staged · app open to Today for 5:00 wake."),
+        ("Strength training — gym", "17:30", "5:30 PM — Forge Breechay after Hideout",
+         "Forge Breechay ~5:30 PM. Rod Panorama Mon/Fri 6:15 AM is separate — coaching, not your session."),
+    ]
+
+    var changed = false
+    for patch in actionPatches {
+        guard let action = actions.first(where: { $0.title == patch.match }) else { continue }
+        if let block = patch.block { action.scheduledBlock = block; changed = true }
+        if let cue = patch.cue { action.cue = cue; changed = true }
+        if let note = patch.note { action.note = note; changed = true }
+    }
+
+    if let session = (try? context.fetch(FetchDescriptor<Session>()))?.first(where: { $0.title == "Morning Protocol" }) {
+        let steps = [
+            "5:00 — Wake. No phone. Open blinds.",
+            "5:02 — Water (500ml) + weigh in (post-bathroom) + Garmin HRV glance",
+            "5:06 — Creatine (5g) — skip if on planned pause",
+            "5:10 — Core + AM activation (Physique) — then fasted cardio (skip Mon/Fri if Rod 6:15)",
+            "5:45 — Cold finish (last 2 min of shower cold)",
+            "5:48 — Grooming corridor",
+            "6:05 — Protein first meal (30g minimum)",
+            "6:10 — Journal (3 sentences)",
+            "Mon/Fri 6:15 — Rod · Panorama (coaching)",
+            "Leave ~6:30 on Hideout days"
+        ]
+        if session.steps != steps {
+            session.steps = steps
+            session.cue = "5:00 AM wake target"
+            changed = true
+        }
+    }
+
+    if changed { try? context.save() }
+
+    seedDefaultActions(context: context, onlyTitles: Set([
+        "Rod — Panorama · Monday",
+        "Rod — Panorama · Friday",
+    ]))
+
+    UserDefaults.standard.set(true, forKey: jul2026ScheduleRefreshKey)
+}
+
+private let jul2026TrimPassKey = "increments_trim_pass_jul2026_v1"
+
+/// One-time Jul 2026 trim: anchor demotion, habit retirement, quiet window, content block, Conduct audit action.
+func refreshJul2026TrimPass(context: ModelContext) {
+    guard !UserDefaults.standard.bool(forKey: jul2026TrimPassKey) else { return }
+
+    var changed = false
+
+    let profiles = (try? context.fetch(FetchDescriptor<OperatorProfile>())) ?? []
+    for profile in profiles where profile.notifQuietEnd < 5 {
+        profile.notifQuietEnd = 5
+        changed = true
+    }
+
+    let demoteFromAnchor: Set<String> = [
+        "Morning grooming",
+        "Review priorities",
+        "Post-workout protein",
+        "PM oral care",
+        "No screens — final hour",
+        "Minoxidil",
+        "Magnesium glycinate",
+        "Content block — Monday",
+        "Post-cardio protein anchor",
+        "First solid meal",
+        "Pre-lift carb prime",
+        "Post-lift anabolic window",
+    ]
+
+    let actions = (try? context.fetch(FetchDescriptor<Action>())) ?? []
+    for action in actions {
+        if demoteFromAnchor.contains(action.title), action.priorityTierRaw == "anchor" {
+            action.priorityTierRaw = nil
+            changed = true
+        }
+        if action.title == "Content block — Monday" {
+            let updated = "20 min. Fixed shot list — no decisions at execution. Sequence:\n1. Hideout: fixed 7-shot sequence (wide patio → entrance → espresso → plate → patio+skyline → coffee on table → seated POV). Film before anything else.\n2. Edit: cut to 20–30 sec vertical, natural audio only.\n3. Upload to GBP first (primary channel) → same file to Reels → same to TikTok. No captions beyond 2 lines.\n4. FORM/Forge: one real decision from the training week. Screen recording + one context line. (Signal tab · Lane B — RunCards is separate.)\nPost and leave. No feed. No browsing. No engagement. Done."
+            if action.note != updated {
+                action.note = updated
+                action.priorityTierRaw = nil
+                changed = true
+            }
+        }
+    }
+
+    let habits = (try? context.fetch(FetchDescriptor<Habit>())) ?? []
+    for habit in habits {
+        context.delete(habit)
+        changed = true
+    }
+
+    if changed { try? context.save() }
+
+    seedDefaultActions(context: context, onlyTitles: Set([ConductFilterSeed.title]))
+    try? context.save()
+
+    UserDefaults.standard.set(true, forKey: jul2026TrimPassKey)
+}
+
+/// Pre–Operate-mode tab indices (Jul 2026 migration only).
+enum LegacyTabIndex {
+    static let now = 0
+    static let today = 1
+    static let physique = 2
+    static let hideout = 3
+    static let signal = 4
+    static let you = 5
+    static let recovery = 6
+}
+
+private let operateModeMigrationKey = "didMigrateToOperateMode_v1"
+
+/// Remap tab indices after Protocols tab removal (Jul 2026 trim).
+func remapTabIndexAfterTrim(_ tab: Int) -> Int {
+    tab <= LegacyTabIndex.today ? CustomTabBar.tabOperate : CustomTabBar.tabPark
+}
+
+func parkRouteFromLegacyTab(_ tab: Int) -> ParkDestination? {
+    switch tab {
+    case LegacyTabIndex.now: return .now
+    case LegacyTabIndex.today: return .today
+    case LegacyTabIndex.physique: return .physique
+    case LegacyTabIndex.hideout: return .hideout
+    case LegacyTabIndex.signal: return .signal
+    case LegacyTabIndex.you: return .you
+    case LegacyTabIndex.recovery: return .recovery
+    default: return nil
+    }
+}
+
+/// One-time 7-tab → Operate + Park migration. After migration, persisted tab is respected.
+func migrateToOperateModeIfNeeded(selectedTab: inout Int, parkRoute: inout ParkDestination?) {
+    guard !UserDefaults.standard.bool(forKey: operateModeMigrationKey) else { return }
+    let legacyTab = selectedTab
+    if legacyTab == CustomTabBar.tabOperate || legacyTab == CustomTabBar.tabPark {
+        UserDefaults.standard.set(true, forKey: operateModeMigrationKey)
+        return
+    }
+    if legacyTab > LegacyTabIndex.today {
+        parkRoute = parkRouteFromLegacyTab(legacyTab)
+        selectedTab = CustomTabBar.tabPark
+    } else {
+        selectedTab = CustomTabBar.tabOperate
+    }
+    UserDefaults.standard.set(true, forKey: operateModeMigrationKey)
+}
+
 func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
     // (title, system, points, note, cue, recurrence, scheduledBlock, dayTypeRaw)
     // Format: (title, system, points, note, cue, recurrence, scheduledBlock, dayTypeRaw, priorityTierRaw, mechanismNote)
@@ -855,38 +1017,38 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
     // mechanismNote = causal mechanism (expandable, why it works this way)
     let defaults: [(String, SystemTag, Int, String?, String, RecurrenceType, String?, String?, String?, String?)] = [
 
-        // ── MORNING ANCHOR — every day (4:30 wake target) ─────────────────────
+        // ── MORNING ANCHOR — every day (5:00 wake target) ─────────────────────
         ("No social · no news — first hour", .cognition, 10,
          "Increments is the exception. The rule is no consumption — no social feeds, no news, no messages. The first hour is for execution, not input. News optimized for anxiety is not neutral input.",
-         "4:30 wake — open Increments, not Instagram", .daily, "4:30", nil, "anchor", nil),
+         "5:00 wake — open Increments, not Instagram", .daily, "5:00", nil, "anchor", nil),
 
         ("Hydrate",                    .health,        5,
          "500ml before anything. 3L target today.\\nWhile filling: step on scale (post-bathroom, no clothes), glance at Garmin body battery.",
-         "Right after wake",                       .daily,   "4:32",  nil, "anchor", nil),
+         "Right after wake",                       .daily,   "5:02",  nil, "anchor", nil),
 
         ("Open the blinds",            .environment,   5,
          "Light signal. Pre-dawn — open anyway. The act cues wakefulness before sunrise.",
-         "Walking to kitchen or balcony",          .daily,   "4:34",  nil, nil, nil),
+         "Walking to kitchen or balcony",          .daily,   "5:04",  nil, nil, nil),
 
         ("Creatine",                   .health,        5,
          "5g with water when taking it. Week off is fine — see mechanism note.",
-         "With morning water",                     .daily,   "4:36",  nil, "anchor", "Saturation protocol — 5g/day when active. Initial scale jump is mostly intracellular water (1–3 lb), not fat. A brief pause for scale clarity on a cut is reasonable; resume when ready. Do NOT take with zinc (dinner) — absorption competition."),
+         "With morning water",                     .daily,   "5:06",  nil, "anchor", "Saturation protocol — 5g/day when active. Initial scale jump is mostly intracellular water (1–3 lb), not fat. A brief pause for scale clarity on a cut is reasonable; resume when ready. Do NOT take with zinc (dinner) — absorption competition."),
 
         ("Cardio — bike or elliptical", .health,      15,
-         "STEADY STATE (default): 35–40 min Zone 2, 130–145 BPM. Fasted default — no pre-cardio carbs.\nOverride: half banana only if body battery <30 or HRV suppressed.\nINTERVAL (1x/week, base days only): 20 min — not on hideout days.",
-         "After core + activation (Physique) — aim done by ~6:00 on Hideout days", .daily, "4:45", nil, nil, nil),
+         "STEADY STATE (default): 35–40 min Zone 2, 130–145 BPM. Fasted default — no pre-cardio carbs.\nOverride: half banana only if body battery <30 or HRV suppressed.\nSkip Mon/Fri mornings — Rod at Panorama 6:15. Optional 20 min only if time before leave.",
+         "After core + activation (Physique) — aim done by ~6:10 on Hideout days", .daily, "5:15", nil, nil, nil),
 
         ("Cold exposure — 2 min",      .health,       10,
          "Last 2 minutes of shower cold. Not the whole shower — just the finish.",
-         "End of shower",                          .daily,   "5:15",  nil, nil, nil),
+         "End of shower",                          .daily,   "5:45",  nil, nil, nil),
 
         ("Morning grooming",           .health,       10,
          "Grooming corridor — 14 min. See Whole Human Reset session for full sequence.",
-         "After shower — corridor start",      .daily,   "5:18",  nil, "anchor", nil),
+         "After shower — corridor start",      .daily,   "5:48",  nil, nil, nil),
 
         ("Protein — first meal",       .health,        5,
          "30g minimum. Eggs + chicken or pumpkin seed shake. Pre-commute. Eat before you leave.",
-         "First meal — before leaving for hideout",  .daily,   "5:35",  nil, "anchor", nil),
+         "First meal — before leaving for hideout",  .daily,   "6:05",  nil, "anchor", nil),
 
         ("Supplements — midday",       .health,       10,
          "Take with first fat-containing meal (9:30 AM at Hideout, ~9:00 AM at home):\n• Vitamin D3: 5,000 IU — Miami sun + consistent SPF = still likely deficient. Test 25-OH-D biannually, target 50–70 ng/mL.\n• K2 (MK-7): 100mcg — routes D3-driven calcium to bones, not arteries. D3 without K2 long-term is a cardiovascular risk.\n• Vitamin C: 500mg — or rely on breakfast strawberries (~85mg/cup). Supports collagen synthesis, immune function, cortisol clearance.",
@@ -898,17 +1060,25 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
 
         ("Journal — 3 sentences",      .cognition,    10,
          "What happened. What I noticed. What's next.",
-         "After protein — before leaving",         .daily, "5:45", nil, nil, nil),
+         "After protein — before leaving",         .daily, "6:10", nil, nil, nil),
 
         ("Morning light exposure",     .health,        5,
-         "Real sunlight — balcony or commute walk if it's past civil twilight (~30 min before sunrise). Miami sunrise: ~6:32 AM (summer) to ~7:11 AM (winter). At 5:50 AM you're in civil twilight — some natural light available. Full sun exposure happens at Hideout open (7AM action). Red light at 4:08 AM covers the pre-dawn alertness cue.",
-         "Post-cardio or commute — natural light when available",  .daily,   "5:50",  nil, nil, nil),
+         "Real sunlight when available. On Hideout days, full sun at terrace open (7AM). Civil twilight ~6:00 in summer.",
+         "Post-cardio or commute — natural light when available",  .daily,   "6:12",  nil, nil, nil),
+
+        ("Rod — Panorama · Monday",    .participation, 15,
+         "Coaching session · Panorama 6:15. Leave by 6:10. Compress AM stack — core + activation only before.",
+         "Panorama · 6:15 AM",                     .weekly,  "6:15", nil, "anchor", nil),
+
+        ("Rod — Panorama · Friday",    .participation, 15,
+         "Coaching session · Panorama 6:15. Then Hideout prep — arrive terrace by 6:30.",
+         "Panorama · 6:15 AM",                     .weekly,  "6:15", nil, "anchor", nil),
 
                 // ── HIDEOUT DAYS — Wed–Fri 7AM–5PM, Sat–Sun 7AM–3PM ─────────────────────────
         ("Review priorities",          .operations,   10,
          "5 min. What are the 3 things? Write them down before anything else.",
          "7:30 — after the door opens and the first rush settles. You arrived at 6:30, the prep is done, now orient.",
-         .daily,   "7:30",  "hideout", "anchor", nil),
+         .daily,   "7:30",  "hideout", nil, nil),
 
         ("Protein — second hit",       .health,        5,
          "30g. Noon break.",
@@ -920,17 +1090,17 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
 
         // Gym — 5PM fixed anchor, building condo gym with Tim
         ("Pre-lift mobility — 5 min",  .health,       5,
-         "Optional amplifier — not required if first sets feel good.\nHip flexor 60s/side · T-spine rotation 10/side · ankle circles if tibia week feels off.\nAdd dead hang 30s after long Hideout shifts. Full foam-roll protocol only if shoulders turn sticky.",
+         "Optional amplifier — not required if first sets feel good.\nHip flexor 60s/side · T-spine rotation 10/side · ankle circles as needed — tibia ~95%.\nAdd dead hang 30s after long Hideout shifts.",
          "5:25 PM — gym floor, before first working set", .daily, "17:25", nil, "amplifier", nil),
 
         ("Strength training — gym",    .health,       20,
-         "Building with Tim. Forge Breechay at 5:30. Post-workout protein within 30 min.",
+         "Forge Breechay ~5:30 PM. Rod Panorama Mon/Fri 6:15 AM is separate — coaching, not your session.",
          "5:30 PM — after optional 5-min mobility",
          .daily,   "17:30", nil, "anchor", nil),
 
         ("Post-workout protein",       .health,        5,
          "30g within 30 min of training. The window matters here more than other meals.",
-         "Immediately after gym",                   .daily,   "18:00", nil, "anchor", nil),
+         "Immediately after gym",                   .daily,   "18:00", nil, nil, nil),
 
         // ── BASE DAYS — Mon–Tue cafe/ops/maintenance ───────────────────────────
         ("Respond to 3 messages",      .operations,    5,
@@ -948,22 +1118,22 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
         // ── EVENING ANCHOR — every day ─────────────────────────────────────────
         ("PM oral care",               .health,       10,
          "Floss → brush 2 min → tongue scraper. Sequence is not optional.",
-         "Before shutdown — 8:25 PM",               .daily,  "20:25", nil, "anchor", nil),
+         "Before shutdown — 8:25 PM",               .daily,  "20:25", nil, nil, nil),
 
         ("No screens — final hour",    .health,       10,
          "Lights to lamps. Phone to other room. Not silent — other room.",
-         "8:30 PM — start of shutdown corridor",   .daily,   "20:30", nil, "anchor", nil),
+         "8:30 PM — start of shutdown corridor",   .daily,   "20:30", nil, nil, nil),
 
         ("Minoxidil",                  .health,       10,
          "Dry scalp only. Crown + top zone. Light spread. Must dry 45 min before pillow.",
-         "8:20 PM — 45 min before sleep. If using derma roller tonight, apply within 30 min of rolling.",   .daily,   "20:20", nil, "anchor", nil),
+         "8:20 PM — 45 min before sleep. If using derma roller tonight, apply within 30 min of rolling.",   .daily,   "20:20", nil, nil, nil),
 
         ("Read before sleep",          .cognition,    15,
          "Physical book. 20+ pages. No Kindle. Your Garmin confirms the REM effect — this is a sleep action as much as a reading action.",
          "After shutdown staging",     .daily,   "20:50", nil, nil, nil),
 
         ("Sleep by 9:30PM",            .health,       10,
-         "End of shutdown corridor. 4:30 wake = 6.5 hr ceiling. 9:15–9:30 target. Every system — fat loss, muscle retention, cortisol, HRV — degrades when this slips. Sleep is not a reward; it is a performance input.",
+         "End of shutdown corridor. 5:00 wake = 6.5 hr ceiling. 9:15–9:30 target. Every system — fat loss, muscle retention, cortisol, HRV — degrades when this slips. Sleep is not a reward; it is a performance input.",
          "End of shutdown corridor",        .daily,   "21:15", nil, "anchor", nil),
 
         // ── HIDEOUT PREP — terrace + plants (single pass) ─────────────────────
@@ -1045,7 +1215,7 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
         // ── MAGNESIUM GLYCINATE — nightly ────────────────────────────────────
         ("Magnesium glycinate",        .health,       10,
          "400mg glycinate form with water.",
-         "8:40 PM — before Stage tomorrow routine",         .daily,  "20:40", nil, "anchor", nil),
+         "8:40 PM — before Stage tomorrow routine",         .daily,  "20:40", nil, nil, nil),
 
         // ── COLLAGEN + VITAMIN C — pre-lift ──────────────────────────────────
         ("Collagen + vitamin C",       .health,       10,
@@ -1058,14 +1228,12 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
          "Sunday — after Hideout close",            .weekly, "15:30", "hideout", nil, nil),
 
         // ── MONDAY CONTENT BLOCK — distribution protocol ─────────────────────
-        // The one fixed weekly distribution action. 20 min before Hideout opens on base day.
-        // Same footage → GBP post + Reels/TikTok + RunCards post + FORM/Forge screen capture.
-        // Source: DISTRIBUTION_OPERATING_SYSTEM.md — Monday Block section.
+        // Hideout lane in Signal tab. FORM/Forge lane parallel. RunCards is separate.
         ("Content block — Monday",     .operations,   15,
-         "20 min. Fixed shot list — no decisions at execution. Sequence:\\n1. Hideout: fixed 7-shot sequence (wide patio → entrance → espresso → plate → patio+skyline → coffee on table → seated POV). Film before anything else.\\n2. Edit: cut to 20–30 sec vertical, natural audio only.\\n3. Upload to GBP first (primary channel) → same file to Reels → same to TikTok. No captions beyond 2 lines.\\n4. RunCards: one run card from the database, one city, one post.\\n5. FORM/Forge: one real decision from the training week. Screen recording + one context line.\\nPost and leave. No feed. No browsing. No engagement. Done.",
+         "20 min. Fixed shot list — no decisions at execution. Sequence:\n1. Hideout: fixed 7-shot sequence (wide patio → entrance → espresso → plate → patio+skyline → coffee on table → seated POV). Film before anything else.\n2. Edit: cut to 20–30 sec vertical, natural audio only.\n3. Upload to GBP first (primary channel) → same file to Reels → same to TikTok. No captions beyond 2 lines.\n4. FORM/Forge: one real decision from the training week. Screen recording + one context line. (Signal tab · Lane B.)\nPost and leave. No feed. No browsing. No engagement. Done.",
          "Monday AM — before Hideout prep. Before you open anything else.",
-         .weekly, "6:00", "base", "anchor",
-         "Fixed protocol beats inspiration. This 20-min block is the entire distribution system for the week across all four ventures. Skipping one week = zero distribution surface contact that week. Over 8 weeks of consistent execution, this produces legible signal data. Without it, there is no data — only noise and guessing."),
+         .weekly, "6:00", "base", nil,
+         "Fixed protocol beats inspiration. Signal tab tracks both lanes. Skipping one week = zero distribution surface contact that week."),
 
         // ══ ORAL HEALTH ═══════════════════════════════════════════════════════
         ("Derma roller — Sunday",      .health,       10,
@@ -1091,12 +1259,18 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
          "8:15 PM — before no-screens window",       .daily,  "20:15", nil, nil, nil),
 
         ("Stage tomorrow",             .environment,  10,
-         "4 things, 4 minutes: (1) Gym bag packed and by door — including collagen, pre-lift snack, any supplements. (2) Tomorrow's outfit on the chair. (3) Kitchen staged — creatine + magnesium out, water bottle filled. (4) App open to Today so first action is visible at 4:30. Every decision you eliminate from the morning window is a direct performance upgrade.",
+         "4 things, 4 minutes: (1) Gym bag packed and by door — including collagen, pre-lift snack, any supplements. (2) Tomorrow's outfit on the chair. (3) Kitchen staged — creatine + magnesium out, water bottle filled. (4) App open to Today so first action is visible at 5:00. Every decision you eliminate from the morning window is a direct performance upgrade.",
          "8:45 PM — during shutdown",                .daily,  "20:45", nil, "anchor", nil),
 
         ("Weekly financial check",     .operations,   10,
          "10 min. Not a full review — just: what came in this week, what went out, what's the shift from target, is there a decision needed before next week. For Hideout: is weekly revenue trending toward stability band or above. For personal: any irregular expense requiring adjustment. This is pattern maintenance, not anxiety management. Calm, factual, 10 min.",
          "Monday morning — base day",                .weekly, "9:00",  "base", nil, nil),
+
+        // ── CONDUCT FILTER — weekly audit (replaces habit duplicate) ─────────
+        (ConductFilterSeed.title,      .cognition,   10,
+         ConductFilterSeed.auditNotes,
+         ConductFilterSeed.cue,
+         .weekly, "8:00", "base", nil, nil),
 
         // ══ RELATIONSHIP + PARTICIPATION ══════════════════════════════════════
         ("Scalp massage — 4 min",      .health,        5,
@@ -1124,12 +1298,12 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
 
         ("Post-cardio protein anchor",  .health,       5,
          "Pumpkin seed protein in oat milk · 2 hard boiled eggs optional.\nShake only. No carbs yet — fat oxidation window still open for ~60–90 min post Zone 2.",
-         "Immediately after cardio — before shower",  .daily,  "5:15",  nil, "anchor",
+         "Immediately after cardio — before shower",  .daily,  "5:15",  nil, nil,
          "Post-exercise protein synthesis peaks within 30 min of training end. Fat oxidation from Zone 2 continues until the first carbohydrate meal — carbs here spike insulin and close the window. Protein (not carbs) is the correct post-cardio-only fuel if fat loss is the target. ~340 kcal · 40g P."),
 
         ("First solid meal",            .health,       5,
          "1 banana · 100g roasted chicken · 2 hard boiled eggs.\nBanana + chicken + 2 eggs. Same every day.",
-         "9:30 AM — first carb of the day",           .daily,  "9:30", nil, "anchor",
+         "9:30 AM — first carb of the day",           .daily,  "9:30", nil, nil,
          "First carbohydrate of the day. Banana closes the fat oxidation window and opens glycolytic fueling. The consistency eliminates decision cost — same meal, same time, no thinking. ~490 kcal · 55g P."),
 
         ("Midday protein + greens",     .health,       5,
@@ -1139,12 +1313,12 @@ func seedDefaultActions(context: ModelContext, onlyTitles: Set<String>? = nil) {
 
         ("Pre-lift carb prime",         .health,       10,
          "2 slices Zak sourdough · 1.5 tbsp peanut or almond butter.\nPack it at Hideout, don't decide it at 5PM. Most critical meal of the day for training output.",
-         "5:00 PM — 30–45 min before Forge Breechay", .daily,  "17:00", nil, "anchor",
+         "5:00 PM — 30–45 min before Forge Breechay", .daily,  "17:00", nil, nil,
          "Muscle glycogen is the primary fuel for strength training. Going into a Forge Breechay session glycogen-depleted produces 10–20% lower force output, higher perceived effort, and blunted muscle protein synthesis response. Sourdough + nut butter = fast carbs + fat buffer to slow glucose spike = sustained energy through a 60+ min session. Skipping this is the #1 performance and body-comp mistake in the protocol. ~400 kcal · 55g carbs."),
 
         ("Post-lift anabolic window",   .health,       10,
          "Pumpkin seed shake in regular milk · banana OR watermelon OR strawberries.\nShake + fruit. Within 30 min of last set. Non-negotiable.",
-         "Within 30 min of finishing gym",            .daily,  "18:30", nil, "anchor",
+         "Within 30 min of finishing gym",            .daily,  "18:30", nil, nil,
          "Post-training anabolic window is real and narrow for this context. Insulin sensitivity in muscle is highest in the 30–45 min post-exercise window. Carbohydrate + protein together here produces a greater anabolic response than protein alone. Miss this window and muscle glycogen replenishment is slower, muscle protein synthesis signal is blunted. On a cut this matters more, not less — you have less margin. ~480 kcal · 42g P."),
 
         ("Final meal",                  .health,       5,
@@ -1172,17 +1346,18 @@ func seedDefaultSessions(context: ModelContext, onlyTitles: Set<String>? = nil) 
             "Morning Protocol",
             .health,
             [
-                "4:30 — Wake. No phone. Open blinds.",
-                "4:32 — Water (500ml) + weigh in (post-bathroom) + Garmin HRV glance",
-                "4:36 — Creatine (5g) — skip if on planned pause",
-                "4:40 — Core + AM activation (Physique tabs) — then fasted cardio 35–40 min",
-                "5:15 — Cold finish (last 2 min of shower cold)",
-                "5:18 — Grooming corridor: cleanse → niacinamide → eye cream → SPF → lip balm → body lotion → deodorant → brush teeth AM",
-                "5:35 — Protein first meal (30g minimum)",
-                "5:45 — Journal (3 sentences)",
-                "Leave ~6:00 on Hideout days"
+                "5:00 — Wake. No phone. Open blinds.",
+                "5:02 — Water (500ml) + weigh in (post-bathroom) + Garmin HRV glance",
+                "5:06 — Creatine (5g) — skip if on planned pause",
+                "5:10 — Core + AM activation (Physique) — then fasted cardio (skip Mon/Fri if Rod 6:15)",
+                "5:45 — Cold finish (last 2 min of shower cold)",
+                "5:48 — Grooming corridor: cleanse → niacinamide → eye cream → SPF → lip balm → body lotion → deodorant → brush teeth AM",
+                "6:05 — Protein first meal (30g minimum)",
+                "6:10 — Journal (3 sentences)",
+                "Mon/Fri 6:15 — Rod · Panorama (coaching)",
+                "Leave ~6:30 on Hideout days"
             ],
-            "4:30 AM wake target",
+            "5:00 AM wake target",
             .daily
         ),
         (
@@ -1216,7 +1391,7 @@ func seedDefaultSessions(context: ModelContext, onlyTitles: Set<String>? = nil) 
                 "Deodorant / antiperspirant — apply to completely dry underarms. Antiperspirant works by blocking sweat ducts with aluminum compounds; moisture degrades effectiveness. If using aluminum-free: apply at night to clean dry skin — more effective timing because sweat is lower during sleep, allowing skin to absorb the active ingredients. For active outdoor café work: clinical strength or prescription-strength if standard isn't holding.",
                 "Brush teeth — critical sequence note: do NOT brush immediately after the protein shake or matcha. Acidic drinks temporarily soften enamel; brushing within 20–30 min of them erodes it. Eat/drink first, wait 20 min, then brush. Technique: 45-degree angle to gumline, short strokes, 2 full minutes. Don't rinse with water after — spit only, let fluoride contact enamel for 30 sec. Tongue: brush or scrape back to front 2–3 passes."
             ],
-            "After morning shower — grooming corridor 5:18–5:32",
+            "After morning shower — grooming corridor 5:48–6:02",
             .daily
         ),
         (
@@ -1246,7 +1421,7 @@ func seedDefaultSessions(context: ModelContext, onlyTitles: Set<String>? = nil) 
                 "What carries forward? — active fronts only. If something carried forward 3 weeks in a row without movement, it's either not real or it's blocked. Name the block, not the task.",
                 "What needs a decision this week? — distinguish between tasks (do it) and decisions (requires information or judgment). Decisions that sit undecided consume cognitive background load. Make the decision or schedule when you will.",
                 "Financial pulse — Hideout: what was this week's daily average, is it trending toward the right band, what's the cash position. Personal: anything irregular this week. 3 numbers, 2 minutes, not a full review.",
-                "Watermarc / visibility action this week? — during the 30-day experiment, check: did any planned visibility or relationship action happen? If not, why not? One action per week minimum.",
+                "Growth / visibility action this week? — did any planned board, card, partnership, or GBP action happen? If not, why not? One action per week minimum.",
                 "Physical reset — clean the apartment, prep the week's food infrastructure, anything environmental that will cause drag if not handled now.",
                 "Set first action for Monday morning — written, specific, doable before 9AM. Not a list. One thing. The thing that, if you did only that, Monday wouldn't feel wasted."
             ],
@@ -1741,22 +1916,15 @@ struct RootView: View {
 
     var profile: OperatorProfile { profiles.first ?? OperatorProfile() }
 
-    // 8-tab nav: Now / Today / Protocols / Physique / Hideout / Signal / You / Recovery
-    // Manual moved into You sub-tabs. Physique = active body-comp cut operating domain.
+    // Operate mode (Jul 2026): Operate + Park. Full tabs live under Park.
     var showTimeline: Bool { true }   // kept for CustomTabBar compat
 
     @ViewBuilder
     func tabView(for index: Int) -> some View {
         switch index {
-        case 0: HomeView(state: state)
-        case 1: TodayView(state: state)
-        case 2: ProtocolsTabView()
-        case 3: PhysiqueTabView()
-        case 4: HideoutTabView()
-        case 5: SignalTabView()
-        case 6: YouView(state: state)
-        case 7: RecoveryTabView()
-        default: HomeView(state: state)
+        case CustomTabBar.tabOperate: OperateTabView(state: state)
+        case CustomTabBar.tabPark:    ParkTabView(state: state)
+        default: OperateTabView(state: state)
         }
     }
 
@@ -1778,6 +1946,7 @@ struct RootView: View {
             OnboardingView(onComplete: { hasCompletedOnboarding = true })
         }
         .onAppear {
+            migrateToOperateModeIfNeeded(selectedTab: &state.selectedTab, parkRoute: &state.parkRoute)
             if profiles.isEmpty {
                 let p = OperatorProfile()
                 p.operatorName = "Brice"   // seed name — user can change in Settings

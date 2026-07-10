@@ -1,7 +1,7 @@
 # When It Matters — Cinematic Doctrine
 
 **Title:** When It Matters — the characters that stay, and what they teach about designing people on screen  
-**Version:** v11 · compiled 2026  
+**Version:** v11 · compiled 2026 · **transmission refinement June 2026**  
 **Status:** Canonical markdown (transcribed from `cinematic_doctrine_v11.pdf`)  
 **PDF export:** `INCREMENTS/cinematic_doctrine_v11.pdf` (local)  
 **Web:** `speedandform.com/studio` § Cinema · `speedandform.com/films`  
@@ -28,6 +28,87 @@ When asked if I was the main character, the answer came without hesitation: **I'
 ### Recognition vs aspiration
 
 Some characters are **aspirational** — the best version of a quality. Some are **recognitional** — private machinery, accurately named. The Killer (Fincher) opening was recognition, not aspiration: ritual, hyper-observation, timing, internal narration, precision. Recognition doesn't mean endorsement. The private operating mode and the public social expression are different things — intentionally. Danny/Rusty. Brice/Breechay.
+
+### Culture of mastery (June 2026 refinement)
+
+Not primarily chasing movies *about* warriors, hotels, chefs, or samurai.
+
+**The signal (most precise formulation — second pass, June 2026):**
+
+> **These people inherited a way of doing things — and someone is passing it on.**
+
+First pass: inherited standards, embodied culture, lineage over charisma.  
+Second pass: the relational move. Zero isn't just observing a culture. **He's receiving one.**
+
+More precise than "room full of people who care." Lots of people care. What's rare is encountering a place where caring has become **culture** — not one person's enthusiasm, not one charismatic founder, not one talented individual. Rarer still: watching that culture **move** from one person to another through daily life, not lectures.
+
+A **way**: language · rhythm · standards · rituals · apprenticeship · corrections · stories · expectations. Something that existed before the current people arrived and will hopefully exist after they leave.
+
+**Mastery vs transmission:**
+
+| Mastery alone | Transmission |
+|---------------|--------------|
+| Standards exist; culture is visible | Standards move through relationship |
+| You can admire from outside | Someone is being formed |
+| "Here is the lesson." | "Come with me and watch." |
+| Command and duty carry the culture | Relationship carries the culture |
+| Grim competence archetype | Wit, warmth, dignity in the same breath |
+
+Many mentor relationships in film are explicit lesson delivery. Gustave and Zero, Katsumoto and Algren, Charon and the Continental staff, coaches and athletes, older regulars and newer regulars at a place — the lessons are **embedded in action**. Not because someone is trying to become a hero. Because a way of being is moving from one person to another.
+
+**Why *Grand Budapest* pauses the film:** The Crossed Keys scene is visible proof that Gustave belongs to something larger — lineage, not individual charisma. The **emotional center** is still Gustave and Zero: how to see, how to host, how to move through the world, what standards matter, what dignity looks like. The guild proves the world. The relationship gives the world its meaning.
+
+**Why *Master and Commander* may not fully land:** Immense culture — navigation, medicine, music, seamanship. But less of: elegance · wit · hospitality · warmth · conversational transmission. Aubrey–Maturin carry culture through command and duty. Gustave carries it through company. Both are valid. The recurring signal leans toward the second.
+
+**Charon (Wick):** Not the most powerful person — a **custodian of a way**. "Good evening, Mr. Wick." — history, standards, mutual recognition, respect packed into a few words. The dialogue carries the culture.
+
+**Reading vs prescription:**
+
+| Prescription (closes observation) | Reading (extends it) |
+|-------------------------------------|----------------------|
+| I like these movies → I should become a samurai / hotelier / guild member | The recurring pattern is not the form — it's attraction to places where standards have become embodied |
+| One hero to emulate | A culture to observe |
+| What happened? (action) | How do these people live? (culture) |
+
+Action answers *what happened?* Culture answers *how do these people live?* The second question has a much longer shelf life. Plot gets you into the room. **The room is what you remember.**
+
+**Why scenes survive:** armor repair · tea ceremony · training yard · village · "too many mind" — not because they're exciting, because they're **revealing**. They let you observe a complete way of being for a few minutes. Same as observation discipline: extend the window; linger long enough to see culture beneath plot.
+
+**Anchor scenes:**
+
+| Source | What you're reading | Lineage, not individual |
+|--------|---------------------|-------------------------|
+| *Grand Budapest Hotel* | Crossed Keys | Gustave didn't invent hospitality — he participates in a lineage |
+| *Grand Budapest Hotel* | Gustave ↔ Zero | Transmission — "come with me and watch"; culture moves through relationship |
+| *John Wick 2* | Continental codes | Rules older than any character in the room |
+| *The Last Samurai* | Village · training yard · "too many mind" | Villagers aren't performing philosophy — living one; Katsumoto → Algren as receiving |
+| *Charon* (Wick) | Desk · ritual · precision · "Good evening, Mr. Wick" | Continental culture embodied; dialogue carries the way |
+| *Jiro Dreams of Sushi* | Devotion without plot | Craft as inherited discipline |
+| *Master and Commander* | Navigation · medicine · music | Seamanship as culture via command — immense, less relational warmth |
+| *Ford v Ferrari* | Pit crew · workshop | Getting the thing right as shared language |
+
+**Hideout intersection (reading, not mythology):** A café can eventually become one of those places — regular knows the pace · staff know how to host · Sunday crowd knows the rhythm · newcomer senses something already happening · **older regular teaches newer regular the rhythm without explaining it**. Nobody performs membership. They **read** it, and it compresses over time. Same move as Gustave and Zero. Not "discover our secret world" — relationship compression, not lore.
+
+**Dangerous interpretation:** *I should become that / Hideout needs mythology / build a guild aesthetic.*  
+**Reading:** *Something about inherited standards, embodied culture, and transmission keeps returning.*
+
+Pairs with `FORM-iOS/docs/BRICE_OS/OBSERVATION_UPDATE.md` · Sunday doctrine (reverence without performance) · `HIDEOUT_HOUSE_DOCTRINE.md` (house, not founder myth).
+
+### Convergence with observation discipline
+
+The strongest link between this file and `OBSERVATION_UPDATE.md` is not the watch list — it's the **same discipline in two domains.**
+
+> Extend the observation window. Reality often reveals itself sequentially rather than instantly.
+
+> Plot gets you into the room. The room is what you remember.
+
+In life: don't rush to categorize. In film: don't rush to the battle. Stay long enough to read how people live.
+
+**Attention diagnostic:** When most viewers remember climax and hero, the recurring selection here is culture — the moment an individual is revealed as part of something larger than themselves, **or the moment a way passes from one person to another.** Not a hero. A **lineage.** Or a **handoff.** That habit is information about what captures attention, not a command to join the profession on screen.
+
+**Recognition is enough.** You don't need to become a samurai, concierge, ship captain, or sushi master. The useful read: whenever a film reveals standards · ritual · apprenticeship · embodied practice · continuity across generations · **transmission through relationship** — attention locks on the culture beneath the profession.
+
+**Likely next surprise:** *Master and Commander* — not for ships alone, but for two hours inside a living culture of seamanship, inhabited without exposition. May not fully satisfy if the pull is toward relational transmission (Gustave/Zero) rather than command culture alone. The ship as village, Crossed Keys, Continental: a place where the way existed before the current people arrived — and sometimes you watch it being **passed on**, not just lived.
 
 ---
 
@@ -168,6 +249,21 @@ Michael Mann · Steven Soderbergh · David Fincher · Denis Villeneuve · Paul T
 
 ## Films — watch next
 
+### Tier — culture of mastery (June 2026)
+
+| Film | Why (the signal) |
+|------|------------------|
+| **Master and Commander: The Far Side of the World** | Dozens of scenes: skilled people inhabiting tradition — navigation, music, medicine, seamanship, command. Whole culture of competence. |
+| **Jiro Dreams of Sushi** | Almost entirely the feeling — watch people devote themselves to mastery. No grand plot required. |
+| **The Last Samurai** | Village scenes, apprenticeship, ritual — not the battles. Already identified the signal if those scenes stay. |
+| **Grand Budapest Hotel (2014)** | Crossed Keys — inherited way; Gustave ↔ Zero — transmission as emotional center. |
+| **Ford v Ferrari (2019)** | Sleeper — culture of getting the thing right; pit crew and workshop as main character energy. |
+| **The Martian (2015)** | Competence as culture — professionals solve because that's what the room does. |
+| **Moneyball (2011)** | Craft taken seriously · shared language developing around a discipline. |
+| **John Wick: Chapter 2** | Continental and its codes — competence + ritual as room culture. |
+
+### Tier — character / ensemble (existing)
+
 | Film | Why |
 |------|-----|
 | Steve Jobs (2015) | Fassbender + Sorkin. Knows who he becomes under pressure — costs everything relational. |
@@ -200,7 +296,9 @@ Film is **frequency confirmation**, not escapism. When a film lands, ask: *which
 
 Same test as Sunday doctrine: reverence without performance — people taking something seriously without making a spectacle of themselves.
 
-Tags for recommendations: ensemble pressure · ballast dynamic · inference over exposition · institutional patience · authored environment · warmth + rigor · shadow study · recognition register
+**June 2026 addendum:** Ask — *is this hero myth, inherited culture, or transmission?* Action = what happened. Culture = how these people live. Transmission = **who is passing the way to whom, and how.** The scenes that stay are the ones that let you linger long enough to read the room — or watch the handoff. Primary signal: **these people inherited a way of doing things, and someone is passing it on.** See § Culture of mastery.
+
+Tags for recommendations: ensemble pressure · ballast dynamic · inference over exposition · institutional patience · authored environment · warmth + rigor · shadow study · recognition register · **inherited culture · embodied standards · lineage over charisma · transmission · apprenticeship · dialogue carries culture**
 
 ---
 
@@ -213,5 +311,6 @@ Tags for recommendations: ensemble pressure · ballast dynamic · inference over
 | Film list (web) | `speedandform/films.html` |
 | Full character map | `cinematic_doctrine_v11.pdf` |
 | Operator manual § Cinema | `FORM-iOS/docs/BRICE_OS/BRICE_OPERATOR_MANUAL.md` |
+| Observation discipline (reading vs interpretation) | `FORM-iOS/docs/BRICE_OS/OBSERVATION_UPDATE.md` |
 
 *Edit markdown first. Regenerate PDF only if you need a portable export — markdown is canonical.*

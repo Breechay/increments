@@ -1,0 +1,225 @@
+
+  /* ——— FORM design system ——— */
+  :root{
+    --cream:#F5F0E6;
+    --cream-deep:#EFE8DA;
+    --ink:#181614;
+    --ink-soft:#3A352F;
+    --rust:#9A4A2E;
+    --line:#C9BFAC;
+  }
+
+  @page{
+    size: A4;
+    margin: 26mm 24mm 28mm 24mm;
+    background: var(--cream);
+    @bottom-center{
+      content: counter(page);
+      font-family: "Jost";
+      font-size: 8pt;
+      letter-spacing: .06em;
+      color: var(--ink-soft);
+    }
+  }
+  @page:first{ @bottom-center{ content: none; } }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html,body{
+    background: var(--cream);
+    color: var(--ink);
+    font-family: "Cormorant Garamond";
+    font-size: 14pt;
+    line-height: 1.66;
+    font-weight: 500;
+  }
+
+  /* ——— Cover ——— */
+  .cover{
+    page-break-after: always;
+    height: 240mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .cover-top{ padding-top: 18mm; }
+  .kicker{
+    font-family:"Jost";
+    font-weight: 500;
+    font-size: 8.5pt;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--rust);
+  }
+  .cover h1{
+    font-family:"Cormorant Garamond";
+    font-weight: 500;
+    font-size: 46pt;
+    line-height: 1.04;
+    letter-spacing: .01em;
+    margin-top: 14mm;
+  }
+  .cover h1 em{ font-style: italic; font-weight: 400; }
+  .cover-sub{
+    margin-top: 10mm;
+    font-size: 13.5pt;
+    font-style: italic;
+    color: var(--ink-soft);
+    max-width: 118mm;
+  }
+  .cover-foot{
+    border-top: .6pt solid var(--ink);
+    padding-top: 4mm;
+    display:flex;
+    justify-content: space-between;
+    font-family:"Jost";
+    font-size: 8pt;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  /* ——— Sections ——— */
+  section{ page-break-before: always; }
+  section.flow{ page-break-before: avoid; }
+
+  .sec-head{
+    display:flex;
+    align-items: baseline;
+    gap: 6mm;
+    border-bottom:.6pt solid var(--ink);
+    padding-bottom: 3mm;
+    margin-bottom: 8mm;
+  }
+  .sec-num{
+    font-family:"Jost";
+    font-weight: 500;
+    font-size: 9pt;
+    letter-spacing: .06em;
+    color: var(--rust);
+  }
+  h2{
+    font-family:"Cormorant Garamond";
+    font-weight: 500;
+    font-size: 25pt;
+    letter-spacing: .01em;
+  }
+
+  p{ margin-bottom: 5.2mm; }
+  p:last-child{ margin-bottom: 0; }
+  strong{ font-weight: 700; }
+  em{ font-style: italic; }
+
+  .lead{ font-size: 15.5pt; }
+
+  /* dossier block */
+  .dossier{
+    background: var(--cream-deep);
+    border-left: 1.4pt solid var(--rust);
+    padding: 7mm 8mm;
+    margin: 7mm 0;
+    font-style: italic;
+    font-size: 14pt;
+    line-height: 1.72;
+  }
+
+  .verbs{
+    font-family:"Jost";
+    font-weight:500;
+    font-size: 10.5pt;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-align:center;
+    white-space: nowrap;
+    margin: 7mm 0;
+  }
+
+  /* week blocks */
+  .week{
+    margin-bottom: 8mm;
+    page-break-inside: avoid;
+  }
+  .week-label{
+    font-family:"Jost";
+    font-weight:600;
+    font-size: 8.5pt;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 1.5mm;
+  }
+  .week h3{
+    font-family:"Cormorant Garamond";
+    font-weight: 600;
+    font-size: 18pt;
+    margin-bottom: 2.5mm;
+  }
+
+  /* carriage list */
+  .carriage{ list-style:none; margin: 6mm 0; }
+  .carriage li{
+    padding: 3.4mm 0;
+    border-bottom:.4pt solid var(--line);
+    font-size: 14pt;
+  }
+  .carriage li:first-child{ border-top:.4pt solid var(--line); }
+  .carriage .num{
+    font-family:"Jost";
+    font-weight:500;
+    font-size: 8.5pt;
+    letter-spacing: .06em;
+    color: var(--rust);
+    margin-right: 4mm;
+  }
+
+  .pull{
+    font-size: 18.5pt;
+    font-style: italic;
+    line-height: 1.45;
+    text-align: center;
+    max-width: 125mm;
+    margin: 9mm auto;
+    color: var(--ink);
+  }
+
+  .rule{
+    width: 16mm;
+    border:none;
+    border-top: 1pt solid var(--rust);
+    margin: 8mm auto;
+  }
+
+  .close-block{ text-align:center; margin-top: 10mm; }
+  .close-block .verbs{ margin-top: 4mm; }
+
+  .stanza{ margin-bottom: 6mm; page-break-inside: avoid; }
+  .stanza-term{
+    font-family:"Jost";
+    font-weight:600;
+    font-size: 9.5pt;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 1.5mm;
+  }
+
+  .cover-note{
+    margin-top: 8mm;
+    max-width: 118mm;
+    font-size: 12pt;
+    color: var(--ink-soft);
+    border-left: 1.4pt solid var(--rust);
+    padding-left: 5mm;
+  }
+
+  .fields{ margin: 4mm 0 6mm 0; }
+  .frow{ display:flex; align-items: baseline; padding: 1.8mm 0; }
+  .flabel{
+    font-family:"Jost"; font-weight:600; font-size: 8.5pt;
+    letter-spacing:.06em; text-transform: uppercase; color: var(--rust);
+    min-width: 34mm; flex-shrink: 0;
+  }
+  .fval{ font-size: 13.5pt; }
+  .dfrow{ padding: 3.4mm 0; }
+  .frule{ flex: 1; border-bottom: .5pt solid var(--ink-soft); margin-left: 4mm; }

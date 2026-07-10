@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FORM Running — Stranger Launch Console</title>
+<style>
+  :root{
+    --ground:#F3EFE6; --surface:#FAF7F0; --surface2:#EDE8DD;
+    --ink:#2C2C2A; --chrome:#6B6762; --dim:#999590;
+    --amber:#BA7517; --amber-dim:#8A5A14;
+    --line:rgba(186,117,23,0.22); --hairline:rgba(107,103,98,0.18);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);font-family:-apple-system,system-ui,sans-serif;
+       padding:40px 20px 80px;line-height:1.5}
+  .wrap{max-width:860px;margin:0 auto}
+  .eyebrow{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:3px;
+           color:var(--amber);text-transform:uppercase}
+  .eyebrow.quiet{color:var(--chrome)}
+  h1{font-family:Georgia,'Times New Roman',serif;font-weight:normal;font-size:40px;
+     letter-spacing:-0.4px;margin:10px 0 6px}
+  h2{font-family:Georgia,serif;font-weight:normal;font-size:22px;margin:0 0 4px}
+  .sub{color:var(--chrome);font-size:14px}
+  section{border:1px solid var(--line);border-radius:18px;padding:22px;margin-top:22px;
+          background:var(--surface)}
+  section.quiet{border-color:var(--hairline)}
+  .sect-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+  .mono{font-family:ui-monospace,'SF Mono',Menlo,monospace}
+  .row{display:flex;gap:14px;align-items:flex-start;padding:9px 0;border-bottom:0.5px solid var(--hairline)}
+  .row:last-child{border-bottom:none}
+  .row .k{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:1.5px;color:var(--chrome);
+          text-transform:uppercase;min-width:150px;padding-top:3px}
+  .row .v{font-size:14px;color:var(--ink)}
+  .row .v .note{color:var(--dim);font-size:12.5px;display:block;margin-top:2px}
+  label.check{display:flex;gap:12px;align-items:flex-start;padding:9px 0;
+              border-bottom:0.5px solid var(--hairline);cursor:pointer;font-size:14px}
+  label.check:last-child{border-bottom:none}
+  label.check input{margin-top:3px;accent-color:var(--amber)}
+  label.check.done{color:var(--dim)}
+  .serif{font-family:Georgia,serif}
+  .counter{display:flex;align-items:center;gap:16px}
+  .counter .num{font-family:Georgia,serif;font-size:44px;color:var(--ink);min-width:110px}
+  .counter .num .cap{color:var(--dim);font-size:22px}
+  .counter button{background:var(--surface2);border:1px solid var(--hairline);color:var(--chrome);
+                  width:34px;height:34px;border-radius:10px;font-size:18px;cursor:pointer}
+  .counter button:hover{border-color:var(--line);color:var(--ink)}
+  .gates{display:flex;gap:0;align-items:center;margin:8px 0 4px}
+  .gate{flex:1;text-align:center}
+  .gate .dot{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--dim);margin:0 auto 8px}
+  .gate.done .dot{background:var(--amber);border-color:var(--amber)}
+  .gate.now .dot{border-color:var(--amber);box-shadow:0 0 0 3px rgba(186,117,23,0.18)}
+  .gate .g-label{font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1px;color:var(--dim);text-transform:uppercase}
+  .gate.now .g-label{color:var(--amber)}
+  .gate.done .g-label{color:var(--chrome)}
+  .gate-rail{height:1.5px;background:var(--hairline);flex:0.6;margin-bottom:22px}
+  .pill{display:inline-block;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1.2px;
+        color:var(--amber-dim);border:1px solid var(--hairline);border-radius:20px;padding:3px 10px;
+        text-transform:uppercase;margin-left:8px}
+  .pill.amber{color:var(--amber);border-color:var(--line)}
+  .warn{border-left:2px solid var(--amber);padding:10px 14px;background:var(--surface2);
+        border-radius:0 10px 10px 0;font-size:13.5px;color:var(--chrome);margin-top:12px}
+  .warn b{color:var(--ink);font-weight:500}
+  ol.path{list-style:none;counter-reset:p}
+  ol.path li{counter-increment:p;display:flex;gap:14px;padding:10px 0;border-bottom:0.5px solid var(--hairline);font-size:14px}
+  ol.path li:last-child{border-bottom:none}
+  ol.path li::before{content:counter(p);font-family:Georgia,serif;font-size:20px;color:var(--amber);min-width:24px}
+  ol.path li .note{color:var(--dim);font-size:12.5px;display:block}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:22px}
+  @media(max-width:640px){.two{grid-template-columns:1fr}.three{grid-template-columns:1fr}}
+  .quote{font-family:Georgia,serif;font-style:italic;font-size:16px;color:var(--ink);opacity:0.92}
+  .attr{font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1.5px;color:var(--amber-dim);margin-top:6px}
+  .footer{color:var(--dim);font-size:12px;text-align:center;margin-top:36px;font-family:ui-monospace,monospace;letter-spacing:1px}
+  .donot li{padding:6px 0;font-size:13.5px;color:var(--chrome);border-bottom:0.5px solid var(--hairline);list-style:none}
+  .donot li:last-child{border-bottom:none}
+  .donot li b{color:var(--ink);font-weight:500}
+  code{font-family:ui-monospace,monospace;font-size:12px;background:var(--surface2);padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">FORM Running · Stranger Launch Console</div>
+  <h1>A room where the plan makes sense.</h1>
+  <div class="sub serif" style="font-style:italic">Effort-native. Conservative by default. Witness, don't hype.</div>
+  <div class="sub" style="margin-top:8px">North star: <b style="color:var(--ink)">strangers finish Week 1 and trust the week.</b> <span class="pill amber">Strategy closed</span> Builds 1–4 landed · device pass next · audit: <code>FORM_STRANGER_PROOF_READINESS_AUDIT_JULY2026.md</code></div>
+
+  <section>
+    <div class="sect-head"><span class="eyebrow">The spine — direction locked</span></div>
+    <div class="row"><span class="k">Product</span><span class="v">Self-serve race training room — 5K / 10K / Half / Marathon as distinct shapes.<span class="note">Coach-platform is long game, not v1 stranger SKU. See <code>FORM_COACH_LED_INFRASTRUCTURE.md</code>.</span></span></div>
+    <div class="row"><span class="k">Buyer (locked)</span><span class="v"><b>The second-block runner</b> — 28–45, self-coached, 10K/HM, burned once by fantasy paces or silent reschedule. Trains in heat. Will pay for a plan that survives life.<span class="note">Not watch purists · not gamification seekers · not couch-to-5K beginners · not elite coached.</span></span></div>
+    <div class="row"><span class="k">Moat</span><span class="v">Effort-native · conservative entry · week integrity · history never silently moved · honest about what FORM cannot see.<span class="note"><code>FORM_CATEGORY_POSITIONING_DOCTRINE.md</code> — never trash-talk Runna.</span></span></div>
+    <div class="row"><span class="k">Lead promise</span><span class="v"><b>Race training that keeps the week intact.</b><span class="pill amber">Locked</span><span class="note">Heat = content wedge (“Pace lies in July”). Not the whole brand headline.</span></span></div>
+    <div class="row"><span class="k">Voice</span><span class="v">Site = understanding. App = action. Witness on Record — not hype on Today.<span class="note"><code>VOICE_DOCTRINE.md</code> · under 1s read while moving.</span></span></div>
+    <div class="row"><span class="k">Entry</span><span class="v">FORM front door. Forge quiet side banner. No "running or strength?" chooser.<span class="note"><code>FORM_ONBOARDING_TWO_DOOR_DECISION.md</code></span></span></div>
+    <div class="row"><span class="k">App Store</span><span class="v"><b>Deferred 60–90d</b> (founding pilot skips listing). Default: <b>FORM: Running Plans</b> · <b>Race training, kept honest</b>. Heat in screenshots + custom pages — subtitle A/B at public launch.<span class="pill">Defer</span></span></div>
+    <div class="row"><span class="k">Proof primitive</span><span class="v">Verified training continuity — closed sessions, week structure, ledger truth.<span class="note">TrustMRR metaphor, not MRR theater. No SDK for vanity badge.</span></span></div>
+    <div class="row"><span class="k">Decision filter</span><span class="v">Three questions, in order:<br>1. <b>Would a stranger trust Week 1?</b> — veto.<br>2. <b>Does an honest screenshot sell?</b> — appeal from surface truth only.<br>3. <b>Does it help them finish the block?</b> — without engagement hacks.</span></div>
+    <div class="row"><span class="k">Activation</span><span class="v">The <b>goal reality-check verdict</b> — best screenshot · paywall precedent · Reddit story · activation moment.<span class="note">“Not from here. Not yet.” — doctrine before money. See <code>FORM_GOAL_REALITY_CHECK_VERDICT_SPEC.md</code></span></span></div>
+    <div class="row"><span class="k">Acquisition wedge</span><span class="v"><b>Week integrity</b> — brand · retention · paywall.<br><b>Heat + honesty</b> — essays, Reddit, local proof.<span class="pill amber">Locked</span></span></div>
+    <div class="row"><span class="k">Pricing (locked)</span><span class="v"><b>Phase 1:</b> Founding Race Block · <b>$49</b> · 20–50 warm buyers · 5K/10K/Half (marathon de-emphasized).<br><b>Phase 2:</b> $99.99/yr primary · $14.99/mo · 14-day trial — after Forge 10 payers + proof cohort.<span class="note">Not launch. Not hype. Paid proof test.</span></span></div>
+    <div class="row"><span class="k">Paywall (locked)</span><span class="v"><b>Warm $49:</b> plan reveal or first receipt → unlock block.<br><b>Cold public:</b> reality-check → Week 1 preview → paywall + 14-day trial.<span class="note">Trial = week survives life, not one workout.</span></span></div>
+    <div class="row"><span class="k">Watch (locked)</span><span class="v">Warm paid pilot OK with honest deferral + phone interval UX intentional. <b>Public App Store paywall</b> waits until interval phone path is usable without shame — or watch MVP.<span class="note">Do not pretend wrist parity. Name Runna/Garmin only in onboarding deferral, not marketing.</span></span></div>
+    <div class="row"><span class="k">Solo floor</span><span class="v"><b>20–50</b> proof · <b>~150</b> signal (not a business yet) · <b>400–500</b> meaningful income · <b>1,000+</b> real software business.<span class="note">Year one = prove the room, not ARR theater.</span></span></div>
+    <div class="row"><span class="k">Lock doc</span><span class="v"><code>FORM_STRANGER_LOCK_JULY2026.md</code> — no more agent loops</span></div>
+    <div class="row"><span class="k">Docs</span><span class="v"><code>FORM_STRANGER_PROOF_BOARD.md</code> · <code>FORM_GOAL_REALITY_CHECK_VERDICT_SPEC.md</code> · <code>FORM_BILLING_DEVICE_PROOF_DOCTRINE.md</code></span></div>
+  </section>
+
+  <section>
+    <div class="sect-head"><span class="eyebrow">Stranger proof board</span><span class="pill">Internal</span></div>
+    <div class="row"><span class="k">Name</span><span class="v">FORM Founding Race Block — not public launch</span></div>
+    <div class="row"><span class="k">Honesty line</span><span class="v serif" style="font-style:italic;font-size:13.5px">“FORM is phone-first in this founding block. Watch-guided intervals are not included yet. If on-wrist guidance is essential, this version is not for you.”</span></div>
+    <div class="row"><span class="k">Do not promise</span><span class="v">Watch intervals · AI coach · device parity · social proof · marathon hero in v1 paid test</span></div>
+    <div class="row"><span class="k">Public gate</span><span class="v">10+ payers · refunds reviewed · 2+ Gabriel walks · watch decision from payer data · standalone listing clean</span></div>
+    <div class="row"><span class="k">Doctrine</span><span class="v">Billing: <i>runner owns record if they stop paying</i> · Device: <i>phone plans, wrist carries when ready</i> · Proof: <i>continuity not vanity</i></span></div>
+  </section>
+
+  <section>
+    <div class="sect-head"><span class="eyebrow">Launch gates</span><span class="mono" style="font-size:10px;color:var(--dim)">FORGE PAYWALL FIRST · FORM STRANGER SECOND</span></div>
+    <div class="gates">
+      <div class="gate done"><div class="dot"></div><div class="g-label">0 Engine</div></div><div class="gate-rail"></div>
+      <div class="gate now"><div class="dot"></div><div class="g-label">1 Onboard</div></div><div class="gate-rail"></div>
+      <div class="gate"><div class="dot"></div><div class="g-label">2 Table stakes</div></div><div class="gate-rail"></div>
+      <div class="gate"><div class="dot"></div><div class="g-label">3 Circle</div></div><div class="gate-rail"></div>
+      <div class="gate"><div class="dot"></div><div class="g-label">4 Paid</div></div><div class="gate-rail"></div>
+      <div class="gate"><div class="dot"></div><div class="g-label">5 Reddit</div></div>
+    </div>
+    <div class="sub" style="font-size:13px">Gate 1 bar: stranger installs → race setup → beat five = Week looks like Today — with you not in the room.</div>
+  </section>
+
+  <section>
+    <div class="sect-head"><span class="eyebrow">Critical path — in order</span></div>
+    <div class="warn" style="margin-bottom:14px"><b>Sequence:</b> Finish Forge paywall + learn IAP → walk FORM onboarding on glass → table-stakes honesty → circle beta → paywall → Reddit. <b>Do not open cold paywall before onboarding is walked.</b></div>
+    <ol class="path">
+      <li><div><b>Strategy — closed.</b><span class="note"><code>FORM_STRANGER_LOCK_JULY2026.md</code> — no more agent loops.</span></div></li>
+      <li><div><b>Build: goal reality-check verdict screen.</b><span class="note"><code>FORM_GOAL_REALITY_CHECK_VERDICT_SPEC.md</code> — engine exists; UI does not.</span></div></li>
+      <li><div><b>Gabriel device walk.</b><span class="note">Veto on warm paid pilot until 2+ non-Brice humans complete onboarding.</span></div></li>
+      <li><div><b>Phone Interval / Speed UX.</b><span class="note">Watch is the category gap — design honest phone path or defer messaging until watch MVP.</span></div></li>
+      <li><div><b>Pause + re-entry.</b><span class="note">Injury / travel / missed weeks — most emotionally loaded moment; category does it poorly.</span></div></li>
+      <li><div><b>App Store packet — FORM-first.</b><span class="note">Screenshots, description, keywords. Sibling Forge mention without splitting the story.</span></div></li>
+      <li><div><b>Circle before Reddit.</b><span class="note">West Palm + Hideout regulars. Members 1–25 are not a Reddit job.</span></div></li>
+      <li><div><b>Unlock gate.</b><span class="note">Warm pilot: Stripe relay (<code>form_paid_cycle</code>, already built). StoreKit FORM SKU at public launch only.</span></div></li>
+      <li><div><b>Proof wall.</b><span class="note">Week integrity + ledger continuity assets. Consent. Reddit gated until 3–5 real proofs.</span></div></li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="three">
+      <div>
+        <div class="eyebrow quiet" style="margin-bottom:10px">Stranger beta</div>
+        <div class="counter">
+          <span class="num"><span id="betaN">0</span><span class="cap"> / 10</span></span>
+          <button onclick="bump('betaN',-1)">−</button><button onclick="bump('betaN',1)">+</button>
+        </div>
+        <div class="sub" style="font-size:12.5px;margin-top:6px">Unforced installs outside circle. Each one gets a friction log.</div>
+      </div>
+      <div>
+        <div class="eyebrow quiet" style="margin-bottom:10px">Proof assets</div>
+        <div class="counter">
+          <span class="num"><span id="proofN">0</span><span class="cap"> / 5</span></span>
+          <button onclick="bump('proofN',-1)">−</button><button onclick="bump('proofN',1)">+</button>
+        </div>
+        <div class="sub" style="font-size:12.5px;margin-top:6px">Receipt-backed continuity. Reddit closed until 3–5. No transformation theater.</div>
+      </div>
+      <div>
+        <div class="eyebrow quiet" style="margin-bottom:10px">Founding payers</div>
+        <div class="counter">
+          <span class="num"><span id="foundN">0</span><span class="cap"> / 50</span></span>
+          <button onclick="bump('foundN',-1)">−</button><button onclick="bump('foundN',1)">+</button>
+        </div>
+        <div class="sub" style="font-size:12.5px;margin-top:6px">$49 race block · warm channels only · phone-first honesty required.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sect-head"><span class="eyebrow">Readiness checklist</span></div>
+    <label class="check"><input type="checkbox" data-key="r_engine" checked><span>Five-instrument engine live in beta<span class="note"><code>FORM_PAUSE_STATE_JUNE2026.md</code></span></span></label>
+    <label class="check"><input type="checkbox" data-key="r_onboard"><span>Onboarding beats 0–5 walked on glass<span class="note">Beat five = Week = Today</span></span></label>
+    <label class="check"><input type="checkbox" data-key="r_interval"><span>Interval / Speed phone path honest<span class="note">Or explicit "watch coming" — no broken first impression</span></span></label>
+    <label class="check"><input type="checkbox" data-key="r_pause"><span>Pause / re-entry feels first-class<span class="note">Hold plan · preserve history · gentle return</span></span></label>
+    <label class="check"><input type="checkbox" data-key="r_asc"><span>App Store packet — FORM-first listing<span class="note">Frame 1 = running instrument</span></span></label>
+    <label class="check"><input type="checkbox" data-key="r_iap"><span>Paywall + IAP (learned from Forge)<span class="note">Clean trial · obvious cancel</span></span></label>
+    <label class="check"><input type="checkbox" data-key="r_pricing" checked><span>Pricing model chosen<span class="note">Phase 1: $49 block · Phase 2: $99.99/yr + 14-day trial</span></span></label>
+    <label class="check"><input type="checkbox" data-key="r_reality"><span>Goal reality-check screen designed (verdict, not error)<span class="note">Hero screenshot · trust moment · paywall precedent</span></span></label>
+    <label class="check"><input type="checkbox" data-key="r_gabriel"><span>Onboarding walked by non-Brice human<span class="note">Gabriel gate — veto on all public marketing</span></span></label>
+    <label class="check"><input type="checkbox" data-key="r_limiter" checked><span>Limiter Read stays OFF<span class="note">Thin evidence — trust-killing if wrong</span></span></label>
+    <label class="check"><input type="checkbox" data-key="r_capacity" checked><span>Easy capacity clamp stays OFF<span class="note">Known floor-raise bug — fix before expose</span></span></label>
+    <label class="check"><input type="checkbox" data-key="r_forge_pay"><span>Forge standalone collecting first dollars<span class="note">FORM follows Forge IAP learnings</span></span></label>
+    <label class="check"><input type="checkbox" data-key="r_trustmrr"><span>TrustMRR — flagged, do not act before 10 paid (either product)<span class="note">No SDK solely for public MRR proof</span></span></label>
+  </section>
+
+  <section>
+    <div class="sect-head"><span class="eyebrow">Acquisition — circle first</span></div>
+    <div class="row"><span class="k">Lane 1 · Circle</span><span class="v">West Palm beta · coached-adjacent referrals · friction logs</span></div>
+    <div class="row"><span class="k">Lane 2 · Hideout</span><span class="v">Runner-facing QR / stand — invitation, not ad. Separate from Forge strength stand.</span></div>
+    <div class="row"><span class="k">Lane 3 · Proof</span><span class="v">Week integrity screenshots · ledger continuity · share cards with consent</span></div>
+    <div class="row"><span class="k">Lane 4 · Reddit</span><span class="v">Gated: proof ≥ 3 AND packet live AND Gabriel walk done. <b>6-month authorship</b> — research posts first, no links. r/AdvancedRunning = training only; r/SideProject = builder lane.</span></div>
+  </section>
+
+  <section class="quiet">
+    <div class="sect-head"><span class="eyebrow quiet">Table stakes vs moat</span></div>
+    <div class="row"><span class="k">Must meet</span><span class="v">Race setup + horizon · four distance shapes · workout clarity · schedule flex · pause/re-entry · clean billing · <b>watch (gap)</b></span></div>
+    <div class="row"><span class="k">Sell moat</span><span class="v">Goal reality-check · effort in heat · conservative defaults · session purpose visible · witness voice · history owned by athlete</span></div>
+    <div class="row"><span class="k">App Store (deferred)</span><span class="v">Name: <b>FORM: Running Plans</b> · Subtitle: <b>Race training, kept honest</b> · Heat in screenshots + campaigns · PPO test at launch</span></div>
+  </section>
+
+  <section class="quiet">
+    <div class="sect-head"><span class="eyebrow quiet">Do not</span></div>
+    <ul class="donot">
+      <li><b>No trash-talking Runna</b> — especially on Reddit.</li>
+      <li><b>No silent plan rearrange</b> — FORM may explain, not steal the plan.</li>
+      <li><b>No fantasy paces</b> from unrealistic goals.</li>
+      <li><b>No streak guilt, drip, confetti, leaderboard.</b></li>
+      <li><b>No cold Reddit before onboarding is walked.</b></li>
+      <li><b>No Forge-first App Store story</b> for FORM Running.</li>
+      <li><b>No SDK for TrustMRR vanity</b> before real paid users.</li>
+      <li><b>No pretending watch exists</b> if it doesn't.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="quote">"The reality-check verdict is your best screenshot, paywall precedent, Reddit story, and activation moment — all at once."</div>
+    <div class="attr">FORM_STRANGER_LOCK · JUL 2026</div>
+  </section>
+
+  <section class="quiet">
+    <div class="quote">"A plan-first app tells you the plan. FORM shows why today exists — and never moves your history under you."</div>
+    <div class="attr">FORM_CATEGORY_POSITIONING_DOCTRINE · JUN 2026</div>
+  </section>
+
+  <div class="footer">FORM RUNNING · SPEED AND FORM · CONSOLE STATE SAVES LOCALLY IN THIS BROWSER</div>
+</div>
+
+<script>
+  const LS = window.localStorage;
+  document.querySelectorAll('label.check input').forEach(cb=>{
+    const k='form_c_'+cb.dataset.key;
+    if(LS.getItem(k)!==null) cb.checked = LS.getItem(k)==='1';
+    else if(cb.hasAttribute('checked')) cb.checked = true;
+    const sync=()=>{cb.closest('label').classList.toggle('done',cb.checked)};
+    sync();
+    cb.addEventListener('change',()=>{LS.setItem(k,cb.checked?'1':'0');sync()});
+  });
+  ['betaN','proofN','foundN'].forEach(id=>{
+    const el=document.getElementById(id);
+    const k='form_n_'+id;
+    if(LS.getItem(k)!==null) el.textContent=LS.getItem(k);
+  });
+  function bump(id,d){
+    const el=document.getElementById(id);
+    let n=Math.max(0,(parseInt(el.textContent)||0)+d);
+    if(id==='betaN') n=Math.min(10,n);
+    if(id==='proofN') n=Math.min(5,n);
+    if(id==='foundN') n=Math.min(50,n);
+    el.textContent=n; LS.setItem('form_n_'+id,n);
+  }
+</script>
+</body>
+</html>

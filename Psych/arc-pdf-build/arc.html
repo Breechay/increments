@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><style>
+
+  /* ——— FORM design system ——— */
+  :root{
+    --cream:#F5F0E6;
+    --cream-deep:#EFE8DA;
+    --ink:#181614;
+    --ink-soft:#3A352F;
+    --rust:#9A4A2E;
+    --line:#C9BFAC;
+  }
+
+  @page{
+    size: A4;
+    margin: 26mm 24mm 28mm 24mm;
+    background: var(--cream);
+    @bottom-center{
+      content: counter(page);
+      font-family: "Jost";
+      font-size: 8pt;
+      letter-spacing: .06em;
+      color: var(--ink-soft);
+    }
+  }
+  @page:first{ @bottom-center{ content: none; } }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html,body{
+    background: var(--cream);
+    color: var(--ink);
+    font-family: "Cormorant Garamond";
+    font-size: 14pt;
+    line-height: 1.66;
+    font-weight: 500;
+  }
+
+  /* ——— Cover ——— */
+  .cover{
+    page-break-after: always;
+    height: 240mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .cover-top{ padding-top: 18mm; }
+  .kicker{
+    font-family:"Jost";
+    font-weight: 500;
+    font-size: 8.5pt;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--rust);
+  }
+  .cover h1{
+    font-family:"Cormorant Garamond";
+    font-weight: 500;
+    font-size: 46pt;
+    line-height: 1.04;
+    letter-spacing: .01em;
+    margin-top: 14mm;
+  }
+  .cover h1 em{ font-style: italic; font-weight: 400; }
+  .cover-sub{
+    margin-top: 10mm;
+    font-size: 13.5pt;
+    font-style: italic;
+    color: var(--ink-soft);
+    max-width: 118mm;
+  }
+  .cover-foot{
+    border-top: .6pt solid var(--ink);
+    padding-top: 4mm;
+    display:flex;
+    justify-content: space-between;
+    font-family:"Jost";
+    font-size: 8pt;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  /* ——— Sections ——— */
+  section{ page-break-before: always; }
+  section.flow{ page-break-before: avoid; }
+
+  .sec-head{
+    display:flex;
+    align-items: baseline;
+    gap: 6mm;
+    border-bottom:.6pt solid var(--ink);
+    padding-bottom: 3mm;
+    margin-bottom: 8mm;
+  }
+  .sec-num{
+    font-family:"Jost";
+    font-weight: 500;
+    font-size: 9pt;
+    letter-spacing: .06em;
+    color: var(--rust);
+  }
+  h2{
+    font-family:"Cormorant Garamond";
+    font-weight: 500;
+    font-size: 25pt;
+    letter-spacing: .01em;
+  }
+
+  p{ margin-bottom: 5.2mm; }
+  p:last-child{ margin-bottom: 0; }
+  strong{ font-weight: 700; }
+  em{ font-style: italic; }
+
+  .lead{ font-size: 15.5pt; }
+
+  /* dossier block */
+  .dossier{
+    background: var(--cream-deep);
+    border-left: 1.4pt solid var(--rust);
+    padding: 7mm 8mm;
+    margin: 7mm 0;
+    font-style: italic;
+    font-size: 14pt;
+    line-height: 1.72;
+  }
+
+  .verbs{
+    font-family:"Jost";
+    font-weight:500;
+    font-size: 10.5pt;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-align:center;
+    white-space: nowrap;
+    margin: 7mm 0;
+  }
+
+  /* week blocks */
+  .week{
+    margin-bottom: 8mm;
+    page-break-inside: avoid;
+  }
+  .week-label{
+    font-family:"Jost";
+    font-weight:600;
+    font-size: 8.5pt;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 1.5mm;
+  }
+  .week h3{
+    font-family:"Cormorant Garamond";
+    font-weight: 600;
+    font-size: 18pt;
+    margin-bottom: 2.5mm;
+  }
+
+  /* carriage list */
+  .carriage{ list-style:none; margin: 6mm 0; }
+  .carriage li{
+    padding: 3.4mm 0;
+    border-bottom:.4pt solid var(--line);
+    font-size: 14pt;
+  }
+  .carriage li:first-child{ border-top:.4pt solid var(--line); }
+  .carriage .num{
+    font-family:"Jost";
+    font-weight:500;
+    font-size: 8.5pt;
+    letter-spacing: .06em;
+    color: var(--rust);
+    margin-right: 4mm;
+  }
+
+  .pull{
+    font-size: 18.5pt;
+    font-style: italic;
+    line-height: 1.45;
+    text-align: center;
+    max-width: 125mm;
+    margin: 9mm auto;
+    color: var(--ink);
+  }
+
+  .rule{
+    width: 16mm;
+    border:none;
+    border-top: 1pt solid var(--rust);
+    margin: 8mm auto;
+  }
+
+  .close-block{ text-align:center; margin-top: 10mm; }
+  .close-block .verbs{ margin-top: 4mm; }
+
+  .stanza{ margin-bottom: 6mm; page-break-inside: avoid; }
+  .stanza-term{
+    font-family:"Jost";
+    font-weight:600;
+    font-size: 9.5pt;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 1.5mm;
+  }
+
+  .cover-note{
+    margin-top: 8mm;
+    max-width: 118mm;
+    font-size: 12pt;
+    color: var(--ink-soft);
+    border-left: 1.4pt solid var(--rust);
+    padding-left: 5mm;
+  }
+
+  .fields{ margin: 4mm 0 6mm 0; }
+  .frow{ display:flex; align-items: baseline; padding: 1.8mm 0; }
+  .flabel{
+    font-family:"Jost"; font-weight:600; font-size: 8.5pt;
+    letter-spacing:.06em; text-transform: uppercase; color: var(--rust);
+    min-width: 34mm; flex-shrink: 0;
+  }
+  .fval{ font-size: 13.5pt; }
+  .dfrow{ padding: 3.4mm 0; }
+  .frule{ flex: 1; border-bottom: .5pt solid var(--ink-soft); margin-left: 4mm; }
+
+</style></head><body>
+<div class="cover"><div class="cover-top">
+<div class="kicker">The Network · Field Document</div>
+<h1>The Four-Week<br><em>Arc</em></h1>
+<div class="cover-sub">A four-week record-keeping protocol for a high-output operator crossing a hallway between rooms: maintain carriage, protect the instrument, route the signal, close the file.</div>
+<div class="cover-note"><strong>How to use this.</strong> Read or listen once daily during the morning stack, for four weeks. Do not analyze it every day — let it set the frame, then make the entry. This is not a manifesto. It is a block protocol.</div></div>
+<div class="cover-foot"><span>Miami</span><span>June 2026</span><span>Block I</span></div></div>
+<section class="flow"><div class="sec-head"><span class="sec-num">01</span><h2>The Dossier</h2></div>
+<p class="lead">Every member has one. Not a résumé — a <strong>record of what was practiced</strong>. The network does not keep opinions. It keeps entries.</p>
+<p>Yours reads something like this:</p>
+<div class="dossier">Operator. Brazzaville in the bones, routed through Paris and SoCal, stationed Miami. Trained in medicine, defected to systems. Builds instruments, not managers. Current installations: one public node — the café, open, structural contact — two private weapons, one for the runners, one for the lifters, and one governing OS. Known pattern: creates conditions instead of summoning discipline; living room reset strong, bedroom and balcony lag. Known role: load-bearing peripheral authority. Known gap: strong on instrument craft, weaker on signal routing — leaning in. Known constraint: lower limb rebuilding — ~85%, phase two entered. Protocol governs load; enthusiasm does not. Status: operational.</div>
+<p>Notice what the dossier does not contain. No verdicts. No potential. No "promising." It files <strong>verbs, not identity</strong>. Same law you wrote into Forge's bones — <em>it does not measure who the athlete is, it records what the athlete practiced</em>. You did not invent that doctrine. You transcribed it.</p>
+<p>For four weeks, the archivist records verbs and nothing else.</p>
+<div class="verbs">Woke · Stacked · Built · Shipped · Closed · Served · Slept</div>
+<p>The dossier has no field for "felt like it."</p>
+</section>
+<section><div class="sec-head"><span class="sec-num">02</span><h2>The Two Rooms</h2></div>
+<p class="lead">You already have the lens for the bump. You wrote it into the manual: <strong>a new room becoming audible is evidence the current room worked</strong>.</p>
+<p>The drag is not the old room failing. It is the next room's door pressure coming under the frame. The hallway between rooms is always uglier than the rooms themselves — lower ceilings, worse light, no furniture. People panic in hallways because they mistake them for destinations.</p>
+<p class="pull">The network does not decorate hallways. It walks them at pace.</p>
+<p>Four weeks is long enough to cross a hallway without pretending you have already arrived. Short enough that every week counts. You are not building a new life in a month. You are <strong>making the next room audible</strong> by finishing the practices the current room demanded.</p>
+</section>
+<section><div class="sec-head"><span class="sec-num">03</span><h2>The Room Beneath the Plot</h2></div>
+<p class="lead">Plot gets you into the room. <strong>The room is what you remember.</strong> Charon at the desk. Gustave showing Zero how to host without a lecture. Katsumoto and Algren — not command, receiving. You do not stay for the gunfight. You stay for the way moving from one person to another through daily life.</p>
+<p>That is the whole anchor: <strong>transmission through relationship, not spectacle.</strong> The Continental does not advertise. Neither does the café. Neither do you.</p>
+<p>Your role in the system is load-bearing peripheral authority — the one who shapes the room from the desk. Not subordinate, not protagonist. The role that makes the room <strong>inhabitable</strong>. What you want reads as the same architecture: a base with its corners held to internal standard; recognition that sees cost, mess, and reality — and stays: <em>ah, there you are</em>; the work as one authored philosophy made enterable; mobility when the base holds; rooms you could not build alone, with people taking something seriously without making a spectacle of themselves.</p>
+<p>Under all of it: participation. Contact, not achievement. This arc is not a performance month. It is a <strong>contact block</strong>. When the drag comes, you are not failing to become the protagonist. You are holding a standard so it can be received.</p>
+</section>
+<section><div class="sec-head"><span class="sec-num">04</span><h2>The Others</h2></div>
+<p class="lead">Right now, the woman in Oaxaca is on her second hill. The programmer in Tokyo just racked the bar and said nothing. The medic in Paris is soldering. None of them know your name. All of them are holding a line in worse light, with less help, and <strong>not one of them is narrating it</strong>.</p>
+<p>That is the entire transmission: <strong>ordinary people maintaining standards without narration</strong>. The network has no newsletter. Its only message, repeated across time zones, is the work happening anyway.</p>
+<p>When you open Hideout Wednesday, when you run the stack on a rebuilding leg and give it exactly what the protocol asks and nothing surrendered beyond that — you are one of them. The work is enough. <strong>The record will show it.</strong></p>
+</section>
+<section><div class="sec-head"><span class="sec-num">05</span><h2>The Signal</h2></div>
+<p class="lead">You are not building Forge for credit. You are <strong>keeping a frequency open</strong>.</p>
+<p>A person will open the app on a bad Tuesday. They will not know your name. They will only know whether the thing in their hand feels like it was made by someone who <strong>understood what training actually is</strong>. That shows up physically: whether the rest timer trusts silence, whether the picker leads with purpose, whether the record celebrates change and goes quiet on sameness. You have already encoded this. Keep living under the same law you ship.</p>
+<p>The signal weakens when craft gets lazy: slop shipped, performance narrated, standards renegotiated because the drag felt heavy. It holds when practice stays honest — <strong>including the days practice means <em>less</em>, not <em>none</strong></em>.</p>
+<p>The receiver does not need you impressive. They need <strong>the instrument true</strong>.</p>
+<p class="pull"><em>Anonymous, earned, and impossible to fake.</em></p>
+</section>
+<section><div class="sec-head"><span class="sec-num">06</span><h2>The Airport</h2></div>
+<p class="lead">Walk like someone the network would recognize in an airport.</p>
+<p>Not because airports matter. Because airports strip everything away. No stage, no audience, no IDE. Just a body moving through space with a destination already chosen.</p>
+<div class="stanza"><div class="stanza-term">Shoulders Set</div><p>Not raised. Set. Raised shoulders are bracing for impact. Set shoulders are <strong>infrastructure already deployed</strong>. The day started when you woke.</p></div>
+<div class="stanza"><div class="stanza-term">Jaw Unclenched</div><p>A clenched jaw is the body trying to control what the mind has not yet sequenced. Unclenched is not relaxation. It is <strong>confidence that the next action is already known</strong>.</p></div>
+<div class="stanza"><div class="stanza-term">Pace That Costs Nothing Extra</div><p>Not slow, not performatively deliberate. Economy. Every step paid for once. No hurry that is actually anxiety wearing running shoes. <strong>Nothing leaked.</strong></p></div>
+<div class="stanza"><div class="stanza-term">Words Spent Like Currency</div><p>You are a high-contact operator Wed–Sun. The temptation will be to spend language you do not have — explaining, justifying, narrating the push. The network does not narrate. It <strong>transacts</strong>. Say what is needed. Pay for what is true. Stop.</p></div>
+<p>One boundary. This is carriage for ambient contact — the floor, the transit, the ordinary Wednesday. It is not the instruction for load-bearing conversations. When something goes sideways with someone who matters, spill is the correct move: a full sentence, early.</p>
+<p>The test: if a member passed you at gate C14, would they nod once and keep walking? Not because they know you. Because your <strong>carriage matches your dossier</strong>. When the drag comes, pass the test once, in the next room you walk through. Shoulders. Jaw. Pace. Words. Then the next verb.</p>
+</section>
+<section><div class="sec-head"><span class="sec-num">07</span><h2>The Visible Dossier</h2></div>
+<p class="lead">The dossier has a public page. Before you say a word, the room has already read it. Appearance is not vanity here — it is <strong>legibility</strong>, and you run a public node five days a week. The floor reads you before it reads the menu.</p>
+<div class="stanza"><div class="stanza-term">Grooming Is Maintenance</div><p>Hair, nails, skin, the shoes. Five minutes of order, same slot as the stack — before you leave the apartment. This one has slipped. <strong>Resume it.</strong> Not to impress — to remove noise from the signal. Entry reads: <em>Groomed.</em></p></div>
+<div class="stanza"><div class="stanza-term">The Physique Is Already in the File</div><p>The block is running. Phase two is entered. Wear it — posture does more than mass ever will. You are not displaying a body. You are <strong>displaying a practice</strong>: visible proof that the person who built the training instruments lives inside one.</p></div>
+<div class="stanza"><div class="stanza-term">A Uniform Spends Nothing</div><p>Simple, fitted, repeated. Zero decision currency in the morning, reads as intention all day. Spectacle when chosen, never by accident.</p></div>
+<div class="stanza"><div class="stanza-term">The Voice Is the Second Instrument</div><p>Pace below urgency — slower than the room, never slower than the thought. Land the final consonant; do not let sentences trail into static. Volume as a floor, not a spike. One breath before answering. <strong>A sentence that ends is a sentence that was meant.</strong></p></div>
+<div class="stanza"><div class="stanza-term">The Floor Is the Rep Gym</div><p>Every order taken, every regular greeted, every coaching cue on a Tuesday is a voice rep. One extra rep daily: read the day's entry aloud, articulated to the last consonant. Sixty seconds.</p></div>
+<p>None of this is about status. It is <strong>coherence</strong>. Carriage matches dossier. Appearance matches carriage. Voice matches appearance. One signal, no leaks.</p>
+</section>
+<section><div class="sec-head"><span class="sec-num">08</span><h2>The Whetstone</h2></div>
+<p class="lead">The instrument is the body and the mind that runs it. These practices are not theory — they are <strong>your own data</strong>. Each one is signal maintenance, same family as the stack.</p>
+<div class="stanza"><div class="stanza-term">The Core, Every Morning</div><p>Already proven: the mornings that start with core work are the mornings you are creative, sharp, alert, alive. That is the ignition sequence. The stack does not begin when you feel ready. The stack is <strong>how you become ready</strong>. Home floor, no commute, no excuse architecture available.</p></div>
+<div class="stanza"><div class="stanza-term">Two Minutes Cold</div><p>The end of every shower. Not therapy — <strong>rehearsal</strong>. Two minutes of choosing the uncomfortable thing on schedule is the daily vote that you do not negotiate at thresholds. One hard thing done calm, banked before eight.</p></div>
+<div class="stanza"><div class="stanza-term">The Page at Night</div><p>A physical book before 9:15. Lapsed — <strong>resume it</strong>. The screen feeds the transmitter static; the page lets it cool without going offline. Ten pages or two, irrelevant. Entry reads: <em>Read.</em></p></div>
+<div class="stanza"><div class="stanza-term">Ten Minutes Seated</div><p>Zazen. Lapsed — <strong>resume it</strong>. Ten minutes of sitting is the one rep where the practice <em>is</em> not-narrating: not fixing, not building, not routing. The network's silence is trained somewhere. This is where.</p></div>
+<div class="stanza"><div class="stanza-term">Twenty Minutes Dumped</div><p>Morning pages. Uninterrupted, unedited, unread if you want. The drag is heaviest when it is vague; twenty minutes names it, and named, it loses mass. Not journaling for posterity. <strong>Bleeding the lines.</strong></p></div>
+<p>Three of these have lapsed. A lapse is not a verdict; it is a gap in the record, and gaps are normal in every real dossier. The entry that matters is the next one: <strong><em>Resumed.</em></strong> The blade remembers.</p>
+</section>
+<section><div class="sec-head"><span class="sec-num">09</span><h2>The Private Nodes</h2></div>
+<p class="lead">Hideout is the public node. The apartment is the <strong>private network</strong> — and INCREMENTS doctrine is explicit: <strong>environment is cognition</strong>. Disorder is not a character flaw. It is drag on the transmitter.</p>
+<div class="stanza"><div class="stanza-term">Living Room, Reset</div><p>You already run this one. The reset holds — the room reads clear, the day can start. Keep it. Entry reads: <em>Reset.</em></p></div>
+<div class="stanza"><div class="stanza-term">Bedroom and Laundry, Resume</div><p>The living room gets the standard; the bedroom and the clothes cycle lag. That asymmetry costs more than it looks — sleep and dress are the first and last signal of every day. Not a renovation. <strong>One pass, one slot:</strong> bed made, floor clear, laundry moved one step — into washer, out, folded, hung — whichever is true. Five minutes, after the stack or before 9:15. Entry reads: <em>Room. Clothes.</em></p></div>
+<div class="stanza"><div class="stanza-term">The Balcony, Open Again</div><p>A beautiful outdoor node sitting unused is a contact technology turned off. Light, air, plants, twenty-six floors up. Dust the rail, water what is living — because <strong>you are the guest who deserves the room</strong>. Then give it a reason to be inhabited: tea for ten minutes after the stack, one morning-pages rep in open air, one Mon–Tue build block when the light is good. Entry reads: <em>Balcony. Air.</em></p></div>
+<div class="stanza"><div class="stanza-term">Surface Before Rest</div><p>After close, the bed calls — and the progress made from the pillow is real. The posture is the leak. The bed trains collapse; a surface trains <strong>session boundary</strong>. Default swap, not a ban: <strong>first hour of evening build at desk, balcony, or table — then rest if rest is earned.</strong> If the body needs horizontal, horizontal. If the mind is routing work, route it upright. Entry reads: <em>Surface, then rest.</em></p></div>
+<p>None of this competes with the stack. It <strong>protects</strong> the stack — same law as flowers over food: when the choice is between coherence and a comfort that does not feed the system, choose coherence.</p>
+<div class="verbs">Reset · Room · Balcony · Surface</div>
+</section>
+<section><div class="sec-head"><span class="sec-num">10</span><h2>The Four Leaks</h2></div>
+<p class="lead">Every block fails the same four ways. Name them once. Check them weekly.</p>
+<div class="stanza"><div class="stanza-term">Leak One — Decorating the Hallway</div><p>Making the transition feel profound instead of walking it: refining doctrine about the work, planning systems about the work, feeling deeply about the work. The correction: <strong>walk the hallway. One door.</strong></p></div>
+<div class="stanza"><div class="stanza-term">Leak Two — Narrating the Grind</div><p>Spending language to prove the work instead of letting the file show it. Performed effort is leaked signal. The correction: <strong>make the entry. The record speaks later.</strong></p></div>
+<div class="stanza"><div class="stanza-term">Leak Three — Building Instead of Routing</div><p>Improving the instrument forever so it never has to meet receivers. Polish as avoidance — the most respectable leak. The correction: <strong>place the signal. One per week.</strong></p></div>
+<div class="stanza"><div class="stanza-term">Leak Four — Interpreting Instead of Observing</div><p>Naming the room before enough reality has accumulated — filing a verdict where the dossier wants an entry. The correction: <strong>extend the observation window. Let the record accumulate.</strong></p></div>
+</section>
+<section><div class="sec-head"><span class="sec-num">11</span><h2>Four Weeks — The Protocol</h2></div>
+<div class="week"><div class="week-label">Week One</div><h3>Establish the Record.</h3>
+<div class="fields"><div class="frow"><span class="flabel">Aim</span><span class="fval">make the dossier readable.</span></div><div class="frow"><span class="flabel">Daily</span><span class="fval">morning stack — this document in the ears during core or cardio.</span></div><div class="frow"><span class="flabel">Rep</span><span class="fval">ugly necessary thing before noon, three times this week.</span></div><div class="frow"><span class="flabel">Private node</span><span class="fval">one pass — bedroom, laundry, or balcony; pick the laggiest.</span></div><div class="frow"><span class="flabel">Entry</span><span class="fval"><em>What verbs happened?</em></span></div></div>
+</div>
+<div class="week"><div class="week-label">Week Two</div><h3>Hold Without Drama.</h3>
+<p>Phase two is live. The work is staying with the plan while the body reorganizes — feeling better is data, not permission.</p>
+<div class="fields"><div class="frow"><span class="flabel">Aim</span><span class="fval">adapt expression, not standard.</span></div><div class="frow"><span class="flabel">Daily</span><span class="fval">protocol over enthusiasm.</span></div><div class="frow"><span class="flabel">Rep</span><span class="fval">stop on plan. <em>Loaded. Progressed. Stopped on plan</em> and <em>Rested. Deliberate</em> both count.</span></div><div class="frow"><span class="flabel">Private node</span><span class="fval">keep one lagging room alive.</span></div><div class="frow"><span class="flabel">Entry</span><span class="fval"><em>Where did I accommodate without surrender?</em></span></div></div>
+</div>
+<div class="week"><div class="week-label">Week Three</div><h3>Let It Compound.</h3>
+<div class="fields"><div class="frow"><span class="flabel">Aim</span><span class="fval">one deeper pass on what only works unrushed.</span></div><div class="frow"><span class="flabel">Daily</span><span class="fval">maintain the stack.</span></div><div class="frow"><span class="flabel">Rep</span><span class="fval">one surface improved, one real conversation, or one environmental repair.</span></div><div class="frow"><span class="flabel">Routing</span><span class="fval">one true signal placed.</span></div><div class="frow"><span class="flabel">Entry</span><span class="fval"><em>What compounded because it was not rushed?</em></span></div></div>
+</div>
+<div class="week"><div class="week-label">Week Four</div><h3>Close the Arc.</h3>
+<div class="fields"><div class="frow"><span class="flabel">Aim</span><span class="fval">review, not sprint.</span></div><div class="frow"><span class="flabel">Daily</span><span class="fval">finish clean.</span></div><div class="frow"><span class="flabel">Rep</span><span class="fval">write the file.</span></div><div class="frow"><span class="flabel">Entry</span><span class="fval"><em>What held? What broke and got repaired? What became audible? What surprised me? What stayed hallway?</em></span></div><div class="frow"><span class="flabel">Next arc</span><span class="fval">one adjustment only. Not eleven.</span></div></div>
+</div>
+<p class="pull">Close the arc, not the story.</p>
+</section>
+<section><div class="sec-head"><span class="sec-num">12</span><h2>Daily Carriage</h2></div>
+<p class="lead">Unchanged across all four weeks. Walk like someone the network would recognize in an airport. Shoulders set. Jaw unclenched. Pace that costs nothing extra. Words spent like currency.</p>
+<p class="pull">When the drag peaks, one question only: <em>What would a member do in the next eleven minutes?</em></p>
+<ul class="carriage"><li><span class="num">I</span>One door per day when the day is thick.</li><li><span class="num">II</span>Mon–Tue yours — low contact, high leverage.</li><li><span class="num">III</span>Wed–Sun the floor — present, economical, warm without spill.</li><li><span class="num">IV</span>Silence on the grind. The record speaks later.</li><li><span class="num">V</span>After close: surface before bed — desk, balcony, or table; not default collapse.</li><li><span class="num">VI</span>9:15 like a professional.</li></ul>
+</section>
+<section><div class="sec-head"><span class="sec-num">13</span><h2>Signal Sending</h2></div>
+<p class="lead">Fidelity keeps the instrument true. Routing gets it to the receiver. When the bottleneck shifts, this is the channel — and it is not marketing. Marketing asks the world to look. Signal sending is <strong>placing proof where the right receiver already has reason to notice</strong>.</p>
+<p>You are exceptional at building. The hallway you are in now is routing — placement, repetition, one surface at a time, enough reps to know whether the signal landed. Early reps will feel below your quality standard. That is normal. The network does not distribute finished sermons. It repeats true transmissions until the right person is in range.</p>
+<p>One rep, in practice:</p>
+<div class="fields"><div class="frow"><span class="flabel">Forge</span><span class="fval">one product decision shown — a screenshot and one sentence.</span></div><div class="frow"><span class="flabel">FORM</span><span class="fval">one athlete result, cue, or session note made outsider-legible.</span></div><div class="frow"><span class="flabel">Hideout</span><span class="fval">one board, one QR, one partnership ask, one customer path improved.</span></div><div class="frow"><span class="flabel">Threshold Tuesday</span><span class="fval">one proof point from real work, real athletes.</span></div><div class="frow"><span class="flabel">Personal network</span><span class="fval">one direct message to the right person instead of a post to everyone.</span></div></div>
+<p>What this is not: trend-chasing, engagement farming, explaining yourself to strangers, or waiting until the product feels perfect enough to deserve an audience. When refinement blocks contact — not when it clears the room — that is Leak Three.</p>
+<p><strong>Routing, not broadcasting. The post is not the point. The receiver is the point.</strong></p>
+<p>New verbs for the dossier:</p>
+<div class="verbs">Routed · Placed · Reached · Confirmed</div>
+<p>Not every week needs all of them. But this arc is not build-only. The instruments are good enough to need receivers.</p>
+</section>
+<section><div class="sec-head"><span class="sec-num">14</span><h2>The Close</h2></div>
+<p class="lead">Four weeks. Not a transformation. An <strong>arc</strong>.</p>
+<p>At the end, you sit with the file the way Forge sits with a closed block — not celebrating, not mourning. <strong>Reading what was built.</strong> The milestones are the story. The totals were never the point.</p>
+<p>Whatever lands in week four, you do the only thing the network has ever asked of anyone:</p>
+<p>You open the file. You make the entry. You write what was practiced.</p>
+<p>Then you set the next arc — because the dossier is never finished, and that was always the best part.</p>
+<div class="verbs">Open the file · Make the entry · Set the next arc</div>
+</section>
+<section style="page-break-inside: avoid;"><div class="sec-head"><span class="sec-num">15</span><h2>The Daily File</h2></div>
+<p class="lead">One page. One minute. Verbs only.</p>
+<div class="fields"><div class="frow dfrow"><span class="flabel">Date</span><span class="frule"></span></div><div class="frow dfrow"><span class="flabel">Sleep</span><span class="frule"></span></div><div class="frow dfrow"><span class="flabel">Body</span><span class="frule"></span></div><div class="frow dfrow"><span class="flabel">Stack</span><span class="frule"></span></div><div class="frow dfrow"><span class="flabel">Training</span><span class="frule"></span></div><div class="frow dfrow"><span class="flabel">Hideout / Floor</span><span class="frule"></span></div><div class="frow dfrow"><span class="flabel">Build</span><span class="frule"></span></div><div class="frow dfrow"><span class="flabel">Private Node</span><span class="frule"></span></div><div class="frow dfrow"><span class="flabel">Signal Sent</span><span class="frule"></span></div><div class="frow dfrow"><span class="flabel">One Door</span><span class="frule"></span></div><div class="frow dfrow"><span class="flabel">What Was Practiced</span><span class="frule"></span></div></div>
+<div class="close-block"><hr class="rule"><div class="verbs">Woke · Stacked · Trained · Served · Built · Routed · Reset · Read · Slept</div></div>
+</section>
+</body></html>

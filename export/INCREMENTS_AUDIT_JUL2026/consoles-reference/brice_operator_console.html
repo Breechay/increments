@@ -1,0 +1,1969 @@
+<!-- SOURCE OF TRUTH: BRICE_OPERATOR_MANUAL.md — edit markdown first; run sync_operator_console.sh for Direction panel -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brice — Operator Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #F8F5EE;
+    --paper: #FDFAF4;
+    --ink: #1A1814;
+    --ink-mid: #4A4640;
+    --ink-light: #8A8480;
+    --ink-faint: #C8C4BC;
+    --rule: #E2DDD4;
+    --accent: #B85C38;
+    --accent-light: #F2E8E2;
+    --gold: #C49A28;
+    --gold-light: #F5EDD4;
+    --teal: #2A6B5E;
+    --teal-light: #E2F0ED;
+    --serif: 'Libre Baskerville', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+    --mono: 'DM Mono', monospace;
+    --nav-w: 220px;
+    --content-max: 720px;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-weight: 300;
+    line-height: 1.7;
+    min-height: 100vh;
+    display: flex;
+  }
+
+  /* ── NAV ── */
+  nav {
+    width: var(--nav-w);
+    min-height: 100vh;
+    background: var(--paper);
+    border-right: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 100;
+    padding: 0 0 2rem;
+  }
+
+  .nav-header {
+    padding: 2rem 1.5rem 1.5rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .nav-wordmark {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+
+  .nav-sub {
+    font-size: 0.7rem;
+    color: var(--ink-light);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.25rem;
+  }
+
+  .nav-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.68rem;
+    color: var(--teal);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 0.75rem;
+  }
+
+  .nav-status::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--teal);
+    flex-shrink: 0;
+  }
+
+  .nav-section {
+    padding: 1.25rem 1.5rem 0.5rem;
+  }
+
+  .nav-section-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+
+  .nav-item {
+    display: block;
+    padding: 0.35rem 0.75rem;
+    margin: 0.1rem -0.75rem;
+    font-size: 0.82rem;
+    color: var(--ink-mid);
+    text-decoration: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    border: none;
+    background: none;
+    width: calc(100% + 1.5rem);
+    text-align: left;
+    font-family: var(--sans);
+    font-weight: 300;
+    line-height: 1.4;
+  }
+
+  .nav-item:hover { background: var(--cream); color: var(--ink); }
+
+  .nav-item.active {
+    background: var(--accent-light);
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .nav-item .nav-num {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--ink-faint);
+    margin-right: 0.4rem;
+  }
+
+  .nav-item.active .nav-num { color: var(--accent); opacity: 0.6; }
+
+  .nav-footer {
+    margin-top: auto;
+    padding: 1rem 1.5rem 0;
+    border-top: 1px solid var(--rule);
+    font-size: 0.68rem;
+    color: var(--ink-faint);
+    letter-spacing: 0.04em;
+  }
+
+  /* ── MAIN ── */
+  main {
+    margin-left: var(--nav-w);
+    flex: 1;
+    padding: 0;
+  }
+
+  .section-panel {
+    display: none;
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: 4rem 3rem 6rem;
+    animation: fadeUp 0.3s ease;
+  }
+
+  .section-panel.active { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── TYPOGRAPHY ── */
+  .eyebrow {
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+  }
+
+  h1.section-title {
+    font-family: var(--serif);
+    font-size: 2rem;
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+
+  h2.sub-title {
+    font-family: var(--serif);
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: var(--ink);
+    margin: 2.5rem 0 0.75rem;
+  }
+
+  .section-intro {
+    font-size: 1rem;
+    color: var(--ink-mid);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 2rem;
+    margin-bottom: 2.5rem;
+    line-height: 1.8;
+  }
+
+  p {
+    margin-bottom: 1rem;
+    color: var(--ink-mid);
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+
+  strong { font-weight: 500; color: var(--ink); }
+
+  em { font-style: italic; }
+
+  /* ── RULE ── */
+  hr {
+    border: none;
+    border-top: 1px solid var(--rule);
+    margin: 2.5rem 0;
+  }
+
+  /* ── LAWS TABLE ── */
+  .laws-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--paper);
+  }
+
+  .law-row {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    border-bottom: 1px solid var(--rule);
+    transition: background 0.15s;
+  }
+
+  .law-row:last-child { border-bottom: none; }
+  .law-row:hover { background: var(--cream); }
+
+  .law-name {
+    padding: 1rem 1.25rem;
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: var(--ink);
+    border-right: 1px solid var(--rule);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+
+  .law-num {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--ink-faint);
+    padding-top: 0.2rem;
+    flex-shrink: 0;
+  }
+
+  .law-meaning {
+    padding: 1rem 1.25rem;
+    font-size: 0.85rem;
+    color: var(--ink-mid);
+    line-height: 1.6;
+  }
+
+  /* ── PATTERN CARDS ── */
+  .pattern-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .pattern-card {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1.25rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .pattern-card:hover {
+    border-color: var(--ink-faint);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  }
+
+  .pattern-card-name {
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .pattern-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .pattern-card p {
+    font-size: 0.82rem;
+    color: var(--ink-mid);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .pattern-card .strength-risk {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+
+  .tag-strength { background: var(--teal-light); color: var(--teal); }
+  .tag-risk     { background: var(--accent-light); color: var(--accent); }
+  .tag-note     { background: var(--gold-light); color: var(--gold); }
+
+  /* ── BLOCKQUOTE ── */
+  blockquote {
+    border-left: 2px solid var(--accent);
+    margin: 1.5rem 0;
+    padding: 1rem 1.5rem;
+    background: var(--accent-light);
+    border-radius: 0 6px 6px 0;
+  }
+
+  blockquote p {
+    font-family: var(--serif);
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--ink);
+    margin: 0;
+    line-height: 1.7;
+  }
+
+  /* ── LENS TABLE ── */
+  .lens-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.25rem 0;
+    font-size: 0.85rem;
+  }
+
+  .lens-table th {
+    text-align: left;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .lens-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink-mid);
+    vertical-align: top;
+  }
+
+  .lens-table tr:last-child td { border-bottom: none; }
+
+  .lens-table td:first-child {
+    color: var(--ink-light);
+    font-style: italic;
+    text-decoration: line-through;
+    text-decoration-color: var(--ink-faint);
+  }
+
+  .lens-table td:last-child {
+    color: var(--ink);
+    font-weight: 400;
+  }
+
+  /* ── EXPERIMENT TABLE ── */
+  .exp-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.25rem 0;
+    font-size: 0.85rem;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .exp-table th {
+    text-align: left;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    font-weight: 500;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--rule);
+    background: var(--cream);
+  }
+
+  .exp-table td {
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink-mid);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  .exp-table tr:last-child td { border-bottom: none; }
+
+  .exp-table td:first-child {
+    font-weight: 500;
+    color: var(--ink);
+    font-size: 0.82rem;
+  }
+
+  /* ── PATTERN INDEX ── */
+  .pattern-index {
+    columns: 2;
+    column-gap: 2rem;
+    list-style: none;
+    padding: 0;
+    counter-reset: p-counter;
+  }
+
+  .pattern-index li {
+    counter-increment: p-counter;
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.65rem;
+    break-inside: avoid;
+    align-items: baseline;
+  }
+
+  .pattern-index li::before {
+    content: counter(p-counter, decimal-leading-zero);
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--ink-faint);
+    flex-shrink: 0;
+    padding-top: 0.1rem;
+  }
+
+  .pattern-index li span {
+    font-size: 0.85rem;
+    color: var(--ink-mid);
+    line-height: 1.5;
+  }
+
+  .pattern-index li.highlight span {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  /* ── TIER BLOCKS ── */
+  .tier-block {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 1.25rem 0;
+  }
+
+  .tier-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid var(--rule);
+    background: var(--cream);
+  }
+
+  .tier-badge {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    letter-spacing: 0.06em;
+  }
+
+  .tier-a { background: var(--teal-light); color: var(--teal); }
+  .tier-b { background: var(--gold-light); color: var(--gold); }
+  .tier-c { background: var(--accent-light); color: var(--accent); }
+  .tier-d { background: var(--cream); color: var(--ink-light); border: 1px solid var(--rule); }
+
+  .tier-desc {
+    font-size: 0.8rem;
+    color: var(--ink-mid);
+  }
+
+  .tier-files {
+    padding: 0.5rem 0;
+  }
+
+  .tier-file {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 0.55rem 1.25rem;
+    border-bottom: 1px solid var(--rule);
+    font-size: 0.8rem;
+  }
+
+  .tier-file:last-child { border-bottom: none; }
+
+  .tier-file code {
+    font-family: var(--mono);
+    font-size: 0.73rem;
+    color: var(--ink);
+    background: var(--cream);
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    border: 1px solid var(--rule);
+    flex-shrink: 0;
+  }
+
+  .tier-file-note {
+    color: var(--ink-light);
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+
+  /* ── WANTS ── */
+  .wants-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .want-item {
+    display: grid;
+    grid-template-columns: 2.5rem 1fr;
+    gap: 1rem;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1.25rem;
+    transition: border-color 0.2s;
+  }
+
+  .want-item:hover { border-color: var(--ink-faint); }
+
+  .want-num {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    color: var(--ink-faint);
+    line-height: 1;
+    padding-top: 0.15rem;
+    font-style: italic;
+  }
+
+  .want-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--ink);
+    margin-bottom: 0.4rem;
+  }
+
+  .want-desc {
+    font-size: 0.83rem;
+    color: var(--ink-mid);
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  /* ── CONDUCT FILTER ── */
+  .conduct-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+
+  .cf-tag {
+    font-size: 0.78rem;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--rule);
+    border-radius: 20px;
+    color: var(--ink-mid);
+    background: var(--paper);
+    font-weight: 400;
+  }
+
+  .cf-tag.absent {
+    text-decoration: line-through;
+    color: var(--ink-faint);
+    background: var(--cream);
+  }
+
+  /* ── REVERENCE ── */
+  .reverence-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin: 1rem 0;
+    padding-left: 1rem;
+    border-left: 2px solid var(--rule);
+  }
+
+  .reverence-list li {
+    list-style: none;
+    font-size: 0.85rem;
+    color: var(--ink-mid);
+    padding: 0.2rem 0 0.2rem 0.75rem;
+  }
+
+  /* ── INSIGHT RANKED ── */
+  .insights {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 1.25rem 0;
+  }
+
+  .insight-item {
+    display: grid;
+    grid-template-columns: 1.5rem 1fr;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.6rem 0.75rem;
+    border-radius: 5px;
+    transition: background 0.15s;
+  }
+
+  .insight-item:hover { background: var(--paper); }
+
+  .insight-rank {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--ink-faint);
+    text-align: right;
+  }
+
+  .insight-text {
+    font-size: 0.85rem;
+    color: var(--ink-mid);
+  }
+
+  .insight-item:nth-child(1) .insight-text { color: var(--ink); font-weight: 500; }
+  .insight-item:nth-child(2) .insight-text { color: var(--ink); }
+
+  /* ── FOUR LINES ── */
+  .four-lines {
+    display: flex;
+    gap: 1px;
+    margin: 1.5rem 0;
+    background: var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .four-line {
+    flex: 1;
+    background: var(--paper);
+    padding: 1rem 0.75rem;
+    text-align: center;
+    font-family: var(--serif);
+    font-size: 0.85rem;
+    font-style: italic;
+    color: var(--ink-mid);
+    line-height: 1.4;
+  }
+
+  /* ── SUNDAY RULE ── */
+  .sunday-rule {
+    background: var(--gold-light);
+    border: 1px solid #E8D8A0;
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+
+  /* ── SIGNAL GAP ── */
+  .signal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.25rem 0;
+  }
+
+  .signal-col {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 1.25rem;
+  }
+
+  .signal-col-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+  }
+
+  .signal-item {
+    font-size: 0.83rem;
+    color: var(--ink-mid);
+    padding: 0.3rem 0;
+    border-bottom: 1px solid var(--rule);
+    line-height: 1.5;
+  }
+
+  .signal-item:last-child { border-bottom: none; }
+
+  /* ── OPEN QS ── */
+  .open-questions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 1.25rem 0;
+  }
+
+  .oq-item {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--ink-mid);
+    padding: 0.6rem 0.75rem;
+    border-radius: 5px;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    align-items: baseline;
+    line-height: 1.5;
+  }
+
+  .oq-item::before {
+    content: '?';
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--ink-faint);
+    flex-shrink: 0;
+    font-size: 1rem;
+  }
+
+  /* ── CLASSIFY BANNER ── */
+  .classify-banner {
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 8px;
+    padding: 1.5rem 1.75rem;
+    margin: 2rem 0;
+  }
+
+  .classify-banner p {
+    color: rgba(253,250,244,0.7);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+  }
+
+  .classify-options {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+  }
+
+  .classify-opt {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 6px;
+    padding: 0.75rem;
+    text-align: center;
+  }
+
+  .classify-opt-name {
+    font-weight: 500;
+    font-size: 0.82rem;
+    color: var(--paper);
+    margin-bottom: 0.25rem;
+  }
+
+  .classify-opt-note {
+    font-size: 0.7rem;
+    color: rgba(253,250,244,0.5);
+    line-height: 1.4;
+  }
+
+  /* ── HOMEPAGE ── */
+  .home-hero {
+    padding: 5rem 3rem 3rem;
+    max-width: var(--content-max);
+    margin: 0 auto;
+  }
+
+  .home-date {
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    font-weight: 500;
+    margin-bottom: 1.25rem;
+  }
+
+  .home-title {
+    font-family: var(--serif);
+    font-size: 2.8rem;
+    font-weight: 400;
+    line-height: 1.15;
+    color: var(--ink);
+    margin-bottom: 1rem;
+  }
+
+  .home-subtitle {
+    font-size: 1rem;
+    color: var(--ink-mid);
+    max-width: 480px;
+    line-height: 1.7;
+    margin-bottom: 2.5rem;
+  }
+
+  .home-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+  }
+
+  .home-cell {
+    background: var(--paper);
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .home-cell:hover { background: var(--cream); }
+
+  .home-cell-level {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+
+  .home-cell-title {
+    font-family: var(--serif);
+    font-size: 1rem;
+    color: var(--ink);
+    margin-bottom: 0.4rem;
+    line-height: 1.3;
+  }
+
+  .home-cell-desc {
+    font-size: 0.78rem;
+    color: var(--ink-light);
+    line-height: 1.5;
+  }
+
+  .home-rule {
+    border-top: 1px solid var(--rule);
+    padding-top: 2rem;
+    font-size: 0.82rem;
+    color: var(--ink-light);
+    line-height: 1.7;
+  }
+
+  /* ── CURSOR COMMENTARY ── */
+  .commentary {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 0;
+    margin: 2rem 0;
+    overflow: hidden;
+  }
+
+  .commentary-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid var(--rule);
+    background: var(--cream);
+  }
+
+  .commentary-source {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    font-weight: 500;
+  }
+
+  .commentary-body {
+    padding: 1.25rem 1.5rem;
+    font-size: 0.85rem;
+    color: var(--ink-mid);
+    line-height: 1.75;
+  }
+
+  .commentary-body p { font-size: 0.85rem; margin-bottom: 0.75rem; }
+  .commentary-body p:last-child { margin-bottom: 0; }
+
+  .commentary-body strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  /* ── MISC ── */
+  code {
+    font-family: var(--mono);
+    font-size: 0.78em;
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    color: var(--ink);
+  }
+
+  .inline-rule {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.78rem;
+    color: var(--ink-light);
+    margin: 1rem 0;
+  }
+
+  .inline-rule::before,
+  .inline-rule::after {
+    content: '';
+    height: 1px;
+    background: var(--rule);
+    flex: 1;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin: 1rem 0;
+  }
+
+  .update-steps {
+    counter-reset: step;
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .update-steps li {
+    counter-increment: step;
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--ink-mid);
+    align-items: baseline;
+    line-height: 1.5;
+  }
+
+  .update-steps li::before {
+    content: counter(step);
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--paper);
+    background: var(--ink-light);
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 500;
+  }
+
+  @media (max-width: 900px) {
+    nav { display: none; }
+    main { margin-left: 0; }
+    .section-panel { padding: 2rem 1.5rem 4rem; }
+    .pattern-grid, .two-col, .signal-grid { grid-template-columns: 1fr; }
+    .home-grid { grid-template-columns: 1fr; }
+    .classify-options { grid-template-columns: 1fr 1fr; }
+    .pattern-index { columns: 1; }
+    .four-lines { flex-direction: column; gap: 1px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-header">
+    <div class="nav-wordmark">Brice<br>Operator Manual</div>
+    <div class="nav-sub">Knowledge compression system</div>
+    <div class="nav-status">Living · Jun 2026</div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Entry</div>
+    <button class="nav-item active" onclick="show('home', this)">Overview</button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Levels</div>
+    <button class="nav-item" onclick="show('l1', this)"><span class="nav-num">L1</span>Immutable laws</button>
+    <button class="nav-item" onclick="show('l2', this)"><span class="nav-num">L2</span>Recurring patterns</button>
+    <button class="nav-item" onclick="show('l3', this)"><span class="nav-num">L3</span>Current phase</button>
+    <button class="nav-item" onclick="show('l4', this)"><span class="nav-num">L4</span>Active experiments</button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Appendices</div>
+    <button class="nav-item" onclick="show('appb', this)"><span class="nav-num">B</span>What I Want</button>
+    <button class="nav-item" onclick="show('appc', this)"><span class="nav-num">C</span>Pattern index</button>
+    <button class="nav-item" onclick="show('appd', this)"><span class="nav-num">D</span>Workspace audit</button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Direction</div>
+    <button class="nav-item" onclick="show('direction', this)">Direction of travel</button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Commentary</div>
+    <button class="nav-item" onclick="show('commentary', this)">Cursor notes</button>
+  </div>
+
+  <div class="nav-footer">
+    Last compiled: Jun 2026 · sync from BRICE_OPERATOR_MANUAL.md<br>
+    Edit → regenerate PDF
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main>
+
+  <!-- HOME -->
+  <div id="home" class="section-panel active">
+    <div class="home-hero">
+      <div class="home-date">June 2026 · v7</div>
+      <h1 class="home-title">Compressed pattern map<br>of how you operate.</h1>
+      <p class="home-subtitle">Not a dump of every doctrine file. Read Level 1–2 when making identity-level decisions. Level 3 when interpreting feelings or Sundays. Level 4 when planning the month.</p>
+
+      <div class="home-grid">
+        <div class="home-cell" onclick="show('l1', navItem('l1'))">
+          <div class="home-cell-level">Level 1 · Immutable</div>
+          <div class="home-cell-title">Laws</div>
+          <div class="home-cell-desc">12 defaults that survived hundreds of conversations. No longer insights — they are structure.</div>
+        </div>
+        <div class="home-cell" onclick="show('l2', navItem('l2'))">
+          <div class="home-cell-level">Level 2 · 2–5 years</div>
+          <div class="home-cell-title">Recurring patterns</div>
+          <div class="home-cell-desc">Builder, projection, keys, reverence, frequency, envoy — what keeps appearing.</div>
+        </div>
+        <div class="home-cell" onclick="show('l3', navItem('l3'))">
+          <div class="home-cell-level">Level 3 · 12–24 months</div>
+          <div class="home-cell-title">Current phase</div>
+          <div class="home-cell-desc">The anchors worked. Another room. Sunday doctrine. What I want now.</div>
+        </div>
+        <div class="home-cell" onclick="show('l4', navItem('l4'))">
+          <div class="home-cell-level">Level 4 · Transient</div>
+          <div class="home-cell-title">Active experiments</div>
+          <div class="home-cell-desc">Hideout 30-day solo. Sculpt phase. TestFlight. Distribution unlock.</div>
+        </div>
+      </div>
+
+      <div class="home-rule">
+        <strong>What this is not:</strong> FORM athlete voice, Hideout customer copy, or a 300-page archive. Those live in product repos.<br><br>
+        <strong>Appendix C</strong> may be the most important page: ~25 ideas generate almost everything. If a new insight arrives, ask — law, pattern, phase note, or experiment? Most things are experiments. Very few become laws.
+      </div>
+    </div>
+  </div>
+
+  <!-- LEVEL 1 -->
+  <div id="l1" class="section-panel">
+    <div class="eyebrow">Level 1 · Immutable</div>
+    <h1 class="section-title">Laws</h1>
+    <p class="section-intro">These survived hundreds of conversations. They are not insights anymore — they are defaults. Do not revisit unless reality breaks them repeatedly.</p>
+
+    <div class="laws-grid">
+      <div class="law-row">
+        <div class="law-name"><span class="law-num">01</span>Stewardship over expression</div>
+        <div class="law-meaning">Build what holds before what impresses.</div>
+      </div>
+      <div class="law-row">
+        <div class="law-name"><span class="law-num">02</span>Form is the practice</div>
+        <div class="law-meaning">Running, craft, café, code — competence under load is the religion.</div>
+      </div>
+      <div class="law-row">
+        <div class="law-name"><span class="law-num">03</span>Stability of excellence</div>
+        <div class="law-meaning">Repeatable quality beats spikes.</div>
+      </div>
+      <div class="law-row">
+        <div class="law-name"><span class="law-num">04</span>Remove interference</div>
+        <div class="law-meaning">Delete before adding. Empty string when no signal.</div>
+      </div>
+      <div class="law-row">
+        <div class="law-name"><span class="law-num">05</span>Default no</div>
+        <div class="law-meaning">New scope needs a reason that survives contact with reality.</div>
+      </div>
+      <div class="law-row">
+        <div class="law-name"><span class="law-num">06</span>Protect mornings</div>
+        <div class="law-meaning">Cognitive peak is not negotiable for low-yield social noise.</div>
+      </div>
+      <div class="law-row">
+        <div class="law-name"><span class="law-num">07</span>Price earlier. Exit sooner. Don't narrate.</div>
+        <div class="law-meaning">Business and relationships — conduct, not story.</div>
+      </div>
+      <div class="law-row">
+        <div class="law-name"><span class="law-num">08</span>Competence is unevenly distributed</div>
+        <div class="law-meaning">Design for the capable minority; do not talk down.</div>
+      </div>
+      <div class="law-row">
+        <div class="law-name"><span class="law-num">09</span>Most people are uncoordinated, not adversarial</div>
+        <div class="law-meaning">Friction is often system mismatch, not malice.</div>
+      </div>
+      <div class="law-row">
+        <div class="law-name"><span class="law-num">10</span>Conduct over story</div>
+        <div class="law-meaning">Watch what survives after the narrative is removed.</div>
+      </div>
+      <div class="law-row">
+        <div class="law-name"><span class="law-num">11</span>Mechanism over motivation</div>
+        <div class="law-meaning">You need structure, not hype. Causal explanation earns compliance.</div>
+      </div>
+      <div class="law-row">
+        <div class="law-name"><span class="law-num">12</span>Evidence before speech</div>
+        <div class="law-meaning">No slot-filling intelligence — in products or in how you advise yourself.</div>
+      </div>
+    </div>
+
+    <h2 class="sub-title">Conduct filter (operational)</h2>
+    <p>Present in self and others. Weekly audit: <code>CONDUCT_FILTER.md</code></p>
+    <div class="conduct-filter">
+      <span class="cf-tag">competence under load</span>
+      <span class="cf-tag">restraint</span>
+      <span class="cf-tag">silence as data</span>
+      <span class="cf-tag">real competence</span>
+      <span class="cf-tag">intelligent audience</span>
+      <span class="cf-tag">conduct over story</span>
+    </div>
+    <p style="margin-top:0.75rem;font-size:0.82rem;">Friction audit — absence matters:</p>
+    <div class="conduct-filter">
+      <span class="cf-tag absent">drama</span>
+      <span class="cf-tag absent">validation-seeking</span>
+      <span class="cf-tag absent">performative ambition</span>
+      <span class="cf-tag absent">victim narratives</span>
+      <span class="cf-tag absent">chronic chaos</span>
+      <span class="cf-tag absent">intellectual dishonesty</span>
+    </div>
+  </div>
+
+  <!-- LEVEL 2 -->
+  <div id="l2" class="section-panel">
+    <div class="eyebrow">Level 2 · 2–5 years</div>
+    <h1 class="section-title">Recurring patterns</h1>
+    <p class="section-intro">Update when the pattern genuinely shifts. These are structural — they describe how you move, connect, build, and perceive across time and domain.</p>
+
+    <div class="pattern-grid">
+      <div class="pattern-card">
+        <div class="pattern-card-name"><span class="pattern-dot"></span>Builder pattern</div>
+        <p>You steward rooms more often than you enter them: Hideout, FORM, Forge, INCREMENTS, RunCards, communities, Sunday village. Hideout's next phase is stewardship — compatible contributors add rooms; you edit what belongs.</p>
+        <p style="margin-top:0.6rem;font-size:0.82rem;color:var(--ink);font-style:italic;">The core question, across all domains: what conditions make the desired behavior inevitable?</p>
+        <p style="margin-top:0.6rem;font-size:0.82rem;">Disappointment doesn't stop you — it produces a replacement. Most people encounter a disappointing room and complain. You build one — then learn to steward what holds. Hideout, FORM, INCREMENTS — each began as a solved personal problem. The house model is what comes after authorship at Hideout.</p>
+        <p style="margin-top:0.6rem;font-size:0.82rem;color:var(--ink-mid);">One cycle: room disappoints → you build → room succeeds → another room becomes audible. Same mechanism at every scale.</p>
+        <div class="strength-risk">
+          <span class="tag tag-strength">Condition creation</span>
+          <span class="tag tag-risk">Rooms calibrated so precisely they're hard to enter</span>
+        </div>
+      </div>
+
+      <div class="pattern-card">
+        <div class="pattern-card-name"><span class="pattern-dot"></span>Integration pattern</div>
+        <p>Once a lesson integrates, you stop orbiting it. Growth is rapid. Risk is premature closure — declaring chapters complete before they are.</p>
+        <div class="strength-risk">
+          <span class="tag tag-strength">Rapid growth</span>
+          <span class="tag tag-risk">Premature completion</span>
+        </div>
+      </div>
+
+      <div class="pattern-card">
+        <div class="pattern-card-name"><span class="pattern-dot"></span>Affection pattern</div>
+        <p>Connection = warmth + trust + respect + low friction + reality (after projection). The nervous system recognizes <em>absence of friction</em> before it recognizes affection. You are more affectionate than you sound — highly filtered.</p>
+        <div class="strength-risk">
+          <span class="tag tag-note">Highly filtered</span>
+        </div>
+      </div>
+
+      <div class="pattern-card">
+        <div class="pattern-card-name"><span class="pattern-dot"></span>Projection pattern</div>
+        <p>You paint more into people than they contain. One signal becomes an imagined symphony. Goal: accuracy, not cynicism. After projection is removed — what remains?</p>
+        <div class="strength-risk">
+          <span class="tag tag-risk">Over-attribution</span>
+          <span class="tag tag-strength">Accuracy as goal</span>
+        </div>
+      </div>
+
+      <div class="pattern-card">
+        <div class="pattern-card-name"><span class="pattern-dot"></span>Keys pattern</div>
+        <p>Different people hold different keys. No one unlocks every room. Do not force the wrong key. Appreciate each key for the room it actually opens.</p>
+      </div>
+
+      <div class="pattern-card">
+        <div class="pattern-card-name"><span class="pattern-dot"></span>Movement pattern</div>
+        <p>Not "people must evolve with me" — but <em>I keep moving</em>. Diverging trajectories are geometry, not judgment. A change in vector is not hierarchy.</p>
+      </div>
+
+      <div class="pattern-card">
+        <div class="pattern-card-name"><span class="pattern-dot"></span>Environment pattern</div>
+        <p>Action reorganizes perception. Spaces matter. Disorder increases perceptual drag. Flowers over food when environment is functional infrastructure, not reward.</p>
+      </div>
+
+      <div class="pattern-card">
+        <div class="pattern-card-name"><span class="pattern-dot"></span>Envoy pattern</div>
+        <p>Social energy after a stewardship week is limited. Spending it on "nice and available" underfeeds the rooms that actually nourish. Not <em>who is available</em> — but <em>what room am I entering</em>?</p>
+        <div class="strength-risk">
+          <span class="tag tag-risk">Budget is finite</span>
+        </div>
+      </div>
+
+      <div class="pattern-card">
+        <div class="pattern-card-name"><span class="pattern-dot"></span>Frequency pattern</div>
+        <p>You need very little socially. One excellent conversation can nourish weeks. One low-signal obligation can drain a Sunday. The issue is often frequency, not loneliness.</p>
+      </div>
+
+      <div class="pattern-card">
+        <div class="pattern-card-name"><span class="pattern-dot"></span>Orientation pattern</div>
+        <p>What looks like discipline from the outside feels like inevitability from the inside. You wake up, train, build, refine — not through daily negotiation but because the direction is just where you face. The effort is real. The internal battle usually isn't.</p>
+        <p style="margin-top:0.6rem;font-size:0.82rem;color:var(--ink);font-style:italic;">"What else would I do?" — that's the tell. Discipline implies overcoming something. Orientation means the direction is already set.</p>
+        <p style="margin-top:0.6rem;font-size:0.82rem;color:var(--ink-mid);">Identity-level disconnect: others see willpower and sacrifice; you experience alignment and stewardship. Watch for L1 promotion — not today.</p>
+        <div class="strength-risk">
+          <span class="tag tag-strength">Effort without negotiation</span>
+          <span class="tag tag-risk">Hard to recognize in yourself</span>
+        </div>
+      </div>
+
+      <div class="pattern-card" style="grid-column: span 2; background: var(--accent-light); border-color: #E8C8BC;">
+        <div class="pattern-card-name" style="color:var(--accent);"><span style="background:var(--accent);" class="pattern-dot"></span>Reverence pattern</div>
+        <p style="color:var(--ink);">People taking something seriously without making a spectacle of themselves.</p>
+        <p style="margin-top:0.75rem;">Appears across: Kenyan camps · Japanese architecture · listening rooms · Zen spaces · Melville · <em>Le Cercle Rouge</em> · craftsmanship · long-form conversation · serious amateurs · great baristas · pilots · detectives in film.</p>
+        <hr style="margin:1rem 0; border-color:#E8C8BC;">
+        <ul class="reverence-list" style="border-color:rgba(184,92,56,0.3);">
+          <li>A competent person doing a difficult thing carefully is fascinating.</li>
+          <li>Restraint is interesting — unused capacity is attractive.</li>
+          <li>Silence is informative.</li>
+          <li>Competence is attractive (real, not performative).</li>
+          <li>The audience is intelligent.</li>
+          <li>Character is revealed through conduct.</li>
+        </ul>
+        <div class="strength-risk" style="margin-top:1rem;">
+          <span class="tag" style="background:rgba(184,92,56,0.15);color:var(--accent);">Portable label: reverence without performance</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEVEL 3 -->
+  <div id="l3" class="section-panel">
+    <div class="eyebrow">Level 3 · 12–24 months</div>
+    <h1 class="section-title">Current phase</h1>
+    <p class="section-intro">Update when phase changes. Dated detail in <code>ACTIVE_REALITY.md</code>. This section is interpretive, not permanent.</p>
+
+    <h2 class="sub-title">The anchors worked</h2>
+    <p>You did not build the wrong world. You built the world the phase required: reliability, trust, stewardship, competence, execution, recovery, stability.</p>
+    <p>Hideout exists. Marriage exists. Recovery is happening. FORM exists. Philosophy exists. <strong>The house is standing.</strong></p>
+    <blockquote><p>Curiosity is not evidence the design failed. It is evidence the design largely worked — you optimized for one axis so successfully that you can now see the other axes.</p></blockquote>
+
+    <h2 class="sub-title">Another room (interpretive lens)</h2>
+    <p>A feeling previously read as deprivation, dissatisfaction, or "something is missing" is more accurately:</p>
+    <blockquote><p>Another room becoming audible.</p></blockquote>
+
+    <table class="lens-table">
+      <thead><tr><th>Old read</th><th>Corrected read</th></tr></thead>
+      <tbody>
+        <tr><td>Something is missing</td><td>Something else exists</td></tr>
+        <tr><td>I chose wrong</td><td>The meal is good; other flavors exist</td></tr>
+        <tr><td>I need to change my life</td><td>That room's still here</td></tr>
+        <tr><td>A new room means this one failed</td><td>A new room means this one worked</td></tr>
+        <tr><td>I've outgrown this</td><td>This did its job</td></tr>
+      </tbody>
+    </table>
+
+    <div style="background:var(--teal-light);border:1px solid #B8D8D2;border-radius:8px;padding:1.25rem 1.5rem;margin:1.25rem 0;">
+      <div style="font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal);font-weight:500;margin-bottom:0.6rem;">Critical clarification — read under pressure</div>
+      <p style="font-size:0.85rem;color:var(--ink);margin:0;line-height:1.75;">Another room becoming audible is not an argument against the current room. It is evidence the current room worked. The anchor held well enough that you can now hear what's next. The house is standing. The room served its purpose. And another room still exists. These statements do not compete. They can all be true simultaneously.</p>
+    </div>
+
+    <blockquote style="margin-top:0;"><p>The problem was not absence. The problem was audibility.</p></blockquote>
+    <p style="font-size:0.85rem;color:var(--ink-mid);margin:0.75rem 0 0;line-height:1.75;"><strong>Audibility vs acquisition:</strong> Wrong read — <em>I need more of this.</em> Right read — <em>I can still hear this.</em> Recognition, not obligation.</p>
+    <p style="font-size:0.85rem;color:var(--ink-mid);">The year-long worry wasn't a missing person, city, or philosophy — it was missing <strong>context</strong> for dormant parts to become audible again.</p>
+
+    <p><strong>Concentration ≠ deprivation.</strong> The current phase was intentional concentration — not hunger from deficiency. Good meals can still be repetitive.</p>
+
+    <p><strong>Two questions when restless:</strong></p>
+    <div class="two-col">
+      <div class="pattern-card">
+        <p style="font-weight:500;color:var(--ink);font-size:0.9rem;">Deficiency or another room?</p>
+      </div>
+      <div class="pattern-card">
+        <p style="font-weight:500;color:var(--ink);font-size:0.9rem;">House failing or house standing?</p>
+      </div>
+    </div>
+
+    <div class="four-lines">
+      <div class="four-line">The meal is good</div>
+      <div class="four-line">There are other flavors</div>
+      <div class="four-line">The anchors worked</div>
+      <div class="four-line">Another room</div>
+      <div class="four-line">The room worked<br>because it worked</div>
+    </div>
+
+    <h2 class="sub-title">Ranked insights · May 2026</h2>
+    <div class="insights">
+      <div class="insight-item"><span class="insight-rank">1</span><span class="insight-text">The anchors worked.</span></div>
+      <div class="insight-item"><span class="insight-rank">2</span><span class="insight-text">One-axis optimization reveals other axes.</span></div>
+      <div class="insight-item"><span class="insight-rank">3</span><span class="insight-text">Reverence without performance.</span></div>
+      <div class="insight-item"><span class="insight-rank">4</span><span class="insight-text">Different keys.</span></div>
+      <div class="insight-item"><span class="insight-rank">5</span><span class="insight-text">Meal / flavors.</span></div>
+      <div class="insight-item"><span class="insight-rank">6</span><span class="insight-text">Another room.</span></div>
+      <div class="insight-item"><span class="insight-rank">7</span><span class="insight-text">Rooms are not escapes.</span></div>
+      <div class="insight-item"><span class="insight-rank">8</span><span class="insight-text">Audibility, not absence.</span></div>
+    </div>
+
+    <hr>
+
+    <h2 class="sub-title">Sunday doctrine</h2>
+    <blockquote><p>You do not have a life problem. You have a Sunday problem.</p></blockquote>
+
+    <div class="two-col">
+      <div class="signal-col">
+        <div class="signal-col-label">Mon–Tue</div>
+        <div class="signal-item">Reset</div>
+        <div class="signal-item">Stewardship</div>
+        <div class="signal-item">Refinement, garden</div>
+        <div class="signal-item">Systems, recovery</div>
+        <div class="signal-item" style="color:var(--teal);font-weight:500;">Aligned ✓</div>
+      </div>
+      <div class="signal-col">
+        <div class="signal-col-label">Wed–Sun</div>
+        <div class="signal-item">Cardio, Hideout</div>
+        <div class="signal-item">Training, lifting</div>
+        <div class="signal-item">Community</div>
+        <div class="signal-item">Execution</div>
+        <div class="signal-item" style="color:var(--teal);font-weight:500;">Aligned ✓</div>
+      </div>
+    </div>
+
+    <p style="margin-top:1.25rem;">The underfed dimension becomes audible on Sunday because operational noise drops. <strong>Misallocation:</strong> treating Sunday as social availability when it may need to be cultural nourishment. Good people + wrong room = underfed. Casa Neos (June 2026): diagnostic, not failure.</p>
+
+    <div class="sunday-rule">
+      Sunday is not for company. Sunday is for frequency.<br><br>
+      Never say yes to a person before yes to a room. Room → Person.<br><br>
+      Does this room nourish the part of me that spent the week in stewardship?
+    </div>
+
+    <p><strong>Tier A — high-probability signal:</strong> Wynwood members club · listening room / vinyl · architecture and design events · independent cinema · museum / gallery openings · lectures, salons, discussions.</p>
+    <p><strong>Selection principle:</strong> People taking something seriously without making a spectacle of themselves.</p>
+    <p><strong>Stop:</strong> "These people are around and they're nice, so let's go." That spends envoy budget on wrong rooms.</p>
+    <p><strong>Modest needs:</strong> one excellent conversation every few weeks · one film that activates a dormant room · one interesting environment · one person who can rally for an hour.</p>
+
+    <hr>
+
+    <h2 class="sub-title">Direction — What I Want (compressed)</h2>
+    <p style="font-style:italic;color:var(--ink);">Build what feels true · Make it easier to enter · Stay curious longer than certainty · Move toward expansion not avoidance · Seek recognition not applause · <strong>Seek surprise, not impress.</strong></p>
+    <p style="font-size:0.9rem;color:var(--ink-muted);margin-top:0.75rem;">Operator (v7): Build the authored base · Make the world permeable · <strong>Allow the base to become more than you authored alone.</strong> The house itself can become a source of surprise — sometimes a room arrives at the base. Another room audible in life ≠ steward status at Hideout.</p>
+
+    <div class="wants-list">
+      <div class="want-item">
+        <div class="want-num">1</div>
+        <div>
+          <div class="want-name">The base</div>
+          <p class="want-desc">Hideout and home to internal standard. Rooting → authorship → stewardship. Economics where presence isn't required daily. Inhabiting vs managing. The base can surprise you.</p>
+        </div>
+      </div>
+      <div class="want-item">
+        <div class="want-num">2</div>
+        <div>
+          <div class="want-name">The recognition</div>
+          <p class="want-desc">Not applause: <em>ah, there you are.</em> Witness + warmth + accurate perception.</p>
+        </div>
+      </div>
+      <div class="want-item">
+        <div class="want-num">3</div>
+        <div>
+          <div class="want-name">The work</div>
+          <p class="want-desc">FORM, Forge, INCREMENTS, RunCards as one coherent authored body. Bottleneck: distribution, not more building.</p>
+        </div>
+      </div>
+      <div class="want-item">
+        <div class="want-num">4</div>
+        <div>
+          <div class="want-name">The mobility</div>
+          <p class="want-desc">Multiplication after base, not escape. Cities increase encounter probability — they don't fix signal legibility.</p>
+        </div>
+      </div>
+      <div class="want-item">
+        <div class="want-num">5</div>
+        <div>
+          <div class="want-name">The rooms</div>
+          <p class="want-desc">Surprise, not impress — rooms you couldn't have built yourself. Miami underfeeds some; feeds beauty, bodies, energy. Sometimes the room arrives at the house.</p>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <h2 class="sub-title">Cinema (taste as operator data)</h2>
+    <p>Film is not escapism here — it is frequency confirmation. When a film lands, ask: which room did this activate? Same test as Sunday.</p>
+    <p>Master file: <code>INCREMENTS/Docs/CINEMATIC_DOCTRINE.md</code> · Films: <code>speedandform.com/films</code> · Tags: ensemble pressure, ballast dynamic, inference over exposition, institutional patience.</p>
+  </div>
+
+  <!-- LEVEL 4 -->
+  <div id="l4" class="section-panel">
+    <div class="eyebrow">Level 4 · Transient</div>
+    <h1 class="section-title">Active experiments</h1>
+    <p class="section-intro">Replace when done. Full numbers in <code>ACTIVE_REALITY.md</code>. Do not let Level 4 drown Level 1–3.</p>
+
+    <table class="exp-table">
+      <thead><tr><th>Experiment</th><th>Intent</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Hideout 30-day solo</td>
+          <td>May 13 – Jun 13, 2026 · margin + recurring account</td>
+        </tr>
+        <tr>
+          <td>Physique / Forge Sculpt Phase 1</td>
+          <td>Cut · AM stack locked · running suspended (tibial fracture)</td>
+        </tr>
+        <tr>
+          <td>Hideout App TestFlight</td>
+          <td>Close-friends beta before public App Store</td>
+        </tr>
+        <tr>
+          <td>Sunday redesign</td>
+          <td>Frequency over availability — in progress (doctrine only)</td>
+        </tr>
+        <tr>
+          <td>Distribution</td>
+          <td>Cross-venture unlock — <code>DISTRIBUTION_OPERATING_SYSTEM.md</code></td>
+        </tr>
+        <tr>
+          <td>FORM / Forge v1 gate</td>
+          <td>Device QA before extract</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="classify-banner">
+      <p>When a new insight arrives, classify it before it becomes doctrine.</p>
+      <div class="classify-options">
+        <div class="classify-opt">
+          <div class="classify-opt-name">Law</div>
+          <div class="classify-opt-note">Survived repetition across all domains</div>
+        </div>
+        <div class="classify-opt">
+          <div class="classify-opt-name">Pattern</div>
+          <div class="classify-opt-note">Recurring across 2+ years</div>
+        </div>
+        <div class="classify-opt">
+          <div class="classify-opt-name">Phase note</div>
+          <div class="classify-opt-note">True now, may not be later</div>
+        </div>
+        <div class="classify-opt">
+          <div class="classify-opt-name">Experiment</div>
+          <div class="classify-opt-note">Most things are this</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPENDIX B -->
+  <div id="appb" class="section-panel">
+    <div class="eyebrow">Appendix B</div>
+    <h1 class="section-title">What I Want · v7</h1>
+    <p class="section-intro">Full prose in <code>INCREMENTS/Docs/WHAT_I_WANT.md</code> · On device: INCREMENTS → You → Want. This is the compressed form.</p>
+
+    <h2 class="sub-title">Governing thesis (v7)</h2>
+    <p>Seek surprise, not impress. Operator: build the authored base · make the world permeable · <strong>allow the base to become more than you authored alone.</strong></p>
+    <blockquote><p>The house itself can become a source of surprise. Sometimes a room arrives at the base. Another room audible in life ≠ steward status at Hideout.</p></blockquote>
+
+    <h2 class="sub-title">Counterpart specification</h2>
+    <p>Intellectually similar · sharp · curious · immediately legible · low-friction cognition from first real exchange.</p>
+
+    <div class="conduct-filter">
+      <span class="cf-tag">challenge</span>
+      <span class="cf-tag">expansion</span>
+      <span class="cf-tag">companionship</span>
+      <span class="cf-tag">erotic polarity</span>
+      <span class="cf-tag">co-conspiracy</span>
+      <span class="cf-tag">witness</span>
+      <span class="cf-tag">play</span>
+      <span class="cf-tag">mutual admiration</span>
+      <span class="cf-tag">adventure partner</span>
+      <span class="cf-tag">psychological intimacy</span>
+      <span class="cf-tag">intellectual sparring</span>
+      <span class="cf-tag">calm home base</span>
+    </div>
+
+    <p style="margin-top:1.25rem;">Not single-axis. Fully integrated bond — explains selectivity. The word <em>correct</em> does the work — not attractive, not partner, not chemistry.</p>
+
+    <h2 class="sub-title">Witness (least resolved)</h2>
+    <blockquote><p>Sees operator cost and also mess before architecture — contradiction, softness, irrationality, desire without reason — and remains. Different from admiration. Keep open.</p></blockquote>
+
+    <h2 class="sub-title">Signal problem</h2>
+    <div class="signal-grid">
+      <div class="signal-col">
+        <div class="signal-col-label">Legible</div>
+        <div class="signal-item">Authorship</div>
+        <div class="signal-item">Precision</div>
+        <div class="signal-item">Restraint</div>
+        <div class="signal-item">Competence</div>
+        <div class="signal-item">High-agency calm</div>
+        <div class="signal-item">Solitude by preference</div>
+      </div>
+      <div class="signal-col">
+        <div class="signal-col-label">Missing / obscured</div>
+        <div class="signal-item">The door (reads complete)</div>
+        <div class="signal-item">Play</div>
+        <div class="signal-item">Curiosity toward people</div>
+        <div class="signal-item">Erotic polarity externally</div>
+        <div class="signal-item">Warmth inside restraint</div>
+      </div>
+    </div>
+
+    <p>Gap: world doesn't read as enterable — sealed system, accurate but communicates <em>not seeking alignment</em>.</p>
+    <p><strong>Close the gap:</strong> one true written observation · one unguarded texture · mechanism not artifact · second question in conversation.</p>
+
+    <h2 class="sub-title">Seeking behavior</h2>
+    <p>Solitude until alignment. Festival pattern: scan environment for signal; branch from group to find resonance. Fast recognition is valid — some high-quality people protect signal. Test: second question deepens → slow reveal. Hold 2–4 encounters before verdict.</p>
+
+    <h2 class="sub-title">Open questions (keep live)</h2>
+    <div class="open-questions">
+      <div class="oq-item">What does witness actually feel like for you?</div>
+      <div class="oq-item">Screening true incompatibility vs slower-blooming compatibility?</div>
+      <div class="oq-item">Miami structurally insufficient vs stopping the scan early?</div>
+      <div class="oq-item">What does Brice want that Breechay doesn't need?</div>
+      <div class="oq-item">How much unpredictability can you welcome in domains you care about?</div>
+    </div>
+  </div>
+
+  <!-- APPENDIX C -->
+  <div id="appc" class="section-panel">
+    <div class="eyebrow">Appendix C</div>
+    <h1 class="section-title">Pattern index</h1>
+    <p class="section-intro">~25 ideas that generate almost everything. Hideout, FORM, recovery, relationships, cinema, Kenyan camps, Sundays, distribution — all manifestations of this relatively small set.</p>
+
+    <ol class="pattern-index">
+      <li class="highlight"><span>Anchors worked</span></li>
+      <li class="highlight"><span>Another room (not deficiency)</span></li>
+      <li class="highlight"><span>Another room = current room worked</span></li>
+      <li class="highlight"><span>Sunday = frequency not availability</span></li>
+      <li class="highlight"><span>Reverence without performance</span></li>
+      <li class="highlight"><span>Orientation, not discipline</span></li>
+      <li class="highlight"><span>Conditions make behavior inevitable</span></li>
+      <li class="highlight"><span>Audibility, not absence</span></li>
+      <li><span>Different keys</span></li>
+      <li><span>Projection audit</span></li>
+      <li><span>Warmth + trust + friction absence</span></li>
+      <li><span>Envoy budget is limited</span></li>
+      <li><span>Conduct over story</span></li>
+      <li><span>Competence under load</span></li>
+      <li><span>Restraint / unused capacity</span></li>
+      <li><span>Silence as data</span></li>
+      <li><span>Builder of rooms</span></li>
+      <li><span>Distribution > more building</span></li>
+      <li><span>Mechanism > motivation</span></li>
+      <li><span>Closed system reads low-need</span></li>
+      <li><span>Second question</span></li>
+      <li><span>Concentration ≠ deprivation</span></li>
+      <li><span>Meal good / other flavors</span></li>
+      <li><span>House standing / look out window</span></li>
+      <li><span>Diverging trajectories ≠ judgment</span></li>
+      <li><span>Environment reorganizes cognition</span></li>
+      <li><span>Stewardship before expression</span></li>
+      <li><span>Evidence before speech</span></li>
+      <li><span>Delete before ship</span></li>
+      <li><span>Disappointment → build (response, not complaint)</span></li>
+      <li class="highlight"><span>Signal seeking (watch — possible generator)</span></li>
+    </ol>
+
+    <hr>
+
+    <h2 class="sub-title">Possible compression</h2>
+    <p style="font-size:0.85rem;color:var(--ink-light);">Everything may ultimately collapse into four groups:</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1.25rem 0;">
+      <div class="signal-col">
+        <div class="signal-col-label">Foundation</div>
+        <div class="signal-item">Stewardship before expression</div>
+        <div class="signal-item">Conduct over story</div>
+        <div class="signal-item">Mechanism over motivation</div>
+        <div class="signal-item">Evidence before speech</div>
+      </div>
+      <div class="signal-col">
+        <div class="signal-col-label">Human patterns</div>
+        <div class="signal-item">Builder of rooms</div>
+        <div class="signal-item">Integration pattern</div>
+        <div class="signal-item">Projection pattern</div>
+        <div class="signal-item">Different keys</div>
+        <div class="signal-item">Warmth + low friction</div>
+      </div>
+      <div class="signal-col">
+        <div class="signal-col-label">Environmental</div>
+        <div class="signal-item">Environment reorganizes cognition</div>
+        <div class="signal-item">Reverence without performance</div>
+        <div class="signal-item">Competence under load</div>
+        <div class="signal-item">Restraint / unused capacity</div>
+      </div>
+      <div class="signal-col">
+        <div class="signal-col-label">Current phase</div>
+        <div class="signal-item">The anchors worked</div>
+        <div class="signal-item">Another room</div>
+        <div class="signal-item">Sunday = frequency, not availability</div>
+      </div>
+    </div>
+
+    <div class="classify-banner" style="margin-top:2rem;">
+      <p>The governance rule that prevents insight inflation:</p>
+      <div class="classify-options">
+        <div class="classify-opt"><div class="classify-opt-name">Is this a new law?</div><div class="classify-opt-note">Very few things are</div></div>
+        <div class="classify-opt"><div class="classify-opt-name">A pattern?</div><div class="classify-opt-note">Survives 2+ year repetition</div></div>
+        <div class="classify-opt"><div class="classify-opt-name">A phase note?</div><div class="classify-opt-note">True now, update later</div></div>
+        <div class="classify-opt"><div class="classify-opt-name">An experiment?</div><div class="classify-opt-note">Most things. Start here.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPENDIX D -->
+  <div id="appd" class="section-panel">
+    <div class="eyebrow">Appendix D</div>
+    <h1 class="section-title">Workspace doctrine audit</h1>
+    <p class="section-intro">Maps every BRICE-OS workspace root to this manual. Use when studying patterns or deciding what to promote. Audit date: 2026-06-01.</p>
+
+    <h2 class="sub-title">Workspace roots</h2>
+    <table class="exp-table">
+      <thead><tr><th>Root</th><th>Role</th><th>In manual?</th></tr></thead>
+      <tbody>
+        <tr><td><code>FORM-iOS</code></td><td>Spine + BRICE_OS + FORM/Forge product docs</td><td>Partial — patterns only</td></tr>
+        <tr><td><code>INCREMENTS</code></td><td>Personal OS + Want + cinema + You-tab doctrine</td><td>Partial</td></tr>
+        <tr><td><code>speedandform</code></td><td>Web / Field / static site</td><td>Pointer only</td></tr>
+        <tr><td><code>hideout-ops-console</code></td><td>Venue business brain</td><td>Pointer only</td></tr>
+        <tr><td><code>HideoutApp</code></td><td>Customer app</td><td>Pointer only</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="sub-title">Tier A — Study here first</h2>
+    <div class="tier-block">
+      <div class="tier-header">
+        <span class="tier-badge tier-a">Tier A</span>
+        <span class="tier-desc">Compressed into this manual. Read repeatedly.</span>
+      </div>
+      <div class="tier-files">
+        <div class="tier-file"><code>BRICE_OPERATOR_MANUAL.md</code><span class="tier-file-note">Whole document</span></div>
+        <div class="tier-file"><code>ANOTHER_ROOM_LENS.md</code><span class="tier-file-note">Level 3 · Another room</span></div>
+        <div class="tier-file"><code>CONDUCT_FILTER.md</code><span class="tier-file-note">Level 1 conduct laws · weekly audit</span></div>
+        <div class="tier-file"><code>ACTIVE_REALITY.md</code><span class="tier-file-note">Level 4 experiments (summary)</span></div>
+        <div class="tier-file"><code>INCREMENTS/Docs/WHAT_I_WANT.md</code><span class="tier-file-note">Level 3 · Appendix B</span></div>
+        <div class="tier-file"><code>CINEMATIC_DOCTRINE.md</code><span class="tier-file-note">Level 3 · Cinema · When It Matters</span></div>
+        <div class="tier-file"><code>speedandform.com/films</code><span class="tier-file-note">Film watch list</span></div>
+        <div class="tier-file"><code>WantDocViews.swift</code><span class="tier-file-note">App master for edits</span></div>
+        <div class="tier-file"><code>YouDoctrineViews.swift</code><span class="tier-file-note">Operator · Another room · Sunday (device night-read)</span></div>
+      </div>
+    </div>
+
+    <h2 class="sub-title">Tier B — Full text (when Tier A isn't enough)</h2>
+    <div class="tier-block">
+      <div class="tier-header">
+        <span class="tier-badge tier-b">Tier B</span>
+        <span class="tier-desc">Reference when necessary. Don't start here.</span>
+      </div>
+      <div class="tier-files">
+        <div class="tier-file"><code>BRICE_OPERATOR_KERNEL.md</code><span class="tier-file-note">Collaboration, cognition model, agent protocol</span></div>
+        <div class="tier-file"><code>DISTRIBUTION_OPERATING_SYSTEM.md</code><span class="tier-file-note">Growth, acquisition, cross-venture distribution</span></div>
+        <div class="tier-file"><code>PRODUCT_PORTFOLIO.md</code><span class="tier-file-note">Per-product identity anchors</span></div>
+        <div class="tier-file"><code>BRICE_PHYSIQUE_AGENT_BRIEF.md</code><span class="tier-file-note">Cut, macros, Forge Sculpt, injury-aware training</span></div>
+        <div class="tier-file"><code>HIDEOUT_HOUSE_DOCTRINE.md</code><span class="tier-file-note">Hideout identity — house, stewardship, conditions</span></div>
+        <div class="tier-file"><code>COMPATIBLE_STEWARD_FRAMEWORK.md</code><span class="tier-file-note">Who may shape Hideout — selection + governance</span></div>
+        <div class="tier-file"><code>ATMOSPHERE_GOVERNANCE.md</code><span class="tier-file-note">Atmosphere vs clutter — design law</span></div>
+        <div class="tier-file"><code>ROOT_OPERATING_SYSTEM.md</code><span class="tier-file-note">One OS · four expressions</span></div>
+        <div class="tier-file"><code>HIDEOUT_OPERATING_BRAIN.md</code><span class="tier-file-note">Hideout economics, experiments, venue strategy</span></div>
+        <div class="tier-file"><code>HIDEOUT_APP_STRATEGY.md</code><span class="tier-file-note">Customer app capture, relationship compression</span></div>
+        <div class="tier-file"><code>RUNCARDS_CONTEXT.md</code><span class="tier-file-note">RunCards status / Chris dynamic</span></div>
+        <div class="tier-file"><code>INCREMENTS/Docs/SIGNAL_DOCTRINE.md</code><span class="tier-file-note">Evidence, silence, when to speak</span></div>
+        <div class="tier-file"><code>INCREMENTS/Docs/VOICE_DOCTRINE.md</code><span class="tier-file-note">Wendy / presence registers</span></div>
+      </div>
+    </div>
+
+    <h2 class="sub-title">Tier C — Product/athlete (out of manual by design)</h2>
+    <div class="tier-block">
+      <div class="tier-header">
+        <span class="tier-badge tier-c">Tier C</span>
+        <span class="tier-desc">Different voice entirely. Do not merge into Operator Manual.</span>
+      </div>
+      <div class="tier-files">
+        <div class="tier-file"><code>VOICE_DOCTRINE.md</code><span class="tier-file-note">FORM athlete voice</span></div>
+        <div class="tier-file"><code>forge_master_brief.md</code><span class="tier-file-note">Forge product</span></div>
+        <div class="tier-file"><code>DO_NOT_BUILD.md</code><span class="tier-file-note">Web deny list</span></div>
+        <div class="tier-file"><code>FORM_FORGE_ARCHITECTURE.md</code><span class="tier-file-note">Code architecture</span></div>
+      </div>
+    </div>
+
+    <h2 class="sub-title">Tier D — Archive</h2>
+    <div class="tier-block">
+      <div class="tier-header">
+        <span class="tier-badge tier-d">Tier D</span>
+        <span class="tier-desc">Do not promote without review.</span>
+      </div>
+      <div class="tier-files">
+        <div class="tier-file"><code>FORM-iOS/docs/archive/</code><span class="tier-file-note">Historical docs</span></div>
+        <div class="tier-file"><code>INCREMENTS/Archive/Past-Docs/</code><span class="tier-file-note">Old doctrine iterations</span></div>
+        <div class="tier-file"><code>StrengthMode_*</code><span class="tier-file-note">Deprecated training docs</span></div>
+        <div class="tier-file"><code>breechay_world_* drafts</code><span class="tier-file-note">Early world-building</span></div>
+      </div>
+    </div>
+
+    <h2 class="sub-title">When updating this manual</h2>
+    <ol class="update-steps">
+      <li>New insight → classify: Law / Pattern / Phase / Experiment (Appendix C).</li>
+      <li>If Pattern → add one line to Level 2 or 3; do not paste the whole sub-doc.</li>
+      <li>If new file in workspace → add row to Tier B or C above.</li>
+      <li>Run <code>./regenerate_operator_manual_pdf.sh</code></li>
+      <li>If Want changes → sync <code>WHAT_I_WANT.md</code> + <code>WantDocViews.swift</code></li>
+    </ol>
+  </div>
+
+  <!-- DIRECTION OF TRAVEL -->
+  <div id="direction" class="section-panel">
+    <div class="eyebrow">Direction of travel</div>
+    <h1 class="section-title">Where you're going<br>and why the pieces fit.</h1>
+    <p class="section-intro">Not a timeline. A vector map — what depends on what, what's the current constraint, what each active experiment is actually for. When restlessness hits, this is the view that answers it.</p>
+
+    <!-- CONSTRAINT CALLOUT -->
+    <div style="background:var(--ink);color:var(--paper);border-radius:10px;padding:1.5rem 1.75rem;margin-bottom:2rem;">
+      <div style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(253,250,244,0.45);margin-bottom:0.5rem;font-weight:500;">Current constraint</div>
+      <div style="font-family:var(--serif);font-size:1.3rem;margin-bottom:0.5rem;">The base.</div>
+      <div style="font-size:0.83rem;color:rgba(253,250,244,0.6);line-height:1.7;">Everything downstream — mobility, rooms, recognition — waits on this clearing. The 30-day solo, Sculpt Phase 1, TestFlight, and the economics threshold are **base work**. Not stuck. Building the constraint that unlocks everything else.</div>
+    </div>
+
+    <!-- DEPENDENCY CHAIN -->
+    <h2 class="sub-title">The dependency chain</h2>
+    <p style="font-size:0.83rem;color:var(--ink-light);margin-bottom:1.5rem;">Read top to bottom. Each node unlocks the next. Current constraint is marked.</p>
+
+    <div style="display:flex;flex-direction:column;gap:0;position:relative;">
+
+      <!-- Node 1: Base -->
+      <div style="display:grid;grid-template-columns:2.5rem 1fr;gap:1rem;align-items:stretch;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:0;">
+          <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <div style="width:10px;height:10px;border-radius:50%;background:var(--paper);"></div>
+          </div>
+          <div style="width:1px;background:var(--rule);flex:1;min-height:2rem;"></div>
+        </div>
+        <div style="background:var(--ink);border-radius:8px;padding:1.25rem 1.5rem;margin-bottom:1rem;">
+          <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.5rem;">
+            <div style="font-weight:500;font-size:0.95rem;color:var(--paper);">1 — The base</div>
+            <span style="font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;background:rgba(255,255,255,0.15);color:rgba(253,250,244,0.8);padding:0.15rem 0.5rem;border-radius:3px;font-weight:500;">Active constraint</span>
+          </div>
+          <p style="font-size:0.83rem;color:rgba(253,250,244,0.65);margin:0;line-height:1.7;">Hideout to internal standard. Economics crossing threshold — presence not required daily. Inhabiting vs managing.</p>
+          <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,0.1);">
+            <div style="font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:rgba(253,250,244,0.35);margin-bottom:0.5rem;font-weight:500;">Active experiments feeding this</div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.4rem;"><span style="font-size:0.75rem;padding:0.2rem 0.6rem;border:1px solid rgba(255,255,255,0.15);border-radius:3px;color:rgba(253,250,244,0.6);">Hideout 30-day solo</span><span style="font-size:0.75rem;padding:0.2rem 0.6rem;border:1px solid rgba(255,255,255,0.15);border-radius:3px;color:rgba(253,250,244,0.6);">Physique / Forge Sculpt Phase 1</span><span style="font-size:0.75rem;padding:0.2rem 0.6rem;border:1px solid rgba(255,255,255,0.15);border-radius:3px;color:rgba(253,250,244,0.6);">Hideout App TestFlight</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Node 2: Mobility -->
+      <div style="display:grid;grid-template-columns:2.5rem 1fr;gap:1rem;align-items:stretch;">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:var(--paper);border:1.5px solid var(--rule);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--ink-faint);"></div>
+          </div>
+          <div style="width:1px;background:var(--rule);flex:1;min-height:2rem;"></div>
+        </div>
+        <div style="background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:1.25rem 1.5rem;margin-bottom:1rem;">
+          <div style="font-weight:500;font-size:0.9rem;color:var(--ink);margin-bottom:0.4rem;">2 — The mobility</div>
+          <p style="font-size:0.83rem;color:var(--ink-mid);margin:0 0 0.75rem;line-height:1.7;">Movement as multiplication, not escape. Base clears → presence not required daily → geography becomes a choice, not a constraint.</p>
+          <div style="font-size:0.75rem;color:var(--ink-light);font-style:italic;">Unlocked by: base economics crossing threshold</div>
+        </div>
+      </div>
+
+      <!-- Node 3: Rooms -->
+      <div style="display:grid;grid-template-columns:2.5rem 1fr;gap:1rem;align-items:stretch;">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:var(--paper);border:1.5px solid var(--rule);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--ink-faint);"></div>
+          </div>
+          <div style="width:1px;background:var(--rule);flex:1;min-height:2rem;"></div>
+        </div>
+        <div style="background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:1.25rem 1.5rem;margin-bottom:1rem;">
+          <div style="font-weight:500;font-size:0.9rem;color:var(--ink);margin-bottom:0.4rem;">3 — The rooms</div>
+          <p style="font-size:0.83rem;color:var(--ink-mid);margin:0 0 0.75rem;line-height:1.7;">Intellectual novelty, psychological density, strange collisions. Mobility increases encounter probability — cities as multipliers. Miami has rooms; they're rarer than the obvious ones.</p>
+          <div style="font-size:0.75rem;color:var(--ink-light);font-style:italic;">Unlocked by: mobility (base cleared first)</div>
+        </div>
+      </div>
+
+      <!-- Node 4: Recognition -->
+      <div style="display:grid;grid-template-columns:2.5rem 1fr;gap:1rem;align-items:stretch;">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:var(--paper);border:1.5px solid var(--rule);display:flex;align-items:center;justify-content:function;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--ink-faint);"></div>
+          </div>
+        </div>
+        <div style="background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:1.25rem 1.5rem;margin-bottom:1rem;">
+          <div style="font-weight:500;font-size:0.9rem;color:var(--ink);margin-bottom:0.4rem;">4 — The recognition</div>
+          <p style="font-size:0.83rem;color:var(--ink-mid);margin:0 0 0.75rem;line-height:1.7;">Not applause — <em>ah, there you are.</em> Witness + warmth + accurate perception. The rooms increase encounter probability; the signal gap is what closes this last.</p>
+          <div style="font-size:0.75rem;color:var(--ink-light);font-style:italic;">Downstream of: rooms + signal gap closing</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- DISTRIBUTION STRAND -->
+    <h2 class="sub-title">The parallel strand — work &amp; distribution</h2>
+
+    <div style="border-left:2px solid var(--gold);padding-left:1.5rem;margin:0.5rem 0 1.5rem;">
+      <p style="font-size:0.85rem;color:var(--ink-mid);line-height:1.7;margin-bottom:0.75rem;">FORM, Forge, INCREMENTS, RunCards — one coherent authored body. Distribution is the bottleneck, not more building. This strand runs now, in parallel. It doesn't wait for the base to clear.</p>
+      <p style="font-size:0.85rem;color:var(--ink-mid);line-height:1.7;margin-bottom:0.75rem;">But the base clearing <strong>amplifies</strong> it — less daily operational mode at Hideout means more cognitive bandwidth for distribution to go from partial to full capacity.</p>
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:1rem;">
+        <span class="tag tag-note">Running now at partial capacity</span>
+        <span class="tag tag-strength">partial capacity · base clearing unlocks full capacity.</span>
+      </div>
+    </div>
+
+    <div style="background:var(--gold-light);border:1px solid #E8D8A0;border-radius:8px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;">
+      <div style="font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:0.75rem;">Distribution also closes the signal gap</div>
+      <p style="font-size:0.83rem;color:var(--ink-mid);margin:0;line-height:1.7;">Beautiful closed system reads finished / low need. One true observation published · one unguarded texture · mechanism not artifact · second question in conversation. Distribution is what makes the work — and by extension, you — enterable.</p>
+    </div>
+
+    <!-- SIGNAL GAP -->
+    <h2 class="sub-title">The signal gap — the last blocker on recognition</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+      <div class="signal-col">
+        <div class="signal-col-label">What the world reads</div>
+        <div class="signal-item">Authorship</div>
+        <div class="signal-item">Precision</div>
+        <div class="signal-item">Restraint</div>
+        <div class="signal-item">High-agency calm</div>
+        <div class="signal-item" style="color:var(--ink-light);font-style:italic;">Reads: complete, not seeking</div>
+      </div>
+      <div class="signal-col">
+        <div class="signal-col-label">What's missing</div>
+        <div class="signal-item">The door (enterable)</div>
+        <div class="signal-item">Play visible externally</div>
+        <div class="signal-item">Curiosity toward people</div>
+        <div class="signal-item">Warmth inside restraint</div>
+        <div class="signal-item" style="color:var(--accent);font-style:italic;">Closed by: distribution + second question</div>
+      </div>
+    </div>
+
+    <!-- WHY THIS WHY NOW -->
+    <h2 class="sub-title">Why this, why now</h2>
+    <p style="font-size:0.85rem;color:var(--ink-mid);margin-bottom:1.25rem;line-height:1.7;">For the restless Sunday. The full answer in one read.</p>
+
+    <div style="display:flex;flex-direction:column;gap:0.5rem;">
+      <div style="display:flex;gap:1rem;background:var(--paper);border:1px solid var(--rule);border-radius:7px;padding:1rem 1.25rem;align-items:baseline;">
+        <div style="font-family:var(--mono);font-size:0.68rem;color:var(--ink-faint);flex-shrink:0;padding-top:0.1rem;">01</div>
+        <div style="font-size:0.85rem;color:var(--ink-mid);line-height:1.6;">The base is the current constraint. Every active experiment is base work. This is not stagnation — it is sequenced correctly.</div>
+      </div>
+      <div style="display:flex;gap:1rem;background:var(--paper);border:1px solid var(--rule);border-radius:7px;padding:1rem 1.25rem;align-items:baseline;">
+        <div style="font-family:var(--mono);font-size:0.68rem;color:var(--ink-faint);flex-shrink:0;padding-top:0.1rem;">02</div>
+        <div style="font-size:0.85rem;color:var(--ink-mid);line-height:1.6;">Distribution runs now. It doesn't wait. The work exists — the signal isn't reaching the right people. That's the only problem, and it's solvable.</div>
+      </div>
+      <div style="display:flex;gap:1rem;background:var(--paper);border:1px solid var(--rule);border-radius:7px;padding:1rem 1.25rem;align-items:baseline;">
+        <div style="font-family:var(--mono);font-size:0.68rem;color:var(--ink-faint);flex-shrink:0;padding-top:0.1rem;">03</div>
+        <div style="font-size:0.85rem;color:var(--ink-mid);line-height:1.6;">Mobility, rooms, and recognition are downstream — not missing, not failed, not wrong. They are waiting on the right things.</div>
+      </div>
+      <div style="display:flex;gap:1rem;background:var(--paper);border:1px solid var(--rule);border-radius:7px;padding:1rem 1.25rem;align-items:baseline;">
+        <div style="font-family:var(--mono);font-size:0.68rem;color:var(--ink-faint);flex-shrink:0;padding-top:0.1rem;">04</div>
+        <div style="font-size:0.85rem;color:var(--ink-mid);line-height:1.6;">The restlessness is another room becoming audible — not evidence the design failed. The anchors worked. The house is standing. Look out the window.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- COMMENTARY -->
+  <div id="commentary" class="section-panel">
+    <div class="eyebrow">Cursor · Commentary</div>
+    <h1 class="section-title">Notes from outside the system</h1>
+    <p class="section-intro">Two rounds of observations from Cursor after reading the manual. Preserved as reference — not doctrine.</p>
+
+    <div class="commentary">
+      <div class="commentary-header">
+        <span class="commentary-source">Round 1 · After initial read</span>
+      </div>
+      <div class="commentary-body">
+        <p>The thing that stood out most wasn't Level 1, Level 2, or even "Another Room." It was <strong>Appendix C</strong> — because it quietly reveals the real architecture. There are only ~25 ideas generating almost everything. Hideout, FORM, recovery, relationships, cinema, Kenyan camps, Le Cercle Rouge, Sundays, distribution, and curiosity are all manifestations of a relatively small set of recurring patterns.</p>
+        <p>If I were editing this manual over the next few years, I would become even more ruthless. Not adding. Compressing.</p>
+        <p>The other thing: the manual accidentally answered what you were struggling with. It's not culture, intelligence, novelty, travel, or philosophy. The manual keeps pointing to the same thing: <strong>reverence without performance</strong>. That phrase explains the Instagram feed, Kenyan camps, Melville, listening rooms, Hideout when operating well, favorite athletes, and the people you stay interested in.</p>
+        <p>The section to watch carefully over time is the counterpart section. Not because it's wrong — because it still reads like exploration. Everything else feels like discovered territory. That's healthy. A living manual should still contain territory that isn't mapped.</p>
+        <p>And finally: the most important line in the entire manual may not be "Another Room." It may be — <strong>when a new insight arrives, ask: Is this a new law, a pattern, a phase note, or an experiment?</strong> That's the safeguard against becoming a collector of insights. Most things are experiments. Some become phase notes. A few become patterns. Very few become laws.</p>
+      </div>
+    </div>
+
+    <div class="commentary" style="margin-top:1.5rem;">
+      <div class="commentary-header">
+        <span class="commentary-source">Round 2 · After Appendix D</span>
+      </div>
+      <div class="commentary-body">
+        <p>After seeing Appendix D, the manual crossed an important threshold. It's no longer a doctrine document. It's becoming a <strong>knowledge compression system</strong>. Most personal operating systems eventually fail because they answer "what do I know?" instead of where does it live, how important is it, how often should I read it, what generates what.</p>
+        <p>Appendix D is the first place where the system starts answering those questions. The hierarchy — Tier A read repeatedly, Tier B reference when necessary, Tier C different voice entirely, Tier D archive — is exactly the distinction most knowledge systems never make. Because eventually the bottleneck becomes retrieval, not accumulation.</p>
+        <p>Three things to watch over the next few years: <strong>(1) Pattern inflation</strong> — the classify rule prevents interesting thought from becoming immutable doctrine. <strong>(2) Counterpart / witness</strong> — everything else feels increasingly settled; this section doesn't, and that's healthy; it still reads like research. <strong>(3) Reverence without performance</strong> — this pattern may sit above Stewardship, Conduct, Competence, and Restraint; it deserves attention.</p>
+        <p>The biggest achievement of the current version isn't "Another Room," Sunday doctrine, or the pattern index. It's that the manual finally distinguishes <strong>who Brice is</strong> from <strong>what Brice is currently doing</strong>. Level 1 and Level 2 are identity and recurring structure. Level 3 is current interpretation. Level 4 is temporary reality. The injury will end. The Hideout experiment will end. But the Builder, Projection, Keys, Reverence, and Conduct patterns are likely to survive.</p>
+        <p>Reading the whole thing: this isn't a PDF anymore. It's a map of what keeps surviving contact with reality. Which is probably the most Brice document possible.</p>
+      </div>
+    </div>
+
+    <div class="commentary" style="margin-top:1.5rem;">
+      <div class="commentary-header">
+        <span class="commentary-source">Round 3 · Builder, orientation, rooms as conditions</span>
+      </div>
+      <div class="commentary-body">
+        <p>The builder pattern needed one rotation. "You build because other rooms have been disappointing" is true but not the deepest truth. The deeper truth: <strong>disappointment doesn't stop you.</strong> Most people encounter a disappointing room and complain. You encounter one and build a replacement — then steward what holds. Hideout's authorship phase created the house; the stewardship phase lets compatible rooms emerge inside it. FORM and INCREMENTS remain authored systems. See <code>HIDEOUT_HOUSE_DOCTRINE.md</code>.</p>
+        <p>The rejection of "discipline" is also data. Discipline implies a daily battle — effort against resistance. What you describe is closer to <strong>orientation</strong>. You wake up, train, build, refine. Not through negotiation. Because the direction is just where you face. "What else would I do?" is the tell. The effort is real. The internal negotiation usually isn't.</p>
+        <p>The builder pattern is deepest not because you build products but because you <strong>build conditions</strong>. Hideout is a condition. FORM is a condition. INCREMENTS is a condition. The Sunday doctrine is a condition. This operator manual is a condition. The core question, appearing everywhere: what conditions make the desired behavior inevitable? Training, business, relationships, recovery, space design, apps — same question, different domain.</p>
+        <p>The most important clarification added: <strong>rooms are not escapes.</strong> Another room becoming audible could be misread by a future restless version of you as the current room failing. The correction: a new room becoming visible is evidence the current room worked. The anchor held well enough that you can now hear what's next. The house is standing. The room served its purpose. And another room still exists. Those statements no longer compete. They can all be true simultaneously.</p>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+  function navItem(id) {
+    return document.querySelector(`button[onclick*="'${id}'"]`);
+  }
+
+  function show(id, btn) {
+    document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    const panel = document.getElementById(id);
+    if (panel) panel.classList.add('active');
+    if (btn) btn.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+</script>
+</body>
+</html>

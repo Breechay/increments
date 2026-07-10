@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forge — Operating Console</title>
+<style>
+  :root{
+    --ground:#0A0B0D; --surface:#111214; --surface2:#16171A;
+    --ink:#F1E9D8; --chrome:#9B9282; --dim:#6F6A5F;
+    --gold:#E7B65A; --bronze:#806E4F;
+    --line:rgba(201,145,48,0.22); --hairline:rgba(155,146,130,0.16);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);font-family:-apple-system,system-ui,sans-serif;
+       padding:40px 20px 80px;line-height:1.5}
+  .wrap{max-width:860px;margin:0 auto}
+  .eyebrow{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11px;letter-spacing:3px;
+           color:var(--gold);text-transform:uppercase}
+  .eyebrow.quiet{color:var(--chrome)}
+  h1{font-family:Georgia,'Times New Roman',serif;font-weight:normal;font-size:40px;
+     letter-spacing:-0.4px;margin:10px 0 6px}
+  h2{font-family:Georgia,serif;font-weight:normal;font-size:22px;margin:0 0 4px}
+  .sub{color:var(--chrome);font-size:14px}
+  section{border:1px solid var(--line);border-radius:18px;padding:22px;margin-top:22px;
+          background:var(--surface)}
+  section.quiet{border-color:var(--hairline)}
+  .sect-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+  .mono{font-family:ui-monospace,'SF Mono',Menlo,monospace}
+  .row{display:flex;gap:14px;align-items:flex-start;padding:9px 0;border-bottom:0.5px solid var(--hairline)}
+  .row:last-child{border-bottom:none}
+  .row .k{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:1.5px;color:var(--chrome);
+          text-transform:uppercase;min-width:150px;padding-top:3px}
+  .row .v{font-size:14px;color:var(--ink)}
+  .row .v .note{color:var(--dim);font-size:12.5px;display:block;margin-top:2px}
+  label.check{display:flex;gap:12px;align-items:flex-start;padding:9px 0;
+              border-bottom:0.5px solid var(--hairline);cursor:pointer;font-size:14px}
+  label.check:last-child{border-bottom:none}
+  label.check input{margin-top:3px;accent-color:var(--gold)}
+  label.check .note{color:var(--dim);font-size:12.5px;display:block}
+  label.check.done{color:var(--dim);text-decoration:none}
+  .serif{font-family:Georgia,serif}
+  .counter{display:flex;align-items:center;gap:16px}
+  .counter .num{font-family:Georgia,serif;font-size:44px;color:var(--ink);min-width:110px}
+  .counter .num .cap{color:var(--dim);font-size:22px}
+  .counter button{background:var(--surface2);border:1px solid var(--hairline);color:var(--chrome);
+                  width:34px;height:34px;border-radius:10px;font-size:18px;cursor:pointer}
+  .counter button:hover{border-color:var(--line);color:var(--ink)}
+  .gates{display:flex;gap:0;align-items:center;margin:8px 0 4px}
+  .gate{flex:1;text-align:center}
+  .gate .dot{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--dim);margin:0 auto 8px}
+  .gate.done .dot{background:var(--bronze);border-color:var(--bronze)}
+  .gate.now .dot{border-color:var(--gold);box-shadow:0 0 0 3px rgba(231,182,90,0.15)}
+  .gate .g-label{font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1px;color:var(--dim);text-transform:uppercase}
+  .gate.now .g-label{color:var(--gold)}
+  .gate.done .g-label{color:var(--chrome)}
+  .gate-rail{height:1.5px;background:var(--hairline);flex:0.6;margin-bottom:22px}
+  .pill{display:inline-block;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1.2px;
+        color:var(--bronze);border:1px solid var(--hairline);border-radius:20px;padding:3px 10px;
+        text-transform:uppercase;margin-left:8px}
+  .pill.gold{color:var(--gold);border-color:var(--line)}
+  .warn{border-left:2px solid var(--gold);padding:10px 14px;background:var(--surface2);
+        border-radius:0 10px 10px 0;font-size:13.5px;color:var(--chrome);margin-top:12px}
+  .warn b{color:var(--ink);font-weight:500}
+  ol.path{list-style:none;counter-reset:p}
+  ol.path li{counter-increment:p;display:flex;gap:14px;padding:10px 0;border-bottom:0.5px solid var(--hairline);font-size:14px}
+  ol.path li:last-child{border-bottom:none}
+  ol.path li::before{content:counter(p);font-family:Georgia,serif;font-size:20px;color:var(--gold);min-width:24px}
+  ol.path li .note{color:var(--dim);font-size:12.5px;display:block}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media(max-width:640px){.two{grid-template-columns:1fr}}
+  .quote{font-family:Georgia,serif;font-style:italic;font-size:16px;color:var(--ink);opacity:0.9}
+  .attr{font-family:ui-monospace,monospace;font-size:9px;letter-spacing:1.5px;color:var(--bronze);margin-top:6px}
+  .footer{color:var(--dim);font-size:12px;text-align:center;margin-top:36px;font-family:ui-monospace,monospace;letter-spacing:1px}
+  .donot li{padding:6px 0;font-size:13.5px;color:var(--chrome);border-bottom:0.5px solid var(--hairline);list-style:none}
+  .donot li:last-child{border-bottom:none}
+  .donot li b{color:var(--ink);font-weight:500}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">Forge · Operating Console</div>
+  <h1>Stay on course.</h1>
+  <div class="sub serif" style="font-style:italic">The work is decided. The results are yours to see.</div>
+  <div class="sub" style="margin-top:8px">North Star: <b style="color:var(--ink)">10 founding paid athletes in 90 days.</b> Updated Jul 2026 after the Fable audit.</div>
+
+  <section>
+    <div class="sect-head"><span class="eyebrow">The Spine — locked</span></div>
+    <div class="row"><span class="k">Offer</span><span class="v">Forge Founding Membership · $99/yr · founding annual for first 25<span class="note">Annual-only on glass. Do not panic-lower the price. The fix for soft conversion is a truer Forge, not a cheaper one.</span></span></div>
+    <div class="row"><span class="k">Founding promise</span><span class="v">Founding members keep their founding rate and receive every Forge campaign released during an active membership.<span class="note">Rate lock ≠ lifetime campaign access. Record readable after decline; continuation requires active membership.</span></span></div>
+    <div class="row"><span class="k">Paywall</span><span class="v">Full Week 1 free → hard gate at Week 1 close. Body: <i>Membership continues the campaign, keeps your record, and includes every Forge block released while you're a member.</i> Footer: <i>Membership continues the work.</i><span class="note">Never promise week counts beyond what is authored.</span></span></div>
+    <div class="row"><span class="k">Year container</span><span class="v"><b>A → P4, then D</b> <span class="pill gold">Locked Jul 2026</span><span class="note">Phases 2–4 exist authored and wired; the ladder carries the year, rerun covers post-P4. Record is block-aware end to end. Block 2: <i>Same campaign. Stronger record.</i></span></span></div>
+    <div class="row"><span class="k">Cardio</span><span class="v">Part of the method, not part of the gate. <span class="pill gold">Locked direction</span><span class="note">Prescribed non-blocking days in Sculpt — log completion, never block week close. No FORM crossover, HR engine, or analysis in v1. AUTHOR: modality rotation + floor.</span></span></div>
+    <div class="row"><span class="k">Doctrine</span><span class="v">Results-first, never restraint-first. Honest mechanics allowed; fake, guilt, or random mechanics never.<span class="note">The test: does it help this person get results and want to keep going — honestly?</span></span></div>
+    <div class="row"><span class="k">Decision filter</span><span class="v">Three questions, in order — one never yields to the next:<br>1. <b>Paying athlete veto</b> — finish the campaign and believe the work is building.<br>2. <b>Honest screenshot</b> — a real member's capture sells; appeal from the surface's truth only.<br>3. <b>Acquisition output</b> — feeds proof wall and word of mouth without engagement machinery.<span class="note">Locked Jul 2, 2026 · <code>FORGE_DECISIONS_REGISTER.md</code></span></span></div>
+    <div class="row"><span class="k">Session Room</span><span class="v">Record = full-screen Room + strip. Memory table, one-tap checkbox log, inline chips — not a sheet over Today.<span class="note">Sweaty-hands test on real Shoulder A before Guided merge.</span></span></div>
+    <div class="row"><span class="k">Buyer</span><span class="v">The returning / plateaued intermediate who is done deciding what to train.<span class="note">Circle buys Brice-with-software; stranger buys software against the market. Never confuse their expectations.</span></span></div>
+  </section>
+
+  <section>
+    <div class="sect-head"><span class="eyebrow">The 90-day gates</span><span class="mono" style="font-size:10px;color:var(--dim)">APP STORE LIVE ≠ PAYWALL OPEN</span></div>
+    <div class="gates">
+      <div class="gate done"><div class="dot"></div><div class="g-label">0 Doctrine</div></div><div class="gate-rail"></div>
+      <div class="gate now"><div class="dot"></div><div class="g-label">1 TestFlight</div></div><div class="gate-rail"></div>
+      <div class="gate"><div class="dot"></div><div class="g-label">2 Paid ready</div></div><div class="gate-rail"></div>
+      <div class="gate"><div class="dot"></div><div class="g-label">3–4 Circle</div></div><div class="gate-rail"></div>
+      <div class="gate"><div class="dot"></div><div class="g-label">5 First 10</div></div>
+    </div>
+    <div class="sub" style="font-size:13px">Gate 1 bar: a stranger installs → picks → runs a session → closes, with you not in the room.</div>
+  </section>
+
+  <section>
+    <div class="sect-head"><span class="eyebrow">Critical path — in order</span></div>
+    <div class="warn" style="margin-bottom:14px"><b>100% definition:</b> every surface a paying customer can reach passes the three-question rule, gold budget, type system, and plain voice — verified on glass. Sequence: <b>1 → 3 → 2 → 4/5 → 6</b>. v1.1 waits for ten paid.</div>
+    <ol class="path">
+      <li><div><b>Batch 1 — Glass-verify the staged pile.</b><span class="note">Week, Profile, Guided, movement, the Room, phase close, paywall serif, anvil tint, LOGBOOK label. Nothing new builds until this burns down.</span></div></li>
+      <li><div><b>Batch 2 — The never-passed four.</b><span class="note">Reveal ceremony (full commit-screen treatment), frozen/declined state, empty states pattern, first-run auto-skip walk.</span></div></li>
+      <li><div><b>Batch 3 — Fifteen-minute fixes, one commit.</b> <span class="pill gold">Partial</span><span class="note">Chrome DELETE + confirm, marks relocation + tab cut, LOGBOOK rename, anvil tint, scope flags — shipped. Detail 9→3 accents still open.</span></div></li>
+      <li><div><b>Batch 4 — Glyph family.</b><span class="note">Four template line glyphs, 24×24, anvil line weight. You draw, one hour.</span></div></li>
+      <li><div><b>Batch 5 — Voice sitting.</b><span class="note">~15 sentences: Complete fallback, Block 2, founding, quote, movement ×5, phase-close ×4. Zero placeholder copy after.</span></div></li>
+      <li><div><b>Batch 6 — Apple layer, last.</b><span class="note">ASC products, live legal URLs, Data Not Collected vs final build, 9 QA checks, packet.</span></div></li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="two">
+      <div>
+        <div class="eyebrow quiet" style="margin-bottom:10px">Founding athletes</div>
+        <div class="counter">
+          <span class="num"><span id="foundingN">0</span><span class="cap"> / 25</span></span>
+          <button onclick="bump('foundingN',-1)">−</button><button onclick="bump('foundingN',1)">+</button>
+        </div>
+        <div class="sub" style="font-size:12.5px;margin-top:6px">Surface "N of 25" publicly only after ~10. Single digits read as emptiness, not scarcity.</div>
+      </div>
+      <div>
+        <div class="eyebrow quiet" style="margin-bottom:10px">Proof wall</div>
+        <div class="counter">
+          <span class="num"><span id="proofN">0</span><span class="cap"> / 5</span></span>
+          <button onclick="bump('proofN',-1)">−</button><button onclick="bump('proofN',1)">+</button>
+        </div>
+        <div class="sub" style="font-size:12.5px;margin-top:6px">Receipt-backed proof (before/after + logbook). Reddit closed until 5. Tim is asset one.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sect-head"><span class="eyebrow">Operator decisions — only you</span></div>
+    <label class="check"><input type="checkbox" data-key="d_container" checked><span>Year container: <b>A → P4, then D locked</b><span class="note">Phases 2–4 authored and wired; ladder carries the year; rerun post-P4. Record block-aware end to end.</span></span></label>
+    <label class="check"><input type="checkbox" data-key="d_paywall" checked><span>Paywall + founding promise locked<span class="note">Body: membership continues… every block while you're a member. Founding rate + campaigns during active membership only.</span></span></label>
+    <label class="check"><input type="checkbox" data-key="d_block2" checked><span>Block 2 framing locked<span class="note"><i>Same campaign. Stronger record.</i> Supporting: better numbers, more proof — not starting over.</span></span></label>
+    <label class="check"><input type="checkbox" data-key="d_cardio" checked><span>Cardio spine direction locked<span class="note">Prescribed non-blocking days. Log, never block week close. AUTHOR: modality rotation + floor.</span></span></label>
+    <label class="check"><input type="checkbox" data-key="d_threeq" checked><span>Three-question decision filter adopted <span class="pill gold">Locked</span><span class="note">Paying athlete veto → honest screenshot → acquisition output. <code>FORGE_DECISIONS_REGISTER.md</code></span></span></label>
+    <label class="check"><input type="checkbox" data-key="d_diamonds" checked><span>Diamonds canned <span class="pill gold">Locked</span><span class="note">No diamonds in session chrome or nav. Old Forge hub glyph exits with the tab cut.</span></span></label>
+    <label class="check"><input type="checkbox" data-key="d_forgetab" checked><span>Forge tab canned <span class="pill gold">Locked</span><span class="note">Four tabs: Today · Week · Logbook · You. Marks relocate with the cut — Session Complete → marks sheet, not dead tap.</span></span></label>
+    <label class="check"><input type="checkbox" data-key="d_glyphs"><span>Nav glyph family <span class="pill">Batch 4</span><span class="note">Four template line glyphs, 24×24, anvil line weight — one drawn family, not one mark plus three defaults. Yours to draw.</span></span></label>
+    <label class="check"><input type="checkbox" data-key="d_fallback"><span>Session Complete fallback copy (non–Day 1)<span class="note">"You showed up and handled your business. Keep building." — yours, or replaced by yours.</span></span></label>
+    <label class="check"><input type="checkbox" data-key="d_record"><span>Record mode: default + name<span class="note">Sweaty-hands test first. "Record" collides with "Your record."</span></span></label>
+    <label class="check"><input type="checkbox" data-key="d_register"><span>Founding Register: opt-in, member chooses display name<span class="note">No one named by default. Placement: Profile or Logbook — Forge tab is gone.</span></span></label>
+    <label class="check"><input type="checkbox" data-key="d_quote"><span>Confirm quote authorship: "Discipline over time. Evidence over everything."</span></label>
+    <label class="check"><input type="checkbox" data-key="d_marks"><span>Marks full grid — build or hold<span class="note">Correct default: hold until daily loop feels worth the price.</span></span></label>
+    <label class="check"><input type="checkbox" data-key="d_trustmrr"><span>TrustMRR — flagged, do not act before 10 paid<span class="note">Never add RevenueCat/Superwall/analytics SDK solely for public MRR proof. Update privacy label same day if infra ever changes.</span></span></label>
+  </section>
+
+  <section class="quiet">
+    <div class="sect-head"><span class="eyebrow quiet">Doc reconcile queue</span></div>
+    <label class="check"><input type="checkbox" data-key="r_qa" checked><span>FORGE_PAYWALL_READINESS + FORGE_V1_GATE_QA — motivational copy check reconciled</span></label>
+    <label class="check"><input type="checkbox" data-key="r_packet" checked><span>FORGE_APP_STORE_PACKET_CANONICAL — honesty pass shipped</span></label>
+    <label class="check"><input type="checkbox" data-key="r_ext"><span>06_AGENT_PROMPTS/external/* — restraint-first / "no streaks" framings</span></label>
+    <label class="check"><input type="checkbox" data-key="r_idx"><span>Index parentheticals — "(no gamification)" → "(honest ceremony; no fake rewards)"</span></label>
+    <label class="check"><input type="checkbox" data-key="r_voice"><span>forge_voice_doctrine — narrow streak language to guilt framing only</span></label>
+    <label class="check"><input type="checkbox" data-key="r_arch"><span>07_REFERENCE_ARCHIVE/* — HISTORICAL banners</span></label>
+    <label class="check"><input type="checkbox" data-key="r_v5"><span>visual_experience_doctrine_v5 + GOLD_DISCIPLINE — verify no "less gold = premium"</span></label>
+  </section>
+
+  <section>
+    <div class="sect-head"><span class="eyebrow">Acquisition — three rooms first</span></div>
+    <div class="row"><span class="k">Lane 1 · Circle</span><span class="v">Founding object (print grammar) · opt-in Founding Register · warm-intro = you saying yes</span></div>
+    <div class="row"><span class="k">Lane 2 · Hideout + Village</span><span class="v">One counter card (witness, not persuasion) · monthly Village open session</span></div>
+    <div class="row"><span class="k">Lane 3 · Proof engine</span><span class="v">Before/after + logbook receipt. Consent, approval, revocable.</span></div>
+    <div class="row"><span class="k">Lane 4 · Reddit</span><span class="v">Gated: proof wall = 5 AND packet live. Member 26–100, not 1–25.</span></div>
+  </section>
+
+  <section>
+    <div class="sect-head"><span class="eyebrow">Finances + TrustMRR</span></div>
+    <div class="row"><span class="k">90-day money</span><span class="v">10 founding ≈ $3.5k — proof goal, not revenue goal.</span></div>
+    <div class="row"><span class="k">Year-1 shape</span><span class="v">25 founding ≈ $8.7k ARR floor → member 26–100 via proof wall</span></div>
+    <div class="row"><span class="k">TrustMRR</span><span class="v"><b>Flagged — do not act before 10 paid.</b><span class="note">Verification runs through Stripe / RevenueCat / Superwall. Forge is Apple IAP direct + "Data Not Collected." Adding SDKs for a public MRR badge breaks the honesty doctrine. List post–Gate-5 only if infra already requires it; update privacy label that day.</span></span></div>
+  </section>
+
+  <section class="quiet">
+    <div class="sect-head"><span class="eyebrow quiet">Do not</span></div>
+    <ul class="donot">
+      <li><b>No paid ads.</b> $99/yr CAC math needs proof before any paid channel.</li>
+      <li><b>No Product Hunt.</b> They browse; your buyer trains.</li>
+      <li><b>No influencer seeding.</b> Rents trust.</li>
+      <li><b>No referral machinery yet.</b> Physical world does this job at this scale.</li>
+      <li><b>No cold paywall before the proof wall.</b></li>
+      <li><b>No price panic.</b> Truer Forge, not cheaper Forge.</li>
+      <li><b>No week-count promises beyond what is authored.</b></li>
+      <li><b>No SDK added solely for TrustMRR before 10 paid.</b></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="quote">"Does this make the user more likely to finish the campaign and believe the work is building?"</div>
+    <div class="attr">THE ONLY QUESTION · FORGE_DOCTRINE_LOCK · JUN 30 2026</div>
+  </section>
+
+  <div class="footer">FORGE · SPEED AND FORM · CONSOLE STATE SAVES LOCALLY IN THIS BROWSER</div>
+</div>
+
+<script>
+  const LS = window.localStorage;
+  document.querySelectorAll('label.check input').forEach(cb=>{
+    const k='forge_c_'+cb.dataset.key;
+    if(LS.getItem(k)!==null) cb.checked = LS.getItem(k)==='1';
+    else if(cb.hasAttribute('checked')) cb.checked = true;
+    const sync=()=>{cb.closest('label').classList.toggle('done',cb.checked)};
+    sync();
+    cb.addEventListener('change',()=>{LS.setItem(k,cb.checked?'1':'0');sync()});
+  });
+  ['foundingN','proofN'].forEach(id=>{
+    const el=document.getElementById(id);
+    const k='forge_n_'+id;
+    if(LS.getItem(k)!==null) el.textContent=LS.getItem(k);
+  });
+  function bump(id,d){
+    const el=document.getElementById(id);
+    let n=Math.max(0,(parseInt(el.textContent)||0)+d);
+    if(id==='foundingN') n=Math.min(25,n);
+    el.textContent=n; LS.setItem('forge_n_'+id,n);
+  }
+</script>
+</body>
+</html>
