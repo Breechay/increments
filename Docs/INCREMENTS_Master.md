@@ -2,7 +2,7 @@
 **Version:** Jul 2026 · Operate mode
 **Status:** Active development
 
-**Jul 2026 — Operate mode:** 2-tab shell (`Operate` + `Park`). Morning surface = `OperateTabView` in `OperatePanel.swift` (CASH/DUE/IN + TODAY checklist). Depth tabs reachable via `ParkTabView`. Canonical protocol: `Docs/OPERATE_MODE_ROADMAP.md`.
+**Sep 2026 — Operate mode:** 2-tab shell (`Operate` + `Park`). Morning surface = `OperateTabView` in `OperatePanel.swift` (CASH/DUE/IN + TODAY checklist + a day-aware BODY · MAINTENANCE projection from Rebuilt Athlete Study 002). The maintenance card is execution cueing, not habit tracking: no streaks, no catch-up, no duplicate source of truth. Depth tabs remain reachable via `ParkTabView`. Canonical protocol: `Docs/OPERATE_MODE_ROADMAP.md`.
 
 **Canonical product doctrine (May 2026):** start at [`DOCTRINE_INDEX.md`](DOCTRINE_INDEX.md) — constitution, voice, architecture, design, copy, interaction, signal, content topology. This Master file remains the **engineering** brief (models, intelligence code, file map).
 
