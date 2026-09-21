@@ -2,6 +2,397 @@ import SwiftUI
 import SwiftData
 import Foundation
 
+// MARK: - PHYSICAL · REBUILT ATHLETE FIELD SHEET
+// Prototype 01: Monday only. The study owns the prescription; this surface owns daily execution.
+// Visual grammar: Adrian plan sheet × The Rebuilt Athlete study. No dashboard scores, streaks, or catch-up debt.
+
+struct PhysicalTodayView: View {
+    @Environment(\.appMetrics) private var metrics
+
+    private let paper = Color(red: 0.965, green: 0.956, blue: 0.925)
+    private let canvas = Color(red: 0.925, green: 0.914, blue: 0.875)
+    private let ink = Color(red: 0.075, green: 0.071, blue: 0.060)
+    private let muted = Color(red: 0.40, green: 0.39, blue: 0.35)
+    private let hair = Color(red: 0.81, green: 0.79, blue: 0.73)
+    private let blue = Color(red: 0.18, green: 0.36, blue: 0.55)
+    private let red = Color(red: 0.70, green: 0.18, blue: 0.14)
+
+    private var studyWeek: Int {
+        let cal = Calendar.current
+        guard
+            let start = cal.date(from: DateComponents(year: 2026, month: 9, day: 21)),
+            let days = cal.dateComponents([.day], from: start, to: Date()).day
+        else { return 1 }
+        return min(3, max(1, (days / 7) + 1))
+    }
+
+    private var weekCoordinate: String {
+        "PHASE 00 · WEEK 0\(studyWeek) / 03"
+    }
+
+    var body: some View {
+        ZStack {
+            canvas.ignoresSafeArea()
+
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    fieldSheet
+                }
+                .frame(maxWidth: 760)
+                .padding(.horizontal, metrics.isIPad ? 28 : 0)
+                .padding(.vertical, metrics.isIPad ? 24 : 0)
+            }
+        }
+        .preferredColorScheme(.light)
+    }
+
+    private var fieldSheet: some View {
+        VStack(spacing: 0) {
+            masthead
+            hero
+            summaryStrip
+
+            fieldSection(
+                number: "01",
+                title: "Prep",
+                note: "Foot + hip"
+            ) {
+                prescriptionRow("MOBO", "60–120 sec total")
+                prescriptionRow("Band clamshell", "1–2 × 12–15 / side")
+                prescriptionRow("Bike warm-up", "5–8 min · optional")
+                marginNote("Skill before fatigue. Finish feeling more organized than when you started.")
+            }
+
+            fieldSection(
+                number: "02",
+                title: "Forge",
+                note: "Primary strength"
+            ) {
+                VStack(alignment: .leading, spacing: 7) {
+                    Text("FORGE · PHASE 02")
+                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .tracking(1.2)
+                        .foregroundStyle(blue)
+
+                    Text("Glute Hinge")
+                        .font(.system(size: 27, weight: .bold))
+                        .tracking(-0.8)
+                        .foregroundStyle(ink)
+
+                    Text("Forge owns sets, reps, load and filing. INCREMENTS only tells you where this session belongs in the day.")
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundStyle(muted)
+                        .lineSpacing(3)
+                        .padding(.top, 2)
+                }
+                .padding(.vertical, 8)
+            }
+
+            fieldSection(
+                number: "03",
+                title: "Engine",
+                note: "Aerobic support"
+            ) {
+                prescriptionRow("Stationary bike", "25 min")
+                prescriptionRow("Effort", "Easy · RPE 2–3")
+                marginNote("Add aerobic work without another running exposure. This is not a second leg session.")
+            }
+
+            fieldSection(
+                number: "04",
+                title: "Fuel",
+                note: "Recover + stay available"
+            ) {
+                prescriptionRow("After training", "Chocolate milk")
+                prescriptionRow("Protein", "Powder if food leaves a gap")
+                prescriptionRow("Through the day", "5–7 small feedings")
+                marginNote("Keep carbohydrate available before energy falls off. The goal is usable energy, not a perfect meal schedule.")
+            }
+
+            fieldSection(
+                number: "05",
+                title: "Throughout the day",
+                note: "Movement play"
+            ) {
+                opportunityRow("After a long seated block", "Stand + walk 2–5 min")
+                opportunityRow("If MOBO was skipped", "60–90 sec when the brain is fresh")
+                opportunityRow("If hips / ankles feel stale", "Ankle rocks · easy 90/90 switches")
+                opportunityRow("Changing work modes", "Walk outside when the opening appears")
+
+                Text("OPPORTUNITIES, NOT OBLIGATIONS.")
+                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .tracking(1.0)
+                    .foregroundStyle(red)
+                    .padding(.top, 10)
+            }
+
+            fieldSection(
+                number: "06",
+                title: "Human",
+                note: "Practice"
+            ) {
+                prescriptionRow("Morning pages", "20 min")
+                prescriptionRow("Zazen", "10 min")
+                prescriptionRow("Yin / Ashtanga", "Open · if wanted")
+                marginNote("The Rebuilt Athlete is not a fitness-only experiment. The body, attention and practice have to coexist.")
+            }
+
+            completionBlock
+            footer
+        }
+        .background(paper)
+        .clipShape(RoundedRectangle(cornerRadius: metrics.isIPad ? 22 : 0, style: .continuous))
+        .overlay {
+            if metrics.isIPad {
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .stroke(hair.opacity(0.7), lineWidth: 0.7)
+            }
+        }
+    }
+
+    private var masthead: some View {
+        HStack(alignment: .center) {
+            Text("FORM.")
+                .font(.system(size: 13, weight: .black))
+                .tracking(1.5)
+                .foregroundStyle(ink)
+
+            Spacer()
+
+            Text("FRM-002")
+                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                .tracking(1.0)
+                .foregroundStyle(muted)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 21)
+        .padding(.bottom, 12)
+    }
+
+    private var hero: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Text("MONDAY · DAY 01")
+                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                    .tracking(1.0)
+                    .foregroundStyle(muted)
+
+                Spacer()
+
+                Text(weekCoordinate)
+                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .tracking(0.8)
+                    .foregroundStyle(blue)
+            }
+            .padding(.bottom, 17)
+
+            Text("HINGE")
+                .font(.system(size: metrics.isIPad ? 72 : 54, weight: .black))
+                .tracking(-3.0)
+                .foregroundStyle(ink)
+                .minimumScaleFactor(0.8)
+
+            Text("+ BIKE.")
+                .font(.system(size: metrics.isIPad ? 72 : 54, weight: .black))
+                .tracking(-3.0)
+                .foregroundStyle(ink)
+                .minimumScaleFactor(0.8)
+
+            Text("Build the posterior chain. Keep the aerobic work easy. Organize the foot and hip before load.")
+                .font(.system(size: 15, weight: .regular))
+                .foregroundStyle(Color(red: 0.20, green: 0.19, blue: 0.17))
+                .lineSpacing(4)
+                .padding(.top, 18)
+                .frame(maxWidth: 520, alignment: .leading)
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 27)
+        .padding(.bottom, 28)
+        .overlay(alignment: .bottom) {
+            hairline
+        }
+    }
+
+    private var summaryStrip: some View {
+        HStack(spacing: 0) {
+            summaryCell(value: "HINGE", label: "Forge P2")
+            verticalHairline
+            summaryCell(value: "25 MIN", label: "Easy bike")
+            verticalHairline
+            summaryCell(value: "NO RUN", label: "Today")
+        }
+        .frame(minHeight: 72)
+        .overlay(alignment: .bottom) {
+            hairline
+        }
+    }
+
+    private func summaryCell(value: String, label: String) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(value)
+                .font(.system(size: 15, weight: .bold))
+                .tracking(-0.4)
+                .foregroundStyle(ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+
+            Text(label.uppercased())
+                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                .tracking(0.9)
+                .foregroundStyle(muted)
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 13)
+        .padding(.vertical, 15)
+    }
+
+    private func fieldSection<Content: View>(
+        number: String,
+        title: String,
+        note: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .bottom, spacing: 14) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(number)
+                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .tracking(1.0)
+                        .foregroundStyle(muted)
+
+                    Text(title)
+                        .font(.system(size: 27, weight: .bold))
+                        .tracking(-1.0)
+                        .foregroundStyle(ink)
+                }
+
+                Spacer()
+
+                Text(note)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(muted)
+                    .multilineTextAlignment(.trailing)
+            }
+            .padding(.bottom, 15)
+
+            content()
+        }
+        .padding(.horizontal, 20)
+        .padding(.top, 25)
+        .padding(.bottom, 21)
+        .overlay(alignment: .bottom) {
+            hairline
+        }
+    }
+
+    private func prescriptionRow(_ name: String, _ dose: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 16) {
+            Text(name)
+                .font(.system(size: 15, weight: .regular))
+                .foregroundStyle(ink)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Text(dose)
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(ink)
+                .multilineTextAlignment(.trailing)
+        }
+        .padding(.vertical, 11)
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(hair.opacity(0.65))
+                .frame(height: 0.5)
+        }
+    }
+
+    private func opportunityRow(_ moment: String, _ move: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(moment.uppercased())
+                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                .tracking(0.8)
+                .foregroundStyle(muted)
+
+            Text(move)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(ink)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 11)
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(hair.opacity(0.65))
+                .frame(height: 0.5)
+        }
+    }
+
+    private func marginNote(_ text: String) -> some View {
+        HStack(alignment: .top, spacing: 9) {
+            Rectangle()
+                .fill(blue.opacity(0.8))
+                .frame(width: 2)
+
+            Text(text)
+                .font(.system(size: 12, weight: .regular))
+                .foregroundStyle(muted)
+                .lineSpacing(3)
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.top, 11)
+    }
+
+    private var completionBlock: some View {
+        VStack(alignment: .leading, spacing: 9) {
+            Text("TODAY IS COMPLETE WHEN")
+                .font(.system(size: 10, weight: .bold, design: .monospaced))
+                .tracking(1.1)
+                .foregroundStyle(red)
+
+            Text("Hinge + bike are done.")
+                .font(.system(size: 23, weight: .bold))
+                .tracking(-0.7)
+                .foregroundStyle(ink)
+
+            Text("Prep, fueling, movement play and human practice support the day. They do not become debt.")
+                .font(.system(size: 13, weight: .regular))
+                .foregroundStyle(muted)
+                .lineSpacing(3)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 24)
+        .background(Color.white.opacity(0.22))
+        .overlay(alignment: .bottom) {
+            hairline
+        }
+    }
+
+    private var footer: some View {
+        HStack {
+            Text("THE REBUILT ATHLETE")
+            Spacer()
+            Text("MONDAY · FIELD SHEET 01")
+        }
+        .font(.system(size: 9, weight: .bold, design: .monospaced))
+        .tracking(0.8)
+        .foregroundStyle(muted)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 18)
+    }
+
+    private var hairline: some View {
+        Rectangle()
+            .fill(hair)
+            .frame(height: 0.6)
+    }
+
+    private var verticalHairline: some View {
+        Rectangle()
+            .fill(hair)
+            .frame(width: 0.6)
+            .padding(.vertical, 12)
+    }
+}
+
 // MARK: - PHYSIQUE TAB — Body Architecture Lab
 // Athletic coherence, not muscular accumulation. Economy of mass.
 // Canonical agent brief: FORM-iOS/docs/BRICE_OS/BRICE_PHYSIQUE_AGENT_BRIEF.md
