@@ -160,6 +160,46 @@ struct OperateTabView: View {
     private var reviewCount: Int { OperateParsing.reviewHistory(from: weeklyReviewHistory).count }
     private static let reviewGateTarget = 4
 
+    private var bodyMaintenance: (anchor: String, between: String) {
+        switch Calendar.current.component(.weekday, from: Date()) {
+        case 2:
+            return (
+                "PRE HINGE · MOBO 60–120 sec total + band clamshells 1–2 × 12–15 / side. POST · easy bike.",
+                "BETWEEN WORK · stand + walk 2–5 min. MOBO can live in a fresh-brain break if not done pre-lift."
+            )
+        case 3:
+            return (
+                "RUN DAY · 6-min prep with short MOBO. POST · 2–3 min walk + plantar ball 60 sec / foot. Later: short-lever Copenhagen 2 × 20 sec / side.",
+                "BETWEEN WORK · movement is the default break. Walk, ankle rocks, or easy floor mobility."
+            )
+        case 4:
+            return (
+                "PRE THRUST · MOBO 60–120 sec total. POST · easy elliptical.",
+                "BETWEEN WORK · stand + walk 2–5 min. No extra lower-leg loading needed."
+            )
+        case 5:
+            return (
+                "OPTIONAL RUN · use the run prep without required MOBO. POST PULL · short-lever Copenhagen 2 × 20 sec / side.",
+                "BETWEEN WORK · walk + ankle motion. A skipped optional run does not create makeup cardio."
+            )
+        case 6:
+            return (
+                "PRE LOWER · MOBO 60–120 sec total + band clamshells 1–2 × 12–15 / side. POST · easy bike.",
+                "BETWEEN WORK · stand + walk 2–5 min. Keep the feet fresh for Saturday."
+            )
+        case 7:
+            return (
+                "LONG RUN DAY · 6-min prep with short MOBO. POST · walk + plantar ball + gentle calf foam roll, avoiding the tibia / fracture site.",
+                "BETWEEN WORK · easy walking only if the lower leg wants it. Full Upper later."
+            )
+        default:
+            return (
+                "RESTORE · 8–10 min: plantar ball · gentle calf foam roll · ankle rocks · easy 90/90 hip switches.",
+                "ACTIVE LIFE · walk, Yin or Ashtanga as wanted. Sunday does not need to become another workout."
+            )
+        }
+    }
+
     private var doneIndices: Set<Int> {
         guard todayDoneDate == OperateParsing.dayStamp() else { return [] }
         return Set(
@@ -176,6 +216,7 @@ struct OperateTabView: View {
                 VStack(alignment: .leading, spacing: metrics.operateSectionGap) {
                     headerBlock
                     todayBlock
+                    bodyMaintenanceBlock
                     moneyStrip
                     if let firstIN, !firstIN.isEmpty { inActionBlock(firstIN) }
                     editToggle
@@ -273,6 +314,35 @@ struct OperateTabView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+
+    private var bodyMaintenanceBlock: some View {
+        VStack(alignment: .leading, spacing: metrics.scaledSize(10)) {
+            HStack(spacing: metrics.scaledSize(8)) {
+                MonoLabel(text: "BODY · MAINTENANCE", color: .inkTeal, size: metrics.operateMonoSize)
+                Spacer()
+                MonoLabel(text: "STUDY 002", color: .textMuted, size: metrics.operateMonoSize)
+            }
+            Text(bodyMaintenance.anchor)
+                .font(metrics.fontSora(metrics.operateBodySize, weight: .medium))
+                .foregroundColor(.textPrimary)
+                .lineSpacing(metrics.scaledSize(4))
+            Text(bodyMaintenance.between)
+                .font(metrics.fontSora(metrics.operateCaptionSize, weight: .light))
+                .foregroundColor(.textSecond)
+                .lineSpacing(metrics.scaledSize(3))
+            Text("No streak. No catch-up. Small repeatable doses.")
+                .font(metrics.fontMono(metrics.operateMonoSize))
+                .foregroundColor(.textMuted)
+        }
+        .padding(metrics.operateCardPad)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.inkTeal.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: metrics.cardRadius, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: metrics.cardRadius, style: .continuous)
+                .strokeBorder(Color.inkTeal.opacity(0.18), lineWidth: 0.5)
+        )
     }
 
     private var moneyStrip: some View {
