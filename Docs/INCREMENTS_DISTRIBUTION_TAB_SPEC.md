@@ -94,6 +94,8 @@ final class DecisionLedger {
 
 **Mid-week capture (Tue–Sun):** Persistent field on Signal tab below Monday stamp — venture selector, one line, ADD. No edit after add. **FORM:** after Threshold Tuesdays (Tue/Wed) or Saturday Long Runs (Sat/Sun) — see `DISTRIBUTION_OPERATING_SYSTEM.md` §Threshold Tuesdays · §Saturday Long Runs.
 
+**Monday consequence review (pointer):** After plant/log, ask the eight Dist OS weekly consequence questions when a decision might change — record material learning in `FORM-iOS/docs/BRICE_OS/DISTRIBUTION_EXPERIMENT_LEDGER.md`. Do not invent a second ritual.
+
 **Monday pull:** Step 6 shows most recent unused entry for this week's venture. Confirm or replace. If none, blank field (bounded judgment).
 
 Week auto-create: `DistributionWeek` for Monday of current week on first tab load if missing.
