@@ -28,7 +28,7 @@ enum ParkDestination: String, Hashable, CaseIterable {
         case .hideout: return "Hideout"
         case .signal: return "Signal"
         case .you: return "You"
-        case .physique: return "Physique"
+        case .physique: return "Physical"
         case .recovery: return "Recovery"
         case .capital: return "Capital"
         case .now: return "Now"
@@ -41,7 +41,7 @@ enum ParkDestination: String, Hashable, CaseIterable {
         case .hideout: return "Venue · shift · playbook"
         case .signal: return "Distribution · plant · log"
         case .you: return "Evening read · doctrine · ventures"
-        case .physique: return "Program · cut · reference"
+        case .physique: return "Rebuilt Athlete · today's field sheet"
         case .recovery: return "Constraints · return path"
         case .capital: return "Runway · reserves · housing"
         case .now: return "Legacy orientation · context cards"
@@ -630,7 +630,7 @@ struct ParkTabView: View {
         case .hideout: HideoutTabView()
         case .signal: SignalTabView()
         case .you: YouView(state: state)
-        case .physique: PhysiqueTabView()
+        case .physique: PhysicalTodayView()
         case .recovery: RecoveryTabView()
         case .capital: CapitalTabView()
         case .now: HomeView(state: state)
